@@ -7,7 +7,7 @@ import bodyParser from "body-parser";
 import dotenv from "dotenv";
 import fetch from "node-fetch"; // for API calls
 import vision from "@google-cloud/vision";
-import { searchComplex, searchByNutrients, addDetailsRecipeList } from "../FYP-app/src/api/spoonacular.js";
+import { searchComplex, searchByNutrients, addDetailsRecipeList } from "./spoonacular.js";
 import activitiesData from './activitiesData.js';
 
 // Load service account

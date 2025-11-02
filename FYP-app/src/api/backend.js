@@ -1,54 +1,49 @@
-// backend.js
 import axios from "axios";
 import Constants from "expo-constants";
 
 const getBaseURL = () => {
-  // Check if we're in Expo Go (development)
+  // Development mode (Expo Go)
   if (Constants.expoConfig?.hostUri) {
     const host = Constants.expoConfig.hostUri.split(":").shift();
     return `http://${host}:5000`;
   }
   
-  // Check for environment-specific URL from app.config.js or eas.json
-  if (Constants.expoConfig?.extra?.apiUrl) {
-    return Constants.expoConfig.extra.apiUrl;
-  }
-  
-  // For EAS builds, use your production/preview backend URL
-  // REPLACE THIS with your actual backend URL
-  if (__DEV__) {
-    return "http://localhost:5000"; // Development fallback
-  }
-  
-  // For production builds - YOU NEED TO SET THIS
-  return "https://your-backend-url.com"; // <-- CHANGE THIS
+  // Production/Preview builds - Your Render URL
+  return "https://fyp-0rqn.onrender.com";
 };
 
 const API = axios.create({
   baseURL: getBaseURL(),
-  timeout: 10000, // Add timeout
+  timeout: 60000, // 60 seconds for cold starts
 });
 
-// Add request interceptor for debugging
+// Request interceptor
 API.interceptors.request.use(
   (config) => {
-    console.log(`Making request to: ${config.baseURL}${config.url}`);
+    console.log(`📡 API Request: ${config.method.toUpperCase()} ${config.baseURL}${config.url}`);
     return config;
   },
   (error) => {
-    console.error("Request error:", error);
+    console.error("❌ Request error:", error.message);
     return Promise.reject(error);
   }
 );
 
-// Add response interceptor for debugging
+// Response interceptor
 API.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    console.log(`✅ Response received: ${response.status}`);
+    return response;
+  },
   (error) => {
-    console.error("API Error:", error.message);
-    if (error.response) {
-      console.error("Response data:", error.response.data);
-      console.error("Response status:", error.response.status);
+    if (error.code === 'ECONNABORTED') {
+      console.error("⏱️ Timeout - backend might be waking up");
+    } else if (error.response) {
+      console.error(`❌ Error ${error.response.status}:`, error.response.data);
+    } else if (error.request) {
+      console.error("❌ No response - check if backend is running");
+    } else {
+      console.error("❌ Error:", error.message);
     }
     return Promise.reject(error);
   }

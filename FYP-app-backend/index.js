@@ -11,10 +11,25 @@ import { searchComplex, searchByNutrients, addDetailsRecipeList } from "./spoona
 import activitiesData from './activitiesData.js';
 
 // Load service account
-const serviceAccount = JSON.parse(
-  fs.readFileSync("./serviceAccount.json", "utf8")
-);
+// Load service account from environment variable or file
+let serviceAccount;
 
+if (process.env.FIREBASE_SERVICE_ACCOUNT) {
+  // Production: Use environment variable
+  console.log("📦 Loading Firebase credentials from environment variable");
+  serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+} else if (fs.existsSync("./serviceAccount.json")) {
+  // Development: Use local file
+  console.log("📦 Loading Firebase credentials from serviceAccount.json");
+  serviceAccount = JSON.parse(fs.readFileSync("./serviceAccount.json", "utf8"));
+} else if (fs.existsSync("./google-vision-key.json")) {
+  // Alternative file name
+  console.log("📦 Loading Firebase credentials from google-vision-key.json");
+  serviceAccount = JSON.parse(fs.readFileSync("./google-vision-key.json", "utf8"));
+} else {
+  console.error("❌ No Firebase service account found!");
+  process.exit(1);
+}
 // Initialize Firebase Admin
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
@@ -4394,7 +4409,10 @@ app.post("/submit-review", async (req, res) => {
 });
 
 
+// Start server
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`API listening on http://localhost:${PORT}`);
+
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`✅ Server running on port ${PORT}`);
+  console.log(`📍 Environment: ${process.env.NODE_ENV || 'development'}`);
 });

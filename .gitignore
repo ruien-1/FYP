@@ -1,0 +1,10 @@
+﻿@"
+node_modules/
+.env
+serviceAccount.json
+google-vision-key.json
+*.log
+.DS_Store
+FYP-app-backend/.env
+FYP-app-backend/serviceAccount.json
+FYP-app-backend/google-vision-key.json

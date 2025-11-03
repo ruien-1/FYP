@@ -9,6 +9,7 @@ import {
   Image,
   TextInput,
   ScrollView,
+  Platform,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation, useRoute, useFocusEffect } from "@react-navigation/native";
@@ -47,7 +48,6 @@ export default function RecipeList() {
   const [modalType, setModalType] = useState("add");
   const [myRecipes, setMyRecipes] = useState([]);
   const [baseCategoryFilter, setBaseCategoryFilter] = useState(null);
-
 
   const [filterOptions, setFilterOptions] = useState({
     popular: [],
@@ -99,29 +99,27 @@ export default function RecipeList() {
     }, [])
   );
 
-
   // Auto-select filter based on chosen category
-useEffect(() => {
-  if (category) {
-    let baseFilter = null;
+  useEffect(() => {
+    if (category) {
+      let baseFilter = null;
 
-    if (category.filterType === "diet") {
-      baseFilter = { diets: [category.filterValue] };
-    } else if (category.filterType === "intolerances") {
-      baseFilter = { intolerances: [category.filterValue] };
-    } else if (category.filterType === "type") {
-      baseFilter = { popular: [category.filterValue] };
+      if (category.filterType === "diet") {
+        baseFilter = { diets: [category.filterValue] };
+      } else if (category.filterType === "intolerances") {
+        baseFilter = { intolerances: [category.filterValue] };
+      } else if (category.filterType === "type") {
+        baseFilter = { popular: [category.filterValue] };
+      }
+
+      setBaseCategoryFilter(baseFilter);
+
+      setSelectedFilters((prev) => ({
+        ...prev,
+        ...baseFilter,
+      }));
     }
-
-    setBaseCategoryFilter(baseFilter);
-
-    setSelectedFilters((prev) => ({
-      ...prev,
-      ...baseFilter, // ensure category is always there
-    }));
-  }
-}, [category]);
-
+  }, [category]);
 
   //fetch favorites from firestore
   const fetchFavorites = async () => {
@@ -204,7 +202,7 @@ useEffect(() => {
   if (loading) {
     return (
       <SafeAreaView style={styles.center}>
-        <ActivityIndicator size="large" color="#000" />
+        <ActivityIndicator size="large" color="#4A90E2" />
       </SafeAreaView>
     );
   }
@@ -224,13 +222,12 @@ useEffect(() => {
     : filteredRecipes.slice(0, 10);
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={styles.safeArea} edges={['top']}>
       {successMessage ? (
         <View style={styles.toastMessageBox}>
           <Text style={styles.toastMessageText}>{successMessage}</Text>
         </View>
       ) : null}
-
 
       <FilterModal
         visible={filterModalVisible}
@@ -257,37 +254,46 @@ useEffect(() => {
         data={displayRecipes}
         keyExtractor={(item) => item.id.toString()}
         numColumns={2}
-        columnWrapperStyle={{ justifyContent: "space-between" }}
+        columnWrapperStyle={styles.columnWrapper}
         contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
         ListHeaderComponent={
           <>
+            {/* Header */}
             <View style={styles.headerRow}>
               <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-                <Ionicons name="chevron-back" size={24} color="#000" />
+                <Ionicons name="chevron-back" size={26} color="#333" />
               </TouchableOpacity>
               <Text style={styles.headerTitle}>Recipes</Text>
-              <View style={{ width: 24 }} />
+              <View style={styles.headerSpacer} />
             </View>
 
+            {/* Search and Filter */}
             <View style={styles.topRow}>
               <View style={styles.searchContainer}>
-                <Ionicons name="search-outline" size={18} color="#888" style={{ marginHorizontal: 6 }} />
+                <Ionicons name="search-outline" size={20} color="#888" />
                 <TextInput
                   style={styles.searchInput}
-                  placeholder="Search"  
+                  placeholder="Search recipes..."  
                   value={search}
                   onChangeText={setSearch}
+                  placeholderTextColor="#999"
                 />
               </View>
               <TouchableOpacity style={styles.filterBtn} onPress={() => setFilterModalVisible(true)}>
-                <Ionicons name="filter-outline" size={18} color="#000" />
+                <Ionicons name="filter-outline" size={20} color="#333" />
                 <Text style={styles.filterText}>Filter</Text>
               </TouchableOpacity>
             </View>
 
+            {/* Action Buttons */}
             <View style={styles.actionRow}>
-              <TouchableOpacity style={styles.actionBtn} onPress={() => navigation.navigate("FavRecipes")}>
-                <Text>⭐ Favorites</Text>
+              <TouchableOpacity 
+                style={styles.actionBtn} 
+                onPress={() => navigation.navigate("FavRecipes")}
+              >
+                <Ionicons name="star" size={18} color="#FFD700" />
+                <Text style={styles.actionBtnText}>Favorites</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
@@ -297,7 +303,8 @@ useEffect(() => {
                   setCustomModalVisible(true);
                 }}
               >
-                <Text>＋ Add Recipe</Text>
+                <Ionicons name="add-circle-outline" size={18} color="#4A90E2" />
+                <Text style={styles.actionBtnText}>Add Recipe</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
@@ -307,14 +314,18 @@ useEffect(() => {
                   setCustomModalVisible(true);
                 }}
               >
-                <Text>📖 My Recipes</Text>
+                <Ionicons name="book-outline" size={18} color="#4A90E2" />
+                <Text style={styles.actionBtnText}>My Recipes</Text>
               </TouchableOpacity>
             </View>
 
+            {/* Section Title and Filters */}
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>
-                {filteredResults ? "Filtered Results:" : (category?.label || category?.category || "Recipes")}
-              </Text>
+              <View style={styles.sectionTitleRow}>
+                <Text style={styles.sectionTitle}>
+                  {filteredResults ? "Filtered Results" : (category?.label || category?.category || "Recipes")}
+                </Text>
+              </View>
 
               {filteredResults && (
                 <View style={styles.filterPillsContainer}>
@@ -323,27 +334,27 @@ useEffect(() => {
                     showsHorizontalScrollIndicator={false}
                     contentContainerStyle={styles.filterPillsScroll}
                   >
-{selectedFilters.popular
-  .filter((filter) => !(baseCategoryFilter?.popular || []).includes(filter))
-  .map((filter) => (
-    <View key={`pill-popular-${filter}`} style={styles.filterPill}>
-      <Text style={styles.filterPillText}>{filter}</Text>
-    </View>
-))}
-{selectedFilters.diets
-  .filter((diet) => !(baseCategoryFilter?.diets || []).includes(diet))
-  .map((diet) => (
-    <View key={`pill-diet-${diet}`} style={styles.filterPill}>
-      <Text style={styles.filterPillText}>{diet}</Text>
-    </View>
-))}
-{selectedFilters.intolerances
-  .filter((intol) => !(baseCategoryFilter?.intolerances || []).includes(intol))
-  .map((intol) => (
-    <View key={`pill-intol-${intol}`} style={styles.filterPill}>
-      <Text style={styles.filterPillText}>{intol}</Text>
-    </View>
-))}
+                    {selectedFilters.popular
+                      .filter((filter) => !(baseCategoryFilter?.popular || []).includes(filter))
+                      .map((filter) => (
+                        <View key={`pill-popular-${filter}`} style={styles.filterPill}>
+                          <Text style={styles.filterPillText}>{filter}</Text>
+                        </View>
+                    ))}
+                    {selectedFilters.diets
+                      .filter((diet) => !(baseCategoryFilter?.diets || []).includes(diet))
+                      .map((diet) => (
+                        <View key={`pill-diet-${diet}`} style={styles.filterPill}>
+                          <Text style={styles.filterPillText}>{diet}</Text>
+                        </View>
+                    ))}
+                    {selectedFilters.intolerances
+                      .filter((intol) => !(baseCategoryFilter?.intolerances || []).includes(intol))
+                      .map((intol) => (
+                        <View key={`pill-intol-${intol}`} style={styles.filterPill}>
+                          <Text style={styles.filterPillText}>{intol}</Text>
+                        </View>
+                    ))}
 
                     {(selectedFilters.calories.min || selectedFilters.calories.max) && (
                       <View style={styles.filterPill}>
@@ -375,53 +386,51 @@ useEffect(() => {
                     >
                       <Text style={styles.clearFiltersBtnText}>Clear All</Text>
                     </TouchableOpacity>
-
                   </ScrollView>
                 </View>
               )}
 
-              <View style={{ alignItems: "flex-end" }}>
-                <TouchableOpacity
-                  style={styles.seeAllBtn}
-                  onPress={() => {
-                    let allRecipes = [];
-                    
-                    if (searchedFilteredResults) {
-                      const recipes = Object.values(searchedFilteredResults).flat();
-                      const seen = new Set();
-                      allRecipes = recipes.filter(recipe => {
-                        if (seen.has(recipe.id)) return false;
-                        seen.add(recipe.id);
-                        return true;
-                      });
-                    } else {
-                      allRecipes = filteredRecipes;
-                    }
-
-                    const displayedIds = new Set(displayRecipes.map(r => r.id));
-                    const remainingRecipes = allRecipes.filter(r => !displayedIds.has(r.id));
-
-                    console.log(`Total recipes: ${allRecipes.length}, Displayed: ${displayRecipes.length}, Remaining: ${remainingRecipes.length}`);
-
-                    navigation.navigate("ViewMoreRecipes", {
-                      allRecipes: remainingRecipes,
-                      category,
-                      fromFilter: !!searchedFilteredResults,
-                      sectionName: searchedFilteredResults 
-                        ? Object.keys(searchedFilteredResults)[0] 
-                        : null,
+              <TouchableOpacity
+                style={styles.seeAllBtn}
+                onPress={() => {
+                  let allRecipes = [];
+                  
+                  if (searchedFilteredResults) {
+                    const recipes = Object.values(searchedFilteredResults).flat();
+                    const seen = new Set();
+                    allRecipes = recipes.filter(recipe => {
+                      if (seen.has(recipe.id)) return false;
+                      seen.add(recipe.id);
+                      return true;
                     });
-                  }}
-                >
-                  <Text style={styles.seeAllText}>See All Recipes →</Text>
-                </TouchableOpacity>
-              </View>
+                  } else {
+                    allRecipes = filteredRecipes;
+                  }
+
+                  const displayedIds = new Set(displayRecipes.map(r => r.id));
+                  const remainingRecipes = allRecipes.filter(r => !displayedIds.has(r.id));
+
+                  navigation.navigate("ViewMoreRecipes", {
+                    allRecipes: remainingRecipes,
+                    category,
+                    fromFilter: !!searchedFilteredResults,
+                    sectionName: searchedFilteredResults 
+                      ? Object.keys(searchedFilteredResults)[0] 
+                      : null,
+                  });
+                }}
+              >
+                <Text style={styles.seeAllText}>See All Recipes →</Text>
+              </TouchableOpacity>
             </View>
           </>
         }
         renderItem={({ item }) => (
-          <View style={[styles.card, { width: "48%" }]}>
-            <TouchableOpacity onPress={() => navigation.navigate("RecipeDetail", { id: item.id })}>
+          <View style={styles.card}>
+            <TouchableOpacity 
+              onPress={() => navigation.navigate("RecipeDetail", { id: item.id })}
+              activeOpacity={0.8}
+            >
               {item.image ? (
                 <Image source={{ uri: item.image }} style={styles.image} />
               ) : (
@@ -430,42 +439,65 @@ useEffect(() => {
                 </View>
               )}
             </TouchableOpacity>
-            <View style={styles.actionsRow}>
-              <TouchableOpacity style={styles.actionButton} onPress={() => toggleFavorite(item)}>
-                <Ionicons
-                  name={favorites[item.id] ? "star" : "star-outline"}
-                  size={18}
-                  color={favorites[item.id] ? "#FFD700" : "#333"}
-                />
-                <Text style={styles.actionText}>
-                  {favorites[item.id] ? "Favorited" : "Favorite"}
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.actionButton}
-                onPress={() => {
-                  setSelectedRecipe(item);
-                  setLogModalVisible(true);
-                }}
-              >
-                <Ionicons name="restaurant-outline" size={18} color="#333" />
-                <Text style={styles.actionText}>Log to Diary</Text>
-              </TouchableOpacity>
-            </View>
-            <View style={styles.info}>
+
+            {/* Card Content */}
+            <View style={styles.cardContent}>
               <Text style={styles.cardTitle} numberOfLines={2}>{item.title}</Text>
-              <View style={styles.row}>
-                <Text style={styles.meta}>{item.calories || 0} kcal</Text>
-                <Text style={styles.meta}>{item.readyInMinutes || 0} min</Text>
+              
+              <View style={styles.metaRow}>
+                <View style={styles.metaItem}>
+                  <Ionicons name="flame-outline" size={14} color="#FF6B6B" />
+                  <Text style={styles.metaText}>{item.calories || 0} kcal</Text>
+                </View>
+                <View style={styles.metaItem}>
+                  <Ionicons name="time-outline" size={14} color="#4A90E2" />
+                  <Text style={styles.metaText}>{item.readyInMinutes || 0} min</Text>
+                </View>
+              </View>
+
+              {/* Action Buttons */}
+              <View style={styles.cardActions}>
+                <TouchableOpacity 
+                  style={styles.cardActionBtn} 
+                  onPress={() => toggleFavorite(item)}
+                  activeOpacity={0.7}
+                >
+                  <Ionicons
+                    name={favorites[item.id] ? "star" : "star-outline"}
+                    size={18}
+                    color={favorites[item.id] ? "#FFD700" : "#666"}
+                  />
+                  <Text style={[
+                    styles.cardActionText,
+                    favorites[item.id] && styles.cardActionTextActive
+                  ]}>
+                    {favorites[item.id] ? "Saved" : "Save"}
+                  </Text>
+                </TouchableOpacity>
+
+                <View style={styles.cardActionDivider} />
+
+                <TouchableOpacity
+                  style={styles.cardActionBtn}
+                  onPress={() => {
+                    setSelectedRecipe(item);
+                    setLogModalVisible(true);
+                  }}
+                  activeOpacity={0.7}
+                >
+                  <Ionicons name="add-circle-outline" size={18} color="#4A90E2" />
+                  <Text style={styles.cardActionText}>Log</Text>
+                </TouchableOpacity>
               </View>
             </View>
           </View>
         )}
         ListEmptyComponent={
           <View style={styles.noRecipesContainer}>
-            <Text style={styles.noRecipesText}>No recipes found.</Text>
+            <Ionicons name="restaurant-outline" size={60} color="#CCC" />
+            <Text style={styles.noRecipesText}>No recipes found</Text>
             <Text style={styles.noRecipesSubtext}>
-              Try adjusting your search or category selection.
+              Try adjusting your search or filters
             </Text>
           </View>
         }
@@ -482,64 +514,341 @@ useEffect(() => {
 }
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: "#E8F0FF" },
-  scrollContent: { padding: 12 },
-  center: { flex: 1, justifyContent: "center", alignItems: "center" },
-  headerRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 12 },
-  backButton: { padding: 4 },
-  headerTitle: { flex: 1, textAlign: "center", fontSize: 30, fontWeight: "bold", color: "#000" },
-  topRow: { flexDirection: "row", marginBottom: 12, alignItems: "center" },
-  searchContainer: { flex: 1, flexDirection: "row", alignItems: "center", backgroundColor: "#fff", borderWidth: 1, borderColor: "#ddd", borderRadius: 10, paddingHorizontal: 4 },
-  searchInput: { flex: 1, paddingVertical: 8, paddingHorizontal: 4 },
-  filterBtn: { flexDirection: "row", alignItems: "center", marginLeft: 10, backgroundColor: "#fff", borderRadius: 10, paddingHorizontal: 12, paddingVertical: 8, elevation: 2 },
-  filterText: { marginLeft: 6, fontSize: 14, fontWeight: "500" },
-  actionRow: { flexDirection: "row", marginBottom: 16, flexWrap: "wrap" },
-  actionBtn: { flex: 1, padding: 10, margin: 4, borderRadius: 8, backgroundColor: "#fff", alignItems: "center", elevation: 1 },
-  section: { marginBottom: 20 },
-  sectionHeader: { flexDirection: "row", justifyContent: "space-between", marginBottom: 8},
-  sectionTitle: { marginTop: 15, fontSize: 30, fontWeight: "bold" },
-  seeAllBtn: { marginTop: 0},
-  seeAllText: { color: "#007bff", fontSize: 15, fontWeight: "500" },
-  card: { marginBottom: 16, backgroundColor: "#fff", borderRadius: 16, overflow: "hidden", elevation: 3 },
-  image: { width: "100%", height: 120, borderTopLeftRadius: 16, borderTopRightRadius: 16 },
-  placeholderImage: { width: "100%", height: 120, backgroundColor: "#f0f0f0", justifyContent: "center", alignItems: "center" },
-  placeholderText: { fontSize: 40 },
-  info: { paddingHorizontal: 10, paddingTop: 6, paddingBottom: 8, backgroundColor: "#fff" },
-  cardTitle: { fontSize: 14, fontWeight: "600", marginBottom: 4, color: "#222" },
-  row: { flexDirection: "row", justifyContent: "space-between" },
-  meta: { fontSize: 12, color: "#666" },
-  actionsRow: { flexDirection: "row", justifyContent: "space-between", paddingHorizontal: 10, paddingTop: 8, paddingBottom: 4 },
-  actionButton: { flexDirection: "row", alignItems: "center" },
-  actionText: { marginLeft: 4, fontSize: 12, color: "#333" },
-  successMessageBox: { backgroundColor: "#d4edda", padding: 10, margin: 10, borderRadius: 8 },
-  successMessageText: { color: "#155724", textAlign: "center" },
-  filterPillsContainer: { marginVertical: 10},
-  filterPillsScroll: { flexDirection: "row", alignItems: "center" },
-  filterPill: { backgroundColor: "#007bff", paddingHorizontal: 10, paddingVertical: 6, borderRadius: 20, marginRight: 8 },
-  filterPillText: { color: "#fff", fontSize: 12, fontWeight: "600" },
-  clearFiltersBtn: { backgroundColor: "#dc3545", paddingHorizontal: 10, paddingVertical: 6, borderRadius: 20 },
-  clearFiltersBtnText: { color: "#fff", fontSize: 12, fontWeight: "600" },
-  noRecipesContainer: { flex: 1, justifyContent: "center", alignItems: "center", padding: 20 },
-  noRecipesText: { fontSize: 18, fontWeight: "600", marginBottom: 6 },
-  noRecipesSubtext: { fontSize: 14, color: "#666", textAlign: "center" },
+  safeArea: { 
+    flex: 1, 
+    backgroundColor: "#E8F0FF",
+  },
+  scrollContent: { 
+    padding: 16,
+    paddingBottom: 24,
+  },
+  center: { 
+    flex: 1, 
+    justifyContent: "center", 
+    alignItems: "center",
+    backgroundColor: "#E8F0FF",
+  },
+  
+  // Header
+  headerRow: { 
+    flexDirection: "row", 
+    alignItems: "center", 
+    marginBottom: 16,
+    paddingHorizontal: 4,
+  },
+  backButton: { 
+    padding: 8,
+    marginRight: 8,
+  },
+  headerTitle: { 
+    flex: 1, 
+    fontSize: 28, 
+    fontWeight: "700", 
+    color: "#333",
+    includeFontPadding: false,
+  },
+  headerSpacer: { 
+    width: 42,
+  },
+  
+  // Search and Filter
+  topRow: { 
+    flexDirection: "row", 
+    marginBottom: 16, 
+    alignItems: "center",
+    gap: 10,
+  },
+  searchContainer: { 
+    flex: 1, 
+    flexDirection: "row", 
+    alignItems: "center", 
+    backgroundColor: "#fff", 
+    borderRadius: 12, 
+    paddingHorizontal: 12,
+    paddingVertical: Platform.OS === 'android' ? 4 : 10,
+    ...Platform.select({
+      android: {
+        elevation: 2,
+      },
+      ios: {
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.1,
+        shadowRadius: 2,
+      },
+    }),
+  },
+  searchInput: { 
+    flex: 1, 
+    fontSize: 15,
+    color: "#333",
+    paddingVertical: 8,
+    paddingLeft: 8,
+    includeFontPadding: false,
+  },
+  filterBtn: { 
+    flexDirection: "row", 
+    alignItems: "center", 
+    backgroundColor: "#fff", 
+    borderRadius: 12, 
+    paddingHorizontal: 14, 
+    paddingVertical: 10,
+    gap: 6,
+    ...Platform.select({
+      android: {
+        elevation: 2,
+      },
+      ios: {
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.1,
+        shadowRadius: 2,
+      },
+    }),
+  },
+  filterText: { 
+    fontSize: 14, 
+    fontWeight: "600",
+    color: "#333",
+  },
+  
+  // Action Buttons Row
+  actionRow: { 
+    flexDirection: "row", 
+    marginBottom: 20,
+    gap: 8,
+  },
+  actionBtn: { 
+    flex: 1, 
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 12, 
+    borderRadius: 10, 
+    backgroundColor: "#fff",
+    gap: 6,
+    ...Platform.select({
+      android: {
+        elevation: 2,
+      },
+      ios: {
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.1,
+        shadowRadius: 2,
+      },
+    }),
+  },
+  actionBtnText: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: "#333",
+  },
+  
+  // Section
+  section: { 
+    marginBottom: 16,
+  },
+  sectionTitleRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 12,
+  },
+  sectionTitle: { 
+    fontSize: 22, 
+    fontWeight: "700",
+    color: "#333",
+    includeFontPadding: false,
+  },
+  seeAllBtn: {
+    alignSelf: "flex-end",
+    paddingVertical: 8,
+  },
+  seeAllText: { 
+    color: "#4A90E2", 
+    fontSize: 14, 
+    fontWeight: "600",
+  },
+  
+  // Filter Pills
+  filterPillsContainer: { 
+    marginBottom: 12,
+  },
+  filterPillsScroll: { 
+    flexDirection: "row", 
+    alignItems: "center",
+    gap: 8,
+  },
+  filterPill: { 
+    backgroundColor: "#4A90E2", 
+    paddingHorizontal: 12, 
+    paddingVertical: 7, 
+    borderRadius: 20,
+  },
+  filterPillText: { 
+    color: "#fff", 
+    fontSize: 12, 
+    fontWeight: "600",
+  },
+  clearFiltersBtn: { 
+    backgroundColor: "#FF6B6B", 
+    paddingHorizontal: 12, 
+    paddingVertical: 7, 
+    borderRadius: 20,
+  },
+  clearFiltersBtnText: { 
+    color: "#fff", 
+    fontSize: 12, 
+    fontWeight: "600",
+  },
+  
+  // Recipe Cards
+  columnWrapper: {
+    justifyContent: "space-between",
+    gap: 12,
+  },
+  card: { 
+    width: "48%",
+    marginBottom: 16, 
+    backgroundColor: "#fff", 
+    borderRadius: 14, 
+    overflow: "hidden",
+    ...Platform.select({
+      android: {
+        elevation: 3,
+      },
+      ios: {
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+      },
+    }),
+  },
+  image: { 
+    width: "100%", 
+    height: 120,
+  },
+  placeholderImage: { 
+    width: "100%", 
+    height: 120, 
+    backgroundColor: "#f5f5f5", 
+    justifyContent: "center", 
+    alignItems: "center",
+  },
+  placeholderText: { 
+    fontSize: 40,
+  },
+  
+  // Card Content
+  cardContent: {
+    padding: 12,
+  },
+  cardTitle: { 
+    fontSize: 14, 
+    fontWeight: "600", 
+    color: "#333",
+    marginBottom: 8,
+    minHeight: 36,
+    includeFontPadding: false,
+  },
+  metaRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 10,
+  },
+  metaItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+  },
+  metaText: {
+    fontSize: 12,
+    color: "#666",
+    fontWeight: "500",
+  },
+  
+  // Card Actions
+  cardActions: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderTopWidth: 1,
+    borderTopColor: "#F0F0F0",
+    marginHorizontal: -12,
+    paddingHorizontal: 12,
+    paddingTop: 10,
+  },
+  cardActionBtn: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 5,
+    paddingVertical: 4,
+  },
+  cardActionDivider: {
+    width: 1,
+    height: 20,
+    backgroundColor: "#F0F0F0",
+  },
+  cardActionText: {
+    fontSize: 12,
+    color: "#666",
+    fontWeight: "600",
+  },
+  cardActionTextActive: {
+    color: "#FFD700",
+  },
+  
+  // Empty State
+  noRecipesContainer: { 
+    flex: 1, 
+    justifyContent: "center", 
+    alignItems: "center", 
+    paddingVertical: 60,
+  },
+  noRecipesText: { 
+    fontSize: 18, 
+    fontWeight: "600", 
+    color: "#333",
+    marginTop: 16,
+    marginBottom: 8,
+  },
+  noRecipesSubtext: { 
+    fontSize: 14, 
+    color: "#999", 
+    textAlign: "center",
+  },
+  
+  // Toast Message
   toastMessageBox: {
-  position: "absolute",
-  top: 50,
-  left: 20,
-  right: 20,
-  backgroundColor: "#28a745",
-  paddingVertical: 12,
-  paddingHorizontal: 16,
-  borderRadius: 25,
-  elevation: 5,
-  zIndex: 1000,
-  alignItems: "center",
-},
-toastMessageText: {
-  color: "#fff",
-  fontSize: 14,
-  fontWeight: "600",
-  textAlign: "center",
-},
-
+    position: "absolute",
+    top: 16,
+    left: 16,
+    right: 16,
+    backgroundColor: "#28a745",
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    zIndex: 1000,
+    alignItems: "center",
+    ...Platform.select({
+      android: {
+        elevation: 8,
+      },
+      ios: {
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.2,
+        shadowRadius: 8,
+      },
+    }),
+  },
+  toastMessageText: {
+    color: "#fff",
+    fontSize: 14,
+    fontWeight: "600",
+    textAlign: "center",
+  },
 });

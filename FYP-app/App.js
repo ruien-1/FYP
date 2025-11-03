@@ -10,6 +10,7 @@ import {
 import * as Notifications from "expo-notifications";
 import Toast from "react-native-toast-message";
 import { LogBox } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 
 // Home + other tabs
 import HomeTab from "./src/tabs/Home/HomeTab";
@@ -66,7 +67,7 @@ import CoachChatScreen from "./src/coachtabs/Message/CoachChatScreen";
 import CoachHomeTab from "./src/coachtabs/Home/CoachHomeTab";
 import CoachPendingRequest from "./src/coachtabs/Home/CoachPendingRequest";
 import CoachPendingAction from "./src/coachtabs/Home/CoachPendingAction";
-import CoachProfileTab from "./src/coachtabs/Profile/CoachProfileTab"; // ✅ Add this import
+import CoachProfileTab from "./src/coachtabs/Profile/CoachProfileTab";
 import CoachUpcomingAppointment from "./src/coachtabs/Home/CoachUpcomingAppointment";
 import CoachArticleManagement from "./src/coachtabs/Home/CoachArticleManagement";
 import CreateWorkoutPlan from "./src/coachtabs/Home/CreateWorkoutPlan";
@@ -77,12 +78,11 @@ import NutritionistChatScreen from "./src/nutritionisttabs/Message/NutritionistC
 import NutritionistHomeTab from "./src/nutritionisttabs/Home/NutritionistHomeTab";
 import NutritionistPendingRequest from "./src/nutritionisttabs/Home/NutritionistPendingRequest";
 import NutritionistPendingAction from "./src/nutritionisttabs/Home/NutritionistPendingAction";
-import NutriProfileTab from "./src/nutritionisttabs/Profile/NutriProfileTab"; // ✅ Add this import
+import NutriProfileTab from "./src/nutritionisttabs/Profile/NutriProfileTab";
 import NutriUpcomingAppointment from "./src/nutritionisttabs/Home/NutriUpcomingAppointment";
 import CreateMealPlan from "./src/nutritionisttabs/Home/CreateMealPlan";
 import MealPlanDetails from "./src/tabs/Expert/MealPlanDetails";
 import NutriArticleManagement from "./src/nutritionisttabs/Home/NutriArticleManagement";
-
 
 // welcome pages
 import WelcomePage from "./src/welcome/WelcomePage";
@@ -104,11 +104,11 @@ const ExpertStackNav = createNativeStackNavigator();
 const MoreStackNav = createNativeStackNavigator();
 const CoachHomeStackNav = createNativeStackNavigator();
 const CoachMessageStackNav = createNativeStackNavigator();
-const CoachProfileStackNav = createNativeStackNavigator(); // ✅ Fixed
+const CoachProfileStackNav = createNativeStackNavigator();
 
 const NutritionistHomeStackNav = createNativeStackNavigator();
 const NutritionistMessageStackNav = createNativeStackNavigator();
-const NutritionistProfileStackNav = createNativeStackNavigator(); // ✅ Add this
+const NutritionistProfileStackNav = createNativeStackNavigator();
 
 LogBox.ignoreLogs([
   "expo-notifications: Android Push notifications (remote notifications) functionality provided by expo-notifications was removed",
@@ -190,10 +190,33 @@ function MoreStack() {
   );
 }
 
-// ✅ MainTabs for regular users
+// ✅ MainTabs for regular users with icons
 function MainTabs() {
   return (
-    <Tab.Navigator screenOptions={{ headerShown: false }}>
+    <Tab.Navigator
+      screenOptions={({ route }) => ({
+        headerShown: false,
+        tabBarIcon: ({ focused, color, size }) => {
+          let iconName;
+
+          if (route.name === "Home") {
+            iconName = focused ? "home" : "home-outline";
+          } else if (route.name === "Diary") {
+            iconName = focused ? "book" : "book-outline";
+          } else if (route.name === "Recipe") {
+            iconName = focused ? "restaurant" : "restaurant-outline";
+          } else if (route.name === "Expert") {
+            iconName = focused ? "people" : "people-outline";
+          } else if (route.name === "More") {
+            iconName = focused ? "menu" : "menu-outline";
+          }
+
+          return <Ionicons name={iconName} size={size} color={color} />;
+        },
+        tabBarActiveTintColor: "#2faaf7ff",
+        tabBarInactiveTintColor: "gray",
+      })}
+    >
       <Tab.Screen name="Home" component={HomeTab} />
       <Tab.Screen name="Diary" component={DiaryStack} />
       <Tab.Screen name="Recipe" component={RecipeStack} />
@@ -215,8 +238,6 @@ function CoachHomeStack() {
       <CoachHomeStackNav.Screen name="CreateWorkoutPlan" component={CreateWorkoutPlan} />
       <CoachHomeStackNav.Screen name="CoachUpcomingAppointment" component={CoachUpcomingAppointment} />
       <CoachHomeStackNav.Screen name="CoachArticleManagement" component={CoachArticleManagement} />
-
-
     </CoachHomeStackNav.Navigator>
   );
 }
@@ -230,7 +251,6 @@ function CoachMessageStack() {
   );
 }
 
-// ✅ Fixed: Use CoachProfileStackNav instead of CoachProfileStack
 function CoachProfileStack() {
   return (
     <CoachProfileStackNav.Navigator screenOptions={{ headerShown: false }}>
@@ -239,10 +259,29 @@ function CoachProfileStack() {
   );
 }
 
-// ✅ CoachTabs
+// ✅ CoachTabs with icons
 function CoachTabs() {
   return (
-    <Tab.Navigator screenOptions={{ headerShown: false }}>
+    <Tab.Navigator
+      screenOptions={({ route }) => ({
+        headerShown: false,
+        tabBarIcon: ({ focused, color, size }) => {
+          let iconName;
+
+          if (route.name === "Home") {
+            iconName = focused ? "home" : "home-outline";
+          } else if (route.name === "Messages") {
+            iconName = focused ? "chatbubbles" : "chatbubbles-outline";
+          } else if (route.name === "Profile") {
+            iconName = focused ? "person" : "person-outline";
+          }
+
+          return <Ionicons name={iconName} size={size} color={color} />;
+        },
+        tabBarActiveTintColor: "#2faaf7ff",
+        tabBarInactiveTintColor: "gray",
+      })}
+    >
       <Tab.Screen name="Home" component={CoachHomeStack} />
       <Tab.Screen name="Messages" component={CoachMessageStack} />
       <Tab.Screen name="Profile" component={CoachProfileStack} />
@@ -263,8 +302,6 @@ function NutritionistHomeStack() {
       <NutritionistHomeStackNav.Screen name="NutritionistPendingAction" component={NutritionistPendingAction} />
       <CoachHomeStackNav.Screen name="NutriArticleManagement" component={NutriArticleManagement} />
       <NutritionistHomeStackNav.Screen name="MealPlanDetails" component={MealPlanDetails} />
-
-
     </NutritionistHomeStackNav.Navigator>
   );
 }
@@ -284,7 +321,6 @@ function NutritionistMessageStack() {
   );
 }
 
-// ✅ Add NutritionistProfileStack
 function NutritionistProfileStack() {
   return (
     <NutritionistProfileStackNav.Navigator screenOptions={{ headerShown: false }}>
@@ -293,10 +329,29 @@ function NutritionistProfileStack() {
   );
 }
 
-// ✅ NutritionistTabs (added Profile tab)
+// ✅ NutritionistTabs with icons
 function NutritionistTabs() {
   return (
-    <Tab.Navigator screenOptions={{ headerShown: false }}>
+    <Tab.Navigator
+      screenOptions={({ route }) => ({
+        headerShown: false,
+        tabBarIcon: ({ focused, color, size }) => {
+          let iconName;
+
+          if (route.name === "Home") {
+            iconName = focused ? "home" : "home-outline";
+          } else if (route.name === "Messages") {
+            iconName = focused ? "chatbubbles" : "chatbubbles-outline";
+          } else if (route.name === "Profile") {
+            iconName = focused ? "person" : "person-outline";
+          }
+
+          return <Ionicons name={iconName} size={size} color={color} />;
+        },
+        tabBarActiveTintColor: "#2faaf7ff",
+        tabBarInactiveTintColor: "gray",
+      })}
+    >
       <Tab.Screen name="Home" component={NutritionistHomeStack} />
       <Tab.Screen name="Messages" component={NutritionistMessageStack} />
       <Tab.Screen name="Profile" component={NutritionistProfileStack} />

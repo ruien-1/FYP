@@ -561,7 +561,7 @@ export default function NutChatScreen() {
       <Modal
         visible={showOptionsModal}
         transparent={true}
-        animationType="slide"
+        animationType="fade"
         onRequestClose={() => setShowOptionsModal(false)}
       >
         <TouchableOpacity 

@@ -483,7 +483,7 @@ export default function CoachesChatScreen() {
       <Modal
         visible={showAppointmentModal}
         transparent={true}
-        animationType="slide"
+        animationType="fade"
         onRequestClose={() => setShowAppointmentModal(false)}
       >
         <View style={styles.modalOverlay}>

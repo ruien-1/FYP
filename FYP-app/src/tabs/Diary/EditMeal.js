@@ -6,6 +6,9 @@ import {
   TouchableOpacity,
   TextInput,
   Alert,
+  Platform,
+  ScrollView,
+  KeyboardAvoidingView,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -99,15 +102,21 @@ export default function EditMeal() {
   };
 
   return (
-    <SafeAreaView style={styles.safe}>
-      <View style={styles.container}>
-        {/* 🔙 Back Button */}
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => navigation.goBack()}
-        >
-          <Ionicons name="arrow-back" size={26} color="#333" />
-        </TouchableOpacity>
+    <SafeAreaView style={styles.safe} edges={['top']}>
+      <KeyboardAvoidingView 
+        style={styles.container}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
+        {/* Header with Back Button */}
+        <View style={styles.header}>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => navigation.goBack()}
+          >
+            <Ionicons name="arrow-back" size={26} color="#333" />
+          </TouchableOpacity>
+          <View style={styles.headerSpacer} />
+        </View>
 
         {/* Message Box */}
         {message && (
@@ -122,10 +131,18 @@ export default function EditMeal() {
         )}
 
         {/* 🍞 Food Title */}
-        <Text style={styles.foodTitle}>{foodName}</Text>
-        <Text style={styles.servingInfo}>Per serving: {servingSize}</Text>
+        <View style={styles.titleContainer}>
+          <Text style={styles.foodTitle}>{foodName}</Text>
+          <Text style={styles.servingInfo}>Per serving: {servingSize}</Text>
+        </View>
 
-        <View style={{ flex: 1 }}>
+        {/* SCROLLABLE CONTENT */}
+        <ScrollView 
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
           {/* Number of Servings */}
           <View style={styles.servingsCard}>
             <View style={styles.servingsHeader}>
@@ -271,61 +288,90 @@ export default function EditMeal() {
               </View>
             </View>
           </View>
-        </View>
+        </ScrollView>
 
-        {/* Log Button */}
-        <TouchableOpacity style={styles.logButton} onPress={logMeal}>
-          <Ionicons name="checkmark-circle" size={22} color="#fff" style={{ marginRight: 8 }} />
-          <Text style={styles.logText}>Log Food</Text>
-        </TouchableOpacity>
-      </View>
+        {/* Log Button - Fixed at Bottom */}
+        <View style={styles.buttonContainer}>
+          <TouchableOpacity style={styles.logButton} onPress={logMeal}>
+            <Ionicons name="checkmark-circle" size={22} color="#fff" style={{ marginRight: 8 }} />
+            <Text style={styles.logText}>Log Food</Text>
+          </TouchableOpacity>
+        </View>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: "#E8F0FF" },
+  safe: { 
+    flex: 1, 
+    backgroundColor: "#E8F0FF",
+  },
   container: {
     flex: 1,
     backgroundColor: "#E8F0FF",
-    paddingHorizontal: 18,
-    paddingTop: 16,
+  },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    backgroundColor: "#E8F0FF",
   },
   backButton: {
-    position: "absolute",
-    top: 20,
-    left: 10,
-    padding: 6,
-    zIndex: 50,
+    padding: 8,
+    zIndex: 10,
+  },
+  headerSpacer: {
+    flex: 1,
   },
   messageBox: {
-    position: "absolute",
-    top: 10,
-    left: 20,
-    right: 20,
-    zIndex: 100,
-    padding: 12,
-    borderRadius: 8,
+    marginHorizontal: 16,
+    marginTop: 8,
+    marginBottom: 8,
+    padding: 14,
+    borderRadius: 10,
     alignItems: "center",
-    elevation: 4,
+    ...Platform.select({
+      android: {
+        elevation: 4,
+      },
+      ios: {
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+      },
+    }),
   },
   successBox: { backgroundColor: "#DFF2BF" },
   errorBox: { backgroundColor: "#FFD2D2" },
   messageText: { fontSize: 14, fontWeight: "600", color: "#333" },
+  titleContainer: {
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    alignItems: "center",
+    backgroundColor: "#E8F0FF",
+  },
   foodTitle: {
-    fontSize: 28,
+    fontSize: 26,
     fontWeight: "700",
     textAlign: "center",
-    marginTop: 20,
-    marginBottom: 4,
     color: "#333",
+    marginBottom: 4,
   },
   servingInfo: {
-    fontSize: 16,
+    fontSize: 15,
     textAlign: "center",
     color: "#666",
-    marginBottom: 16,
     fontWeight: "500",
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingHorizontal: 16,
+    paddingBottom: 20,
   },
 
   // Servings Card
@@ -334,12 +380,22 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     padding: 16,
     marginBottom: 12,
-    elevation: 2,
+    ...Platform.select({
+      android: {
+        elevation: 2,
+      },
+      ios: {
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.1,
+        shadowRadius: 3,
+      },
+    }),
   },
   servingsHeader: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 12,
+    marginBottom: 14,
   },
   servingsTitle: {
     fontSize: 16,
@@ -351,7 +407,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: 12,
+    marginBottom: 14,
   },
   servingBtn: {
     backgroundColor: "#E8F0FF",
@@ -378,24 +434,25 @@ const styles = StyleSheet.create({
     color: "#333",
     textAlign: "center",
     padding: 0,
+    includeFontPadding: false,
   },
   quickServings: {
     flexDirection: "row",
     justifyContent: "space-between",
+    gap: 6,
   },
   quickBtn: {
     flex: 1,
-    paddingVertical: 8,
+    paddingVertical: 10,
     borderRadius: 8,
     backgroundColor: "#F5F5F5",
-    marginHorizontal: 2,
     alignItems: "center",
   },
   quickBtnActive: {
     backgroundColor: "#4A90E2",
   },
   quickBtnText: {
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: "600",
     color: "#666",
   },
@@ -409,7 +466,17 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     padding: 16,
     marginBottom: 12,
-    elevation: 2,
+    ...Platform.select({
+      android: {
+        elevation: 2,
+      },
+      ios: {
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.1,
+        shadowRadius: 3,
+      },
+    }),
   },
   mealHeader: {
     flexDirection: "row",
@@ -430,33 +497,43 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#E0E0E0",
     borderRadius: 10,
-    padding: 12,
+    padding: 14,
   },
   mealText: {
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: "500",
     color: "#333",
   },
   dropdownOverlay: {
     position: "absolute",
-    top: 75,
+    top: 78,
     left: 16,
     right: 16,
     backgroundColor: "#fff",
     borderRadius: 12,
-    elevation: 8,
     borderWidth: 1,
     borderColor: "#E0E0E0",
-    zIndex: 100,
+    zIndex: 1000,
+    ...Platform.select({
+      android: {
+        elevation: 8,
+      },
+      ios: {
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.15,
+        shadowRadius: 8,
+      },
+    }),
   },
   dropdownItem: {
-    paddingVertical: 12,
+    paddingVertical: 14,
     paddingHorizontal: 16,
     borderBottomWidth: 1,
     borderBottomColor: "#F0F0F0",
   },
   dropdownItemText: {
-    fontSize: 14,
+    fontSize: 15,
     color: "#333",
   },
 
@@ -466,7 +543,17 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     padding: 16,
     marginBottom: 12,
-    elevation: 2,
+    ...Platform.select({
+      android: {
+        elevation: 2,
+      },
+      ios: {
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.1,
+        shadowRadius: 3,
+      },
+    }),
   },
   nutritionHeader: {
     flexDirection: "row",
@@ -480,7 +567,7 @@ const styles = StyleSheet.create({
     color: "#333",
   },
   nutritionSubtitle: {
-    fontSize: 11,
+    fontSize: 12,
     color: "#666",
     marginBottom: 14,
     marginLeft: 32,
@@ -488,64 +575,81 @@ const styles = StyleSheet.create({
   caloriesBox: {
     backgroundColor: "#F0F7FF",
     borderRadius: 10,
-    padding: 14,
+    padding: 16,
     alignItems: "center",
-    marginBottom: 14,
+    marginBottom: 16,
   },
   caloriesValue: {
     fontSize: 40,
     fontWeight: "700",
     color: "#4A90E2",
+    includeFontPadding: false,
   },
   caloriesLabel: {
     fontSize: 14,
     fontWeight: "600",
     color: "#666",
-    marginTop: 2,
+    marginTop: 4,
   },
   macrosGrid: {
     flexDirection: "row",
     justifyContent: "space-between",
+    gap: 8,
   },
   macroItem: {
     flex: 1,
     alignItems: "center",
-    marginHorizontal: 3,
   },
   macroIcon: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     justifyContent: "center",
     alignItems: "center",
-    marginBottom: 6,
+    marginBottom: 8,
   },
   macroValue: {
-    fontSize: 16,
+    fontSize: 17,
     fontWeight: "700",
     color: "#333",
     marginBottom: 2,
+    includeFontPadding: false,
   },
   macroLabel: {
-    fontSize: 11,
+    fontSize: 12,
     color: "#666",
     fontWeight: "500",
   },
 
-  // Log Button
+  // Button Container - Fixed at Bottom
+  buttonContainer: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    paddingBottom: Platform.OS === 'android' ? 16 : 12,
+    backgroundColor: "#E8F0FF",
+  },
   logButton: {
     flexDirection: "row",
     backgroundColor: "#4A90E2",
-    paddingVertical: 14,
+    paddingVertical: 16,
     borderRadius: 12,
     alignItems: "center",
     justifyContent: "center",
-    marginVertical: 8,
-    elevation: 3,
+    ...Platform.select({
+      android: {
+        elevation: 3,
+      },
+      ios: {
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.2,
+        shadowRadius: 4,
+      },
+    }),
   },
   logText: {
     color: "#fff",
-    fontSize: 16,
+    fontSize: 17,
     fontWeight: "700",
   },
 });

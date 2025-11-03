@@ -346,7 +346,7 @@ export default function ManualAddFoodQR() {
         <View style={styles.infoBox}>
           <Ionicons name="information-circle-outline" size={20} color="#2196F3" />
           <Text style={styles.infoText}>
-            Enter values exactly as shown on the nutrition label. Your submission will be verified by our nutrition team.
+            Enter values exactly as shown on the nutrition label
           </Text>
         </View>
 
@@ -359,12 +359,12 @@ export default function ManualAddFoodQR() {
           {loading ? (
             <>
               <Ionicons name="hourglass-outline" size={24} color="#fff" />
-              <Text style={styles.submitButtonText}>Submitting...</Text>
+              <Text style={styles.submitButtonText}>Logging...</Text>
             </>
           ) : (
             <>
               <Ionicons name="checkmark-circle-outline" size={24} color="#fff" />
-              <Text style={styles.submitButtonText}>Submit for Verification</Text>
+              <Text style={styles.submitButtonText}>Log Food</Text>
             </>
           )}
         </TouchableOpacity>
@@ -441,9 +441,9 @@ export default function ManualAddFoodQR() {
             <View style={styles.successIconContainer}>
               <Ionicons name="checkmark-circle" size={80} color="#4CAF50" />
             </View>
-            <Text style={styles.successTitle}>Submission Successful!</Text>
+            <Text style={styles.successTitle}>Success!</Text>
             <Text style={styles.successMessage}>
-              Your food entry has been submitted for verification by our nutrition team. Check "My Submission" for updates.
+              You have successfully log your food!
             </Text>
             <TouchableOpacity
               style={styles.successButton}

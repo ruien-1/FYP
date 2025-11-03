@@ -2,22 +2,24 @@ import axios from "axios";
 import Constants from "expo-constants";
 
 const getBaseURL = () => {
-  // Development mode (Expo Go)
-  if (Constants.expoConfig?.hostUri) {
-    const host = Constants.expoConfig.hostUri.split(":").shift();
-    return `http://${host}:5000`;
+  const isStandalone = Constants.appOwnership === 'standalone' || 
+                       Constants.executionEnvironment === 'standalone' ||
+                       !__DEV__;
+  
+  if (isStandalone) {
+    console.log("🏗️ Using production URL");
+    return "https://fyp-0rqn.onrender.com";
   }
   
-  // Production/Preview builds - Your Render URL
+  console.log("🌐 Using production URL");
   return "https://fyp-0rqn.onrender.com";
 };
 
 const API = axios.create({
   baseURL: getBaseURL(),
-  timeout: 60000, // 60 seconds for cold starts
+  timeout: 60000, 
 });
 
-// Request interceptor
 API.interceptors.request.use(
   (config) => {
     console.log(`📡 API Request: ${config.method.toUpperCase()} ${config.baseURL}${config.url}`);
@@ -29,7 +31,6 @@ API.interceptors.request.use(
   }
 );
 
-// Response interceptor
 API.interceptors.response.use(
   (response) => {
     console.log(`✅ Response received: ${response.status}`);

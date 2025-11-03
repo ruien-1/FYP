@@ -391,15 +391,6 @@ export default function MealLog() {
               <Ionicons name="scan-outline" size={22} color="#fff" style={{ marginRight: 6 }} />
               <Text style={styles.scanText}>Scan</Text>
             </TouchableOpacity>
-
-            {/* My Submissions Button */}
-            <TouchableOpacity
-              style={styles.barcodeActionButton}
-              onPress={() => navigation.navigate("MySubmissions")}
-            >
-              <Ionicons name="list-outline" size={22} color="#fff" style={{ marginRight: 6 }} />
-              <Text style={styles.scanText}>My Submissions</Text>
-            </TouchableOpacity>
           </View>
         )}
 

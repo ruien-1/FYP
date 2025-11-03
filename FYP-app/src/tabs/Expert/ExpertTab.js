@@ -410,13 +410,6 @@ const setupUnreadListener = () => {
         <View style={styles.appointmentsSection}>
           <View style={styles.appointmentsSectionHeader}>
             <Text style={styles.sectionTitle}>Upcoming Appointments</Text>
-            {upcomingAppointments.length > 0 && (
-              <TouchableOpacity
-                onPress={() => navigation.navigate("Appointments")}
-              >
-                <Text style={styles.viewAllText}>View All</Text>
-              </TouchableOpacity>
-            )}
           </View>
 
           {loading ? (
@@ -445,7 +438,7 @@ const setupUnreadListener = () => {
       <Modal
         visible={rescheduleModal}
         transparent={true}
-        animationType="slide"
+        animationType="fade"
         onRequestClose={() => setRescheduleModal(false)}
       >
         <View style={styles.modalOverlay}>

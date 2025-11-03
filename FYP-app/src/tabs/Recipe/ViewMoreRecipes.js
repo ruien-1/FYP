@@ -141,7 +141,7 @@ export default function ViewMoreRecipes() {
               color={isFavorited ? "#FFD700" : "#333"}
             />
             <Text style={styles.actionText}>
-              {isFavorited ? "Favorited" : "Favorite"}
+              {isFavorited ? "Saved" : "Save"}
             </Text>
           </TouchableOpacity>
 

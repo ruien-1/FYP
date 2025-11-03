@@ -13,5 +13,11 @@
   },
   "devDependencies": {
     "@react-native-community/cli": "^20.0.2"
+  },
+  "name": "FYP",
+  "version": "1.0.0",
+  "scripts": {
+    "android": "expo run:android",
+    "ios": "expo run:ios"
   }
 }

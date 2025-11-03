@@ -86,33 +86,29 @@ export default function ManualAddFoodQR() {
       setLoading(true);
       setErrorMessage("");
 
-      // Optional: calculate per 100g for analytics
-      const per100gFactor =
-        servingUnit === "g" || servingUnit === "ml"
-          ? 100 / parseFloat(servingAmount)
-          : 1;
+      const mealId = Date.now().toString();
 
-      const response = await API.post("/QRFood", {
-        barcode: barcode || null,
-        productName: foodName,
+      const meal = {
+        id: mealId,
+        userId: uid,
+        mealType: "Snack",
+        date: route.params?.selectedDate || new Date().toISOString().split("T")[0],
+        food: foodName,
+        servingSize: `${servingAmount} ${servingUnit}`,
+        servings: 1,
         calories: parseFloat(calories) || 0,
         protein: parseFloat(protein) || 0,
-        fat: parseFloat(fat) || 0,
         carbs: parseFloat(carbs) || 0,
-        servingAmount: parseFloat(servingAmount),
-        servingUnit: servingUnit,
-        per100gCalories: parseFloat(calories) * per100gFactor,
-        per100gProtein: parseFloat(protein) * per100gFactor,
-        per100gFat: parseFloat(fat) * per100gFactor,
-        per100gCarbs: parseFloat(carbs) * per100gFactor,
-        uid,
-        status: "pending_verification",
-      });
+        fats: parseFloat(fat) || 0,
+        source: "manual",
+      };
 
-      if (response.data.success) {
+      const response = await API.post(`/meals_log/${uid}`, meal);
+
+      if (response.data) {
         setSuccessModalVisible(true);
       } else {
-        showError(response.data.error || "Failed to submit food.");
+        showError("Failed to submit food.");
       }
     } catch (error) {
       console.error("Error adding food:", error);
@@ -346,7 +342,7 @@ export default function ManualAddFoodQR() {
         <View style={styles.infoBox}>
           <Ionicons name="information-circle-outline" size={20} color="#2196F3" />
           <Text style={styles.infoText}>
-            Enter values exactly as shown on the nutrition label
+            Enter values exactly as shown on the nutrition label. Your submission will be verified by our nutrition team.
           </Text>
         </View>
 

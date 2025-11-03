@@ -155,7 +155,7 @@ const styles = StyleSheet.create({
   image: { width: "100%", height: 240, borderRadius: 12, marginBottom: 12 },
   title: { fontSize: 25, fontWeight: "bold", marginBottom: 20, textAlign: "center" },
   nutritionBox: {
-    backgroundColor: "#f1f2f6",
+    backgroundColor: "#f5f7fa",
     padding: 14,
     borderRadius: 12,
     marginBottom: 20,

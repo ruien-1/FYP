@@ -4,8 +4,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { auth } from '../../firebaseConfig';
 import API from '../../api/backend';
+import { signOut } from 'firebase/auth'
+import { useNavigation } from '@react-navigation/native';
+
 
 const CoachProfileTab = () => {
+  const navigation = useNavigation();
   const [coachData, setCoachData] = useState(null);
   const [servicesData, setServicesData] = useState(null);
   const [availabilityData, setAvailabilityData] = useState(null);
@@ -451,6 +455,19 @@ const CoachProfileTab = () => {
     );
   };
 
+  const handleLogout = async () => {
+  try {
+    await signOut(auth);
+    navigation.reset({
+      index: 0,
+      routes: [{ name: 'Welcome' }],
+    });
+  } catch (error) {
+    console.error('Error signing out:', error);
+    setMessage({ text: 'Failed to logout', type: 'error' });
+  }
+};
+
   const renderSpecializations = () => {
     const specializationsData = coachData?.specializations;
     
@@ -760,6 +777,14 @@ const CoachProfileTab = () => {
 
         {/* Languages */}
         {renderLanguages()}
+
+        {/* Logout Button */}
+          <View style={styles.logoutContainer}>
+            <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+              <Ionicons name="log-out-outline" size={20} color="#FF3B30" />
+              <Text style={styles.logoutButtonText}>Logout</Text>
+            </TouchableOpacity>
+          </View>
 
         <View style={styles.footer} />
       </ScrollView>
@@ -1430,6 +1455,26 @@ const styles = StyleSheet.create({
   timeLabel: { fontSize: 12, fontWeight: '600', color: '#666', marginBottom: 8 },
   timeInputWrapper: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFFFFF', borderRadius: 12, paddingHorizontal: 12, gap: 8, borderWidth: 1.5, borderColor: '#E8EDF2' },
   timeInput: { flex: 1, paddingVertical: 12, fontSize: 14, color: '#1A1A1A', fontWeight: '500' },
+  logoutContainer: {
+  paddingHorizontal: 16,
+  marginBottom: 24,
+},
+logoutButton: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  justifyContent: 'center',
+  backgroundColor: '#FFF5F5',
+  paddingVertical: 14,
+  borderRadius: 14,
+  borderWidth: 1.5,
+  borderColor: '#FFE0E0',
+  gap: 8,
+},
+logoutButtonText: {
+  fontSize: 16,
+  fontWeight: '600',
+  color: '#FF3B30',
+},
 });
 
 export default CoachProfileTab;

@@ -217,7 +217,7 @@ export default function NutritionistChatScreen() {
         createdAt: serverTimestamp(),
         user: {
           _id: currentUser.uid,
-          name: currentUser.displayName || "Nutritionist",
+          name: currentUser.displayName
         },
         read: false,
       });
@@ -276,7 +276,6 @@ export default function NutritionistChatScreen() {
             </View>
             <View style={styles.headerTextContainer}>
               <Text style={styles.headerName}>{userName || 'User'}</Text>
-              <Text style={styles.headerRole}>Nutritionist</Text>
             </View>
           </View>
          

@@ -237,12 +237,14 @@ const SignUpPage = ({ navigation }) => {
         <View style={styles.inner}>
           <Text style={styles.header}>Welcome</Text>
           <Text style={styles.subtitle}>How should we address you?</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Preferred Name"
-            value={profile.name}
-            onChangeText={(t) => setProfile({ ...profile, name: t })}
-          />
+          <View style={styles.inputContainer}>
+            <Text style={styles.label}>Preferred Name</Text>
+            <TextInput
+              style={styles.input}
+              value={profile.name}
+              onChangeText={(t) => setProfile({ ...profile, name: t })}
+            />
+          </View>
           <TouchableOpacity
             style={[styles.buttonPrimary, { opacity: profile.name.trim() ? 1 : 0.5 }]}
             onPress={() => profile.name.trim() && setQuestion(3)}
@@ -255,52 +257,65 @@ const SignUpPage = ({ navigation }) => {
       {question === 3 && (
         <View style={styles.inner}>
           <Text style={styles.header}>Tell us about yourself</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Gender (M/F)"
-            value={profile.gender}
-            onChangeText={(t) => {
-              const upper = t.toUpperCase();
-              if (upper === "M" || upper === "F" || upper === "") {
-                setProfile({ ...profile, gender: upper });
-              }
-            }}
-            maxLength={1}
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="Age"
-            keyboardType="numeric"
-            value={profile.age}
-            onChangeText={(t) => setProfile({ ...profile, age: t })}
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="Height (cm)"
-            keyboardType="numeric"
-            value={profile.height}
-            onChangeText={(t) => setProfile({ ...profile, height: t })}
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="Weight (kg)"
-            keyboardType="numeric"
-            value={profile.weight}
-            onChangeText={(t) => setProfile({ ...profile, weight: t })}
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="Postal Code"
-            keyboardType="numeric"
-            value={profile.postalCode}
-            onChangeText={(t) => setProfile({ ...profile, postalCode: t })}
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="Country of Residence"
-            value={profile.countryofresidence}
-            onChangeText={(t) => setProfile({ ...profile, countryofresidence: t })}
-          />
+          <View style={styles.inputContainer}>
+            <Text style={styles.label}>Gender</Text>
+            <TextInput
+              style={styles.input}
+              value={profile.gender}
+              onChangeText={(t) => {
+                const upper = t.toUpperCase();
+                if (upper === "M" || upper === "F" || upper === "") {
+                  setProfile({ ...profile, gender: upper });
+                }
+              }}
+              maxLength={1}
+            />
+            <Text style={styles.helperText}>Enter M or F</Text>
+          </View>
+          <View style={styles.inputContainer}>
+            <Text style={styles.label}>Age</Text>
+            <TextInput
+              style={styles.input}
+              keyboardType="numeric"
+              value={profile.age}
+              onChangeText={(t) => setProfile({ ...profile, age: t })}
+            />
+          </View>
+          <View style={styles.inputContainer}>
+            <Text style={styles.label}>Height (cm)</Text>
+            <TextInput
+              style={styles.input}
+              keyboardType="numeric"
+              value={profile.height}
+              onChangeText={(t) => setProfile({ ...profile, height: t })}
+            />
+          </View>
+          <View style={styles.inputContainer}>
+            <Text style={styles.label}>Weight (kg)</Text>
+            <TextInput
+              style={styles.input}
+              keyboardType="numeric"
+              value={profile.weight}
+              onChangeText={(t) => setProfile({ ...profile, weight: t })}
+            />
+          </View>
+          <View style={styles.inputContainer}>
+            <Text style={styles.label}>Postal Code</Text>
+            <TextInput
+              style={styles.input}
+              keyboardType="numeric"
+              value={profile.postalCode}
+              onChangeText={(t) => setProfile({ ...profile, postalCode: t })}
+            />
+          </View>
+          <View style={styles.inputContainer}>
+            <Text style={styles.label}>Country of Residence</Text>
+            <TextInput
+              style={styles.input}
+              value={profile.countryofresidence}
+              onChangeText={(t) => setProfile({ ...profile, countryofresidence: t })}
+            />
+          </View>
           <TouchableOpacity
             style={[
               styles.buttonPrimary,
@@ -318,7 +333,7 @@ const SignUpPage = ({ navigation }) => {
         <View style={styles.inner}>
           <Text style={styles.header}>Primary Goals</Text>
           <Text style={styles.subtitle}>Select up to 3 ({profile.goals.length}/3 selected)</Text>
-          {["Lose Weight", "Gain Weight", "Improve Health", "Gain Muscles", "Stay Active", "Improve Diet"].map((g) => (
+          {["Lose Weight", "Improve Health", "Gain Muscles", "Stay Active", "Improve Diet"].map((g) => (
             <Checkbox key={g} label={g} group="goals" />
           ))}
           <TouchableOpacity style={[styles.buttonPrimary, { opacity: profile.goals.length > 0 ? 1 : 0.5 }]} onPress={() => profile.goals.length > 0 && setQuestion(5)} >
@@ -387,7 +402,15 @@ const SignUpPage = ({ navigation }) => {
       {question === 8 && (
         <View style={styles.inner}>
           <Text style={styles.header}>Your goals</Text>
-          <TextInput style={styles.input} placeholder="Target Weight (kg)" keyboardType="numeric" value={profile.targetWeight} onChangeText={(t) => setProfile({ ...profile, targetWeight: t })} />
+          <View style={styles.inputContainer}>
+            <Text style={styles.label}>Target Weight (kg)</Text>
+            <TextInput 
+              style={styles.input} 
+              keyboardType="numeric" 
+              value={profile.targetWeight} 
+              onChangeText={(t) => setProfile({ ...profile, targetWeight: t })} 
+            />
+          </View>
           <Text style={styles.subtitle}>Weekly goal</Text>
           {["Lose 0.3kg/week", "Lose 0.5kg/week", "Lose 0.7kg/week", "Lose 1kg/week"].map((wg) => (
             <Radio key={wg} label={wg} group="weightLossGoal" />
@@ -401,8 +424,26 @@ const SignUpPage = ({ navigation }) => {
       {question === 9 && (
         <View style={styles.inner}>
           <Text style={styles.header}>Last Step! Create your account</Text>
-          <TextInput style={styles.input} placeholder="Email" value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" />
-          <TextInput style={styles.input} placeholder="Password (minimum 6 characters)" secureTextEntry value={password} onChangeText={setPassword} />
+          <View style={styles.inputContainer}>
+            <Text style={styles.label}>Email</Text>
+            <TextInput 
+              style={styles.input} 
+              value={email} 
+              onChangeText={setEmail} 
+              keyboardType="email-address" 
+              autoCapitalize="none" 
+            />
+          </View>
+          <View style={styles.inputContainer}>
+            <Text style={styles.label}>Password</Text>
+            <TextInput 
+              style={styles.input} 
+              secureTextEntry 
+              value={password} 
+              onChangeText={setPassword} 
+            />
+            <Text style={styles.helperText}>Minimum 6 characters with uppercase, lowercase, and special character</Text>
+          </View>
           <TouchableOpacity style={styles.buttonPrimary} onPress={handleSignUp}>
             <Text style={styles.buttonText}>Create Account</Text>
           </TouchableOpacity>
@@ -418,7 +459,10 @@ const styles = StyleSheet.create({
   inner: { flex: 1, alignItems: "center", padding: 20 },
   header: { fontSize: 20, fontWeight: "bold", color: "white", marginBottom: 10, textAlign: "center" },
   subtitle: { fontSize: 14, color: "white", marginBottom: 15, textAlign: "center" },
-  input: { width: "90%", backgroundColor: "white", padding: 12, borderRadius: 8, marginVertical: 10 },
+  inputContainer: { width: "90%", marginVertical: 10 },
+  label: { color: "white", fontSize: 16, fontWeight: "600", marginBottom: 8 },
+  input: { width: "100%", backgroundColor: "white", padding: 12, borderRadius: 8 },
+  helperText: { color: "#bbb", fontSize: 12, marginTop: 4 },
   buttonPrimary: { backgroundColor: "#3498db", padding: 15, borderRadius: 8, marginTop: 15, width: "90%", alignItems: "center" },
   buttonText: { color: "#fff", fontWeight: "bold" },
   checkboxRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", padding: 12, marginVertical: 5, width: "90%", borderRadius: 8 },

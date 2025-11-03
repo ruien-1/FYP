@@ -395,12 +395,14 @@ const NutritionistSignup = ({ navigation, onBack }) => {
           <View style={styles.inner}>
             <Text style={styles.header}>Welcome, Nutritionist!</Text>
             <Text style={styles.subtitle}>Let's set up your professional profile</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Full Name"
-              value={profile.name}
-              onChangeText={(t) => setProfile({ ...profile, name: t })}
-            />
+            <View style={styles.inputContainer}>
+              <Text style={styles.label}>Full Name</Text>
+              <TextInput
+                style={styles.input}
+                value={profile.name}
+                onChangeText={(t) => setProfile({ ...profile, name: t })}
+              />
+            </View>
             <TouchableOpacity
               style={[styles.buttonPrimary, { opacity: profile.name.trim() ? 1 : 0.5 }]}
               onPress={() => profile.name.trim() && setStep(2)}
@@ -414,35 +416,45 @@ const NutritionistSignup = ({ navigation, onBack }) => {
         {step === 2 && (
           <View style={styles.inner}>
             <Text style={styles.header}>Basic Information</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Age"
-              keyboardType="numeric"
-              value={profile.age}
-              onChangeText={(t) => setProfile({ ...profile, age: t })}
-            />
+            <View style={styles.inputContainer}>
+              <Text style={styles.label}>Age</Text>
+              <TextInput
+                style={styles.input}
+                keyboardType="numeric"
+                value={profile.age}
+                onChangeText={(t) => setProfile({ ...profile, age: t })}
+              />
+            </View>
 
-            
-            <TextInput
-              style={styles.input}
-              placeholder="Gender (M/F)"
-              value={profile.gender}
-              onChangeText={(t) => setProfile({ ...profile, gender: t })}
-            />
+            <View style={styles.inputContainer}>
+              <Text style={styles.label}>Gender</Text>
+              <TextInput
+                style={styles.input}
+                value={profile.gender}
+                onChangeText={(t) => setProfile({ ...profile, gender: t })}
+              />
+              <Text style={styles.helperText}>Enter M or F</Text>
+            </View>
 
-            <TextInput
-              style={styles.input}
-              placeholder="Spoken Language (English, Chinese)"
-              value={profile.languages}
-              onChangeText={(t) => setProfile({ ...profile, languages: t })}
-            />
+            <View style={styles.inputContainer}>
+              <Text style={styles.label}>Spoken Language</Text>
+              <TextInput
+                style={styles.input}
+                value={profile.languages}
+                onChangeText={(t) => setProfile({ ...profile, languages: t })}
+              />
+              <Text style={styles.helperText}>e.g., English, Chinese</Text>
+            </View>
 
-            <TextInput
-              style={styles.input}
-              placeholder="Credentials (e.g., RD, RDN, PhD, CNS)"
-              value={profile.credentials}
-              onChangeText={(t) => setProfile({ ...profile, credentials: t })}
-            />
+            <View style={styles.inputContainer}>
+              <Text style={styles.label}>Credentials</Text>
+              <TextInput
+                style={styles.input}
+                value={profile.credentials}
+                onChangeText={(t) => setProfile({ ...profile, credentials: t })}
+              />
+              <Text style={styles.helperText}>e.g., RD, RDN, PhD, CNS</Text>
+            </View>
 
             <TouchableOpacity
               style={[
@@ -489,21 +501,26 @@ const NutritionistSignup = ({ navigation, onBack }) => {
         {step === 4 && (
           <View style={styles.inner}>
             <Text style={styles.header}>Professional Experience</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Years of Experience"
-              keyboardType="numeric"
-              value={profile.yearsOfExperience}
-              onChangeText={(t) => setProfile({ ...profile, yearsOfExperience: t })}
-            />
-            <TextInput
-              style={[styles.input, styles.textArea]}
-              placeholder="Professional Bio (Tell us about your expertise and approach)"
-              multiline
-              numberOfLines={6}
-              value={profile.bio}
-              onChangeText={(t) => setProfile({ ...profile, bio: t })}
-            />
+            <View style={styles.inputContainer}>
+              <Text style={styles.label}>Years of Experience</Text>
+              <TextInput
+                style={styles.input}
+                keyboardType="numeric"
+                value={profile.yearsOfExperience}
+                onChangeText={(t) => setProfile({ ...profile, yearsOfExperience: t })}
+              />
+            </View>
+            <View style={styles.inputContainer}>
+              <Text style={styles.label}>Professional Bio</Text>
+              <TextInput
+                style={[styles.input, styles.textArea]}
+                multiline
+                numberOfLines={6}
+                value={profile.bio}
+                onChangeText={(t) => setProfile({ ...profile, bio: t })}
+              />
+              <Text style={styles.helperText}>Tell us about your expertise and approach</Text>
+            </View>
             <TouchableOpacity
               style={[
                 styles.buttonPrimary,
@@ -547,7 +564,7 @@ const NutritionistSignup = ({ navigation, onBack }) => {
                   onPress={() => setProfile({ ...profile, documentType: type.value })}
                 >
                   <View style={{ flex: 1 }}>
-                    <Text style={styles.documentTypeLabel}>{type.label}</Text>
+                    <Text style={styles.documentTypeOptionLabel}>{type.label}</Text>
                     <Text style={styles.documentTypeDesc}>{type.desc}</Text>
                   </View>
                   {profile.documentType === type.value && (
@@ -557,19 +574,24 @@ const NutritionistSignup = ({ navigation, onBack }) => {
               ))}
             </View>
 
-            <TextInput
-              style={styles.input}
-              placeholder="License/Certificate Number (if applicable)"
-              value={profile.credentialNumber}
-              onChangeText={(t) => setProfile({ ...profile, credentialNumber: t })}
-            />
+            <View style={styles.inputContainer}>
+              <Text style={styles.label}>License/Certificate Number</Text>
+              <TextInput
+                style={styles.input}
+                value={profile.credentialNumber}
+                onChangeText={(t) => setProfile({ ...profile, credentialNumber: t })}
+              />
+              <Text style={styles.helperText}>If applicable</Text>
+            </View>
 
-            <TextInput
-              style={styles.input}
-              placeholder="Issuing Organization/Institution"
-              value={profile.issuingOrganization}
-              onChangeText={(t) => setProfile({ ...profile, issuingOrganization: t })}
-            />
+            <View style={styles.inputContainer}>
+              <Text style={styles.label}>Issuing Organization/Institution</Text>
+              <TextInput
+                style={styles.input}
+                value={profile.issuingOrganization}
+                onChangeText={(t) => setProfile({ ...profile, issuingOrganization: t })}
+              />
+            </View>
             
             {profile.proofDocument && (
               <View style={styles.uploadedFileBox}>
@@ -662,18 +684,24 @@ const NutritionistSignup = ({ navigation, onBack }) => {
         {step === 6 && (
           <View style={styles.inner}>
             <Text style={styles.header}>Practice Location</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Place of Practice (City, State/Country)"
-              value={profile.placeOfPractice}
-              onChangeText={(t) => setProfile({ ...profile, placeOfPractice: t })}
-            />
-            <TextInput
-              style={styles.input}
-              placeholder="Clinic/Hospital Name (Optional)"
-              value={profile.clinicName}
-              onChangeText={(t) => setProfile({ ...profile, clinicName: t })}
-            />
+            <View style={styles.inputContainer}>
+              <Text style={styles.label}>Place of Practice</Text>
+              <TextInput
+                style={styles.input}
+                value={profile.placeOfPractice}
+                onChangeText={(t) => setProfile({ ...profile, placeOfPractice: t })}
+              />
+              <Text style={styles.helperText}>City, State/Country</Text>
+            </View>
+            <View style={styles.inputContainer}>
+              <Text style={styles.label}>Clinic/Hospital Name</Text>
+              <TextInput
+                style={styles.input}
+                value={profile.clinicName}
+                onChangeText={(t) => setProfile({ ...profile, clinicName: t })}
+              />
+              <Text style={styles.helperText}>Optional</Text>
+            </View>
             
             <Text style={[styles.subtitle, { marginTop: 20 }]}>Do you offer virtual consultations?</Text>
             {["Yes", "No"].map((option) => (
@@ -902,21 +930,26 @@ const NutritionistSignup = ({ navigation, onBack }) => {
           <View style={styles.inner}>
             <Text style={styles.header}>Create Your Account</Text>
             <Text style={styles.subtitle}>Almost done! Set up your login credentials</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Email"
-              value={email}
-              onChangeText={setEmail}
-              keyboardType="email-address"
-              autoCapitalize="none"
-            />
-            <TextInput
-              style={styles.input}
-              placeholder="Password (minimum 6 characters)"
-              secureTextEntry
-              value={password}
-              onChangeText={setPassword}
-            />
+            <View style={styles.inputContainer}>
+              <Text style={styles.label}>Email</Text>
+              <TextInput
+                style={styles.input}
+                value={email}
+                onChangeText={setEmail}
+                keyboardType="email-address"
+                autoCapitalize="none"
+              />
+            </View>
+            <View style={styles.inputContainer}>
+              <Text style={styles.label}>Password</Text>
+              <TextInput
+                style={styles.input}
+                secureTextEntry
+                value={password}
+                onChangeText={setPassword}
+              />
+              <Text style={styles.helperText}>Minimum 6 characters with uppercase, lowercase, and special character</Text>
+            </View>
             <TouchableOpacity
               style={[
                 styles.buttonPrimary,
@@ -961,12 +994,26 @@ const styles = StyleSheet.create({
     marginBottom: 15, 
     textAlign: "center" 
   },
-  input: { 
+  inputContainer: { 
     width: "90%", 
+    marginVertical: 10 
+  },
+  label: { 
+    color: "white", 
+    fontSize: 16, 
+    fontWeight: "600", 
+    marginBottom: 8 
+  },
+  input: { 
+    width: "100%", 
     backgroundColor: "white", 
     padding: 12, 
-    borderRadius: 8, 
-    marginVertical: 10 
+    borderRadius: 8
+  },
+  helperText: { 
+    color: "#bbb", 
+    fontSize: 12, 
+    marginTop: 4 
   },
   textArea: { 
     height: 120, 
@@ -1220,6 +1267,11 @@ const styles = StyleSheet.create({
   documentTypeSelected: {
     borderColor: "#3498db",
     backgroundColor: "#2c3e50",
+  },
+  documentTypeOptionLabel: {
+    color: "white",
+    fontSize: 14,
+    fontWeight: "600",
   },
   documentTypeDesc: {
     color: "#95a5a6",

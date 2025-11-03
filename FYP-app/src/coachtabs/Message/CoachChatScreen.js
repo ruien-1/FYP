@@ -218,7 +218,7 @@ export default function CoachChatScreen() {
         createdAt: serverTimestamp(),
         user: {
           _id: currentUser.uid,
-          name: currentUser.displayName || "Coach",
+          name: currentUser.displayName,
         },
         read: false,
       });
@@ -277,7 +277,6 @@ export default function CoachChatScreen() {
             </View>
             <View style={styles.headerTextContainer}>
               <Text style={styles.headerName}>{userName || 'User'}</Text>
-              <Text style={styles.headerRole}>Coach</Text>
             </View>
           </View>
          

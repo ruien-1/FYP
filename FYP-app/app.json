@@ -1,14 +1,14 @@
 {
   "expo": {
     "name": "NutriLog",
-    "slug": "FYP-app",
+    "slug": "NutriLog",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/icon2.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/icon.png",
+      "image": "./assets/icon2.png",
       "resizeMode": "contain",
       "backgroundColor": "#334155"
     },
@@ -17,7 +17,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/icon.png",
+        "foregroundImage": "./assets/icon2.png",
         "backgroundColor": "#334155"
       },
       "edgeToEdgeEnabled": true,
@@ -28,8 +28,9 @@
     },
     "extra": {
       "eas": {
-        "projectId": "30f95625-5737-43c2-9d3c-e768452d0e4d"
+        "projectId": "b4ae6c9e-994e-46bf-aea4-c7f375a53180"
       }
-    }
+    },
+    "owner": "rui1605"
   }
 }

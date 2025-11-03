@@ -21,7 +21,7 @@
         "backgroundColor": "#334155"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.rui1605.FYPapp"
+      "package": "com.rui1605.nutrilog"
     },
     "web": {
       "favicon": "./assets/favicon.png"

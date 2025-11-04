@@ -357,6 +357,7 @@ export default function CoachProfile() {
               label="Highest Qualification"
               value={coach.credentials}
             />
+            <InfoRow label="Gender" value={coach.gender} />
             <InfoRow 
               label="Specialization" 
               value={coach.specializations?.join(", ")} 

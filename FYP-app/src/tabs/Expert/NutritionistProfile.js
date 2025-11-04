@@ -359,6 +359,7 @@ export default function NutritionistProfile() {
               label="Highest Qualification"
               value={nutritionist.credentials}
             />
+            <InfoRow label="Gender" value={nutritionist.gender} />
             <InfoRow
               label="Specialization"
               value={nutritionist.specializations?.join(", ")}

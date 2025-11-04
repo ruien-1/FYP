@@ -1,5 +1,5 @@
 // FindCoach.js
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   View,
   Text,
@@ -11,7 +11,7 @@ import {
   Modal,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import API from "../../api/backend";
 
 export default function FindCoach() {
@@ -56,12 +56,21 @@ export default function FindCoach() {
     fetchCoaches();
   }, []);
 
+  // Refresh data when screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      fetchCoaches();
+    }, [])
+  );
+
   const fetchCoaches = async () => {
     try {
       const res = await API.get("/coaches");
       console.log("Fetched coaches:", res.data);
       setCoaches(res.data);
-      setFilteredCoaches(res.data);
+      
+      // Reapply current filters to the new data
+      applyFilters(searchQuery, selectedSpecializations, selectedServices, selectedExperience, res.data);
     } catch (err) {
       console.error("Error fetching coaches:", err);
     } finally {
@@ -95,8 +104,8 @@ export default function FindCoach() {
     }));
   };
 
-  const applyFilters = (search, specializations, services, experience) => {
-    let filtered = [...coaches];
+  const applyFilters = (search, specializations, services, experience, dataSource = null) => {
+    let filtered = [...(dataSource || coaches)];
 
     // Search filter
     if (search.trim() !== "") {
@@ -153,7 +162,8 @@ export default function FindCoach() {
     applyFilters(searchQuery, [], [], "");
   };
 
-  const renderStars = (rating = 4) => {
+  const renderStars = (rating) => {
+    if (!rating || rating === 0) return "";
     return "⭐".repeat(Math.floor(rating));
   };
 
@@ -265,12 +275,18 @@ export default function FindCoach() {
                     <Text style={styles.coachName}>{coach.name || "Coach"}</Text>
                     {renderSpecializations(coach.specializations, coach.id)}
                     <View style={styles.coachMetaRow}>
-                      <Text style={styles.coachRating}>
-                        {renderStars(coach.averageRating)}
-                      </Text>
-                      <Text style={styles.ratingText}>
-                        {coach.averageRating?.toFixed(1) || "4.0"}
-                      </Text>
+                      {coach.averageRating && coach.averageRating > 0 ? (
+                        <>
+                          <Text style={styles.coachRating}>
+                            {renderStars(coach.averageRating)}
+                          </Text>
+                          <Text style={styles.ratingText}>
+                            {coach.averageRating?.toFixed(1)}
+                          </Text>
+                        </>
+                      ) : (
+                        <Text style={styles.noReviewText}>No reviews yet</Text>
+                      )}
                       {coach.yearsOfExperience && (
                         <Text style={styles.coachExperience}>
                           • {coach.yearsOfExperience} yrs exp
@@ -619,6 +635,11 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: "#888",
     marginLeft: 4,
+  },
+  noReviewText: {
+    fontSize: 12,
+    color: "#999",
+    fontStyle: "italic",
   },
   viewProfileButton: {
     backgroundColor: "#7BA3FF",

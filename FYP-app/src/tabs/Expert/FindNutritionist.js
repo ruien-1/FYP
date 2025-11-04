@@ -1,5 +1,5 @@
 // FindNutritionist.js
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   View,
   Text,
@@ -11,7 +11,7 @@ import {
   Modal,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import API from "../../api/backend";
 
 export default function FindNutritionist() {
@@ -54,12 +54,21 @@ export default function FindNutritionist() {
     fetchNutritionists();
   }, []);
 
+  // Refresh data when screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      fetchNutritionists();
+    }, [])
+  );
+
   const fetchNutritionists = async () => {
     try {
       const res = await API.get("/nutritionists");
       console.log("Fetched nutritionists:", res.data);
       setNutritionists(res.data);
-      setFilteredNutritionists(res.data);
+      
+      // Reapply current filters to the new data
+      applyFilters(searchQuery, selectedSpecializations, selectedServices, selectedExperience, res.data);
     } catch (err) {
       console.error("Error fetching nutritionists:", err);
     } finally {
@@ -93,8 +102,8 @@ export default function FindNutritionist() {
     }));
   };
 
-  const applyFilters = (search, specializations, services, experience) => {
-    let filtered = [...nutritionists];
+  const applyFilters = (search, specializations, services, experience, dataSource = null) => {
+    let filtered = [...(dataSource || nutritionists)];
 
     // Search filter
     if (search.trim() !== "") {
@@ -151,7 +160,8 @@ export default function FindNutritionist() {
     applyFilters(searchQuery, [], [], "");
   };
 
-  const renderStars = (rating = 5) => {
+  const renderStars = (rating) => {
+    if (!rating || rating === 0) return "";
     return "⭐".repeat(Math.floor(rating));
   };
 
@@ -265,12 +275,18 @@ export default function FindNutritionist() {
                     </Text>
                     {renderSpecializations(nutritionist.specializations, nutritionist.id)}
                     <View style={styles.nutritionistMetaRow}>
-                      <Text style={styles.nutritionistRating}>
-                        {renderStars(nutritionist.averageRating)}
-                      </Text>
-                      <Text style={styles.ratingText}>
-                        {nutritionist.averageRating?.toFixed(1) || "5.0"}
-                      </Text>
+                      {nutritionist.averageRating && nutritionist.averageRating > 0 ? (
+                        <>
+                          <Text style={styles.nutritionistRating}>
+                            {renderStars(nutritionist.averageRating)}
+                          </Text>
+                          <Text style={styles.ratingText}>
+                            {nutritionist.averageRating?.toFixed(1)}
+                          </Text>
+                        </>
+                      ) : (
+                        <Text style={styles.noReviewText}>No reviews yet</Text>
+                      )}
                       {nutritionist.yearsOfExperience && (
                         <Text style={styles.nutritionistExperience}>
                           • {nutritionist.yearsOfExperience} yrs exp
@@ -620,6 +636,11 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: "#888",
     marginLeft: 4,
+  },
+  noReviewText: {
+    fontSize: 12,
+    color: "#999",
+    fontStyle: "italic",
   },
   viewProfileButton: {
     backgroundColor: "#7BA3FF",

@@ -89,7 +89,6 @@ export const completeCoachSignup = async (uid, email, profile) => {
       documentType,
       credentialNumber,
       issuingOrganization,
-      verified: false,
       created_on: new Date(),
     });
 

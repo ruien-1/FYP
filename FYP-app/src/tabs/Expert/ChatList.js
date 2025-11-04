@@ -110,51 +110,26 @@ export default function ChatList() {
           continue;
         }
 
+        // Get the OTHER user in the conversation (not the current user)
         const otherUserId = chatData.participants.find((id) => id !== currentUser.uid);
         if (!otherUserId) continue;
 
-        const expertNameFromChat = chatData.participantNames?.[otherUserId] || 'Expert';
-        const expertTypeFromChat = chatData.expertType || 'coach';
+        // PRIORITY 1: Get name from participantNames (most reliable source)
+        const otherUserName = chatData.participantNames?.[otherUserId] || 'Unknown User';
+        const expertType = chatData.expertType || 'client';
 
-        let expertInfo = null;
-        try {
-          const coachResponse = await API.get(`/coaches/${otherUserId}`);
-          if (coachResponse?.data) {
-            expertInfo = {
-              id: otherUserId,
-              name: coachResponse.data.name || expertNameFromChat,
-              type: 'coach',
-              emoji: '🏋️‍♂️',
-              specialization: coachResponse.data.specialization || '',
-            };
-          }
-        } catch {
-          try {
-            const nutritionistResponse = await API.get(`/nutritionists/${otherUserId}`);
-            if (nutritionistResponse?.data) {
-              expertInfo = {
-                id: otherUserId,
-                name: nutritionistResponse.data.name || expertNameFromChat,
-                type: 'nutritionist',
-                emoji: '🥗',
-                specialization: nutritionistResponse.data.specialization || '',
-              };
-            }
-          } catch {
-            expertInfo = null;
-          }
-        }
+        console.log(`🔍 Chat ${chatId.substring(0, 20)}... | User: ${otherUserName} (${expertType})`);
 
-        if (!expertInfo) {
-          expertInfo = {
-            id: otherUserId,
-            name: expertNameFromChat,
-            type: expertTypeFromChat,
-            emoji: expertTypeFromChat === 'coach' ? '🏋️‍♂️' : '🥗',
-            specialization: '',
-          };
-        }
+        // Initialize chat partner with metadata (guaranteed to have a name)
+        let chatPartner = {
+          id: otherUserId,
+          name: otherUserName,
+          type: expertType,
+          emoji: expertType === 'coach' ? '🏋️‍♂️' : expertType === 'nutritionist' ? '🥗' : '👤',
+          specialization: '',
+        };
 
+        // Fetch last message
         let lastMessage = chatData.lastMessage || 'No messages yet';
         let lastMessageTime = chatData.lastMessageTime?.toDate() || null;
 
@@ -174,19 +149,23 @@ export default function ChatList() {
         }
 
         chats.push({
-          ...expertInfo,
+          ...chatPartner,
           chatId,
           lastMessage,
           lastMessageTime,
         });
       }
 
+      // Sort by most recent message
       chats.sort((a, b) => {
         if (!a.lastMessageTime) return 1;
         if (!b.lastMessageTime) return -1;
         return b.lastMessageTime - a.lastMessageTime;
       });
 
+      console.log(`✅ Successfully loaded ${chats.length} chats:`, 
+        chats.map(c => `${c.name} (${c.type})`).join(', '));
+      
       setChatList(chats);
       setupRealtimeListeners(chats);
     } catch (error) {
@@ -198,19 +177,27 @@ export default function ChatList() {
   };
 
   const handleChatPress = (chat) => {
-    setLastOpenedChatId(chat.chatId); // Track opened chat
+    setLastOpenedChatId(chat.chatId);
 
     if (chat.type === 'coach') {
-      // Navigate to CoachesChatScreen for coaches
       navigation.navigate('CoachesChatScreen', {
         coachId: chat.id,
         coachName: chat.name,
+        chatId: chat.chatId,
       });
-    } else {
-      // Navigate to NutChatScreen for nutritionists
+    } else if (chat.type === 'nutritionist') {
       navigation.navigate('NutChatScreen', {
         nutritionistId: chat.id,
         nutritionistName: chat.name,
+        chatId: chat.chatId,
+      });
+    } else {
+      // For clients or unknown types
+      navigation.navigate('CoachesChatScreen', {
+        coachId: chat.id,
+        coachName: chat.name,
+        chatId: chat.chatId,
+        isClient: true,
       });
     }
   };
@@ -240,6 +227,12 @@ export default function ChatList() {
 
   const renderChatItem = (chat) => {
     const unreadCount = unreadCounts[chat.chatId] || 0;
+    
+    // Determine display label based on type
+    let typeLabel = 'User';
+    if (chat.type === 'coach') typeLabel = 'Coach';
+    else if (chat.type === 'nutritionist') typeLabel = 'Nutritionist';
+    else if (chat.type === 'client') typeLabel = 'Client';
 
     return (
       <TouchableOpacity
@@ -270,7 +263,7 @@ export default function ChatList() {
             <Text style={styles.timeText}>{formatTime(chat.lastMessageTime)}</Text>
           </View>
           <Text style={styles.expertType}>
-            {chat.type === 'coach' ? 'Coach' : 'Nutritionist'}
+            {typeLabel}
             {chat.specialization ? ` • ${chat.specialization}` : ''}
           </Text>
           <Text

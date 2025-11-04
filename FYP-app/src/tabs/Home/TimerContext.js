@@ -2,7 +2,6 @@
 import React, { createContext, useState, useEffect, useRef } from "react";
 export const TimerContext = createContext();
 import { scheduleNotification} from "./notificationService";
-import { scheduleFastingEndNotifications } from "./notificationService";
 
 export const TimerProvider = ({ children }) => {
   const [expiryDate, setExpiryDate] = useState(null);
@@ -52,9 +51,6 @@ const scheduleFasting = (startTime, fastingHours, isCustom = false) => {
     delayMs,
     
   });
-
-    // 🟢 Multi-reminder
-  scheduleFastingEndNotifications(endTime);
 };
 
 

@@ -101,7 +101,7 @@ const SignUpPage = ({ navigation }) => {
           weight: Number(profile.weight),
           age: Number(profile.age),
           targetWeight: Number(profile.targetWeight),
-          weightLossGoal: Number(profile.weightLossGoal),
+          weightLossGoal: profile.weightLossGoal,
         },
       });
       if (!response.data.success) {

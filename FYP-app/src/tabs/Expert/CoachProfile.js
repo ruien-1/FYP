@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -13,7 +13,7 @@ import {
   Keyboard,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useNavigation, useRoute } from "@react-navigation/native";
+import { useNavigation, useRoute, useFocusEffect } from "@react-navigation/native";
 import API from "../../api/backend";
 import { auth } from "../../firebaseConfig";
 
@@ -36,21 +36,26 @@ export default function CoachProfile() {
   // Get current user ID
   const currentUserId = auth.currentUser?.uid;
 
-  useEffect(() => {
-    fetchCoachProfile();
-  }, []);
-
-  const fetchCoachProfile = async () => {
+  const fetchCoachProfile = useCallback(async () => {
     try {
+      setLoading(true);
       const response = await API.get(`/coach/${coachId}`);
       setCoach(response.data);
+      setError(null);
     } catch (err) {
       setError(err.message);
       console.error("Error fetching coach profile:", err);
     } finally {
       setLoading(false);
     }
-  };
+  }, [coachId]);
+
+  // Use useFocusEffect to refresh profile when screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      fetchCoachProfile();
+    }, [fetchCoachProfile])
+  );
 
   const assignCoachAndChat = async () => {
     if (!currentUserId) {
@@ -197,6 +202,9 @@ export default function CoachProfile() {
     return "Contact for details";
   };
 
+  // Check if coach has reviews
+  const hasReviews = coach?.totalRatings > 0;
+
   if (loading) {
     return (
       <SafeAreaView style={styles.safe}>
@@ -266,18 +274,25 @@ export default function CoachProfile() {
             </TouchableOpacity>
           </View>
 
-          {/* Name and Reviews */}
+          {/* Name */}
           <Text style={styles.coachName}>{coach.name || "Coach"}</Text>
-          <TouchableOpacity 
-            style={styles.reviewContainer}
-            onPress={handleViewRatings}
-          >
-            <Text style={styles.stars}>{renderStars(coach.averageRating)}</Text>
-            <Text style={styles.reviewText}>
-              {coach.averageRating?.toFixed(1) || "5.0"} ({coach.totalRatings || "0"} Reviews)
-            </Text>
-            <Text style={styles.viewArrow}> →</Text>
-          </TouchableOpacity>
+
+          {/* Reviews - Only show if there are reviews */}
+          {hasReviews ? (
+            <TouchableOpacity 
+              style={styles.reviewContainer}
+              onPress={handleViewRatings}
+            >
+              <Text style={styles.stars}>{renderStars(coach.averageRating)}</Text>
+              <Text style={styles.reviewText}>
+                {coach.averageRating?.toFixed(1)} ({coach.totalRatings}{" "}
+                {coach.totalRatings === 1 ? "Review" : "Reviews"})
+              </Text>
+              <Text style={styles.viewArrow}> →</Text>
+            </TouchableOpacity>
+          ) : (
+            <Text style={styles.noReviewsText}>No reviews yet</Text>
+          )}
 
           {/* Chat Button */}
           <TouchableOpacity 
@@ -557,6 +572,13 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#007AFF",
     marginLeft: 4,
+  },
+  noReviewsText: {
+    fontSize: 14,
+    color: "#999",
+    textAlign: "center",
+    marginBottom: 20,
+    fontStyle: "italic",
   },
   chatButton: {
     backgroundColor: "#7BA3FF",

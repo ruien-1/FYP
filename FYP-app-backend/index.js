@@ -190,7 +190,6 @@ app.post("/complete-nutritionist-signup", async (req, res) => {
       credentialNumber,
       issuingOrganization,
       proofDocument,
-      verified: false,
       created_on: admin.firestore.FieldValue.serverTimestamp(),
     });
 
@@ -277,7 +276,6 @@ app.post("/complete-coach-signup", async (req, res) => {
       credentialNumber,
       issuingOrganization,
       proofDocument,
-      verified: false,
       created_on: admin.firestore.FieldValue.serverTimestamp(),
     });
 

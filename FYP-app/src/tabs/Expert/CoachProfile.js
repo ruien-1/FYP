@@ -189,7 +189,16 @@ export default function CoachProfile() {
     // If it's an object with days
     if (typeof availability === "object") {
       const availableDays = Object.entries(availability)
-        .filter(([day, isAvailable]) => isAvailable)
+        .filter(([day, dayData]) => {
+          // Only include days that are available AND have working hours
+          if (typeof dayData === "object" && dayData.available === true) {
+            // Check if it has both startTime and endTime to be truly available
+            return dayData.startTime && dayData.endTime;
+          }
+          // Handle old format (boolean) - but this is less reliable
+          if (typeof dayData === "boolean") return dayData;
+          return false;
+        })
         .map(([day]) => day);
       
       if (availableDays.length === 0) {
@@ -202,8 +211,33 @@ export default function CoachProfile() {
     return "Contact for details";
   };
 
+  // Get all available days with their working hours
+  const getAvailableDaysWithHours = (availability) => {
+    if (!availability || typeof availability !== "object") {
+      return [];
+    }
+
+    const daysWithHours = [];
+    
+    for (const day in availability) {
+      const dayData = availability[day];
+      if (typeof dayData === "object" && dayData.available && dayData.startTime && dayData.endTime) {
+        daysWithHours.push({
+          day: day,
+          startTime: dayData.startTime,
+          endTime: dayData.endTime
+        });
+      }
+    }
+
+    return daysWithHours;
+  };
+
   // Check if coach has reviews
   const hasReviews = coach?.totalRatings > 0;
+
+  // Get all available days with hours
+  const availableDaysWithHours = coach ? getAvailableDaysWithHours(coach.availability) : [];
 
   if (loading) {
     return (
@@ -334,6 +368,21 @@ export default function CoachProfile() {
               value={formatAvailability(coach.availability)}
             />
           </View>
+
+          {/* Working Hours for Each Available Day */}
+          {availableDaysWithHours.length > 0 && (
+            <View style={styles.section}>
+              <Text style={styles.workingHoursTitle}>Working Hours</Text>
+              {availableDaysWithHours.map((dayInfo, index) => (
+                <View key={index} style={styles.dayScheduleRow}>
+                  <Text style={styles.dayName}>{dayInfo.day}</Text>
+                  <Text style={styles.timeRange}>
+                    {dayInfo.startTime} - {dayInfo.endTime}
+                  </Text>
+                </View>
+              ))}
+            </View>
+          )}
         </View>
 
         {/* Services Section */}
@@ -750,5 +799,31 @@ const styles = StyleSheet.create({
     color: "#FFF",
     fontSize: 16,
     fontWeight: "700",
+  },
+  workingHoursTitle: {
+    fontSize: 15,
+    fontWeight: "600",
+    color: "#333",
+    marginBottom: 12,
+    marginTop: 4,
+  },
+  dayScheduleRow: {
+    backgroundColor: "rgba(255, 255, 255, 0.6)",
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 10,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  dayName: {
+    fontSize: 15,
+    fontWeight: "600",
+    color: "#333",
+  },
+  timeRange: {
+    fontSize: 14,
+    color: "#666",
+    fontWeight: "500",
   },
 });

@@ -11,6 +11,7 @@ const SignUpPage = ({ navigation }) => {
   const [userType, setUserType] = useState(""); // "user", "nutritionist", or "coach"
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [profile, setProfile] = useState({
     name: "",
     gender: "",
@@ -421,34 +422,58 @@ const SignUpPage = ({ navigation }) => {
         </View>
       )}
 
-      {question === 9 && (
-        <View style={styles.inner}>
-          <Text style={styles.header}>Last Step! Create your account</Text>
-          <View style={styles.inputContainer}>
-            <Text style={styles.label}>Email</Text>
-            <TextInput 
-              style={styles.input} 
-              value={email} 
-              onChangeText={setEmail} 
-              keyboardType="email-address" 
-              autoCapitalize="none" 
-            />
-          </View>
-          <View style={styles.inputContainer}>
-            <Text style={styles.label}>Password</Text>
-            <TextInput 
-              style={styles.input} 
-              secureTextEntry 
-              value={password} 
-              onChangeText={setPassword} 
-            />
-            <Text style={styles.helperText}>Minimum 6 characters with uppercase, lowercase, and special character</Text>
-          </View>
-          <TouchableOpacity style={styles.buttonPrimary} onPress={handleSignUp}>
-            <Text style={styles.buttonText}>Create Account</Text>
-          </TouchableOpacity>
-        </View>
-      )}
+{question === 9 && (
+  <View style={styles.inner}>
+    <Text style={styles.header}>Last Step! Create your account</Text>
+
+    {/* Email Field */}
+    <View style={styles.inputContainer}>
+      <Text style={styles.label}>Email</Text>
+      <TextInput
+        style={[styles.input, { color: "black" }]}
+        placeholder="Email"
+        placeholderTextColor="#7f8c8d"
+        value={email}
+        onChangeText={setEmail}
+        keyboardType="email-address"
+        autoCapitalize="none"
+      />
+    </View>
+
+    {/* Password Field */}
+    <View style={styles.inputContainer}>
+      <Text style={styles.label}>Password</Text>
+      <View style={styles.passwordContainer}>
+        <TextInput
+          style={[styles.passwordInput, { color: "black" }]}
+          placeholder="Password"
+          placeholderTextColor="#7f8c8d"
+          secureTextEntry={!showPassword}
+          value={password}
+          onChangeText={setPassword}
+          autoCapitalize="none"
+        />
+        <TouchableOpacity
+          onPress={() => setShowPassword(!showPassword)}
+          style={styles.eyeIcon}
+        >
+          <Ionicons
+            name={showPassword ? "eye-off" : "eye"}
+            size={24}
+            color="#7f8c8d"
+          />
+        </TouchableOpacity>
+      </View>
+      <Text style={styles.helperText}>
+        Minimum 6 characters with uppercase, lowercase, and special character
+      </Text>
+    </View>
+
+    <TouchableOpacity style={styles.buttonPrimary} onPress={handleSignUp}>
+      <Text style={styles.buttonText}>Create Account</Text>
+    </TouchableOpacity>
+  </View>
+)}
     </ScrollView>
   );
 };
@@ -472,6 +497,22 @@ const styles = StyleSheet.create({
   userTypeButton: { backgroundColor: "#34495e", padding: 20, borderRadius: 12, width: "90%", alignItems: "center", marginVertical: 10, borderWidth: 2, borderColor: "#3498db" },
   userTypeTitle: { color: "white", fontSize: 18, fontWeight: "bold", marginTop: 10, marginBottom: 5 },
   userTypeDesc: { color: "#bbb", fontSize: 13, textAlign: "center", paddingHorizontal: 10 },
+  passwordContainer: {
+  flexDirection: "row",
+  alignItems: "center",
+  backgroundColor: "white",
+  borderRadius: 8,
+  paddingRight: 10,
+},
+passwordInput: {
+  flex: 1,
+  padding: 12,
+  color: "black",
+},
+eyeIcon: {
+  paddingHorizontal: 5,
+},
+
 });
 
 export default SignUpPage;

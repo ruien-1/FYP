@@ -287,7 +287,12 @@ export default function ChatList() {
   return (
     <SafeAreaView style={styles.safe}>
       <View style={styles.container}>
-        <Text style={styles.title}>Chat</Text>
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+            <Text style={styles.backButtonText}>←</Text>
+          </TouchableOpacity>
+          <Text style={styles.title}>Chat</Text>
+        </View>
 
         {loading ? (
           <View style={styles.loadingContainer}>
@@ -322,7 +327,16 @@ export default function ChatList() {
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: '#E8F0FF' },
   container: { flex: 1, padding: 16 },
-  title: { fontSize: 28, fontWeight: 'bold', marginBottom: 20, color: '#000' },
+  header: { flexDirection: 'row', alignItems: 'center', marginBottom: 20 },
+  backButton: {
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 8,
+  },
+  backButtonText: { fontSize: 28, color: '#000000ff', fontWeight: '400' },
+  title: { fontSize: 28, fontWeight: 'bold', color: '#000' },
   chatList: { flex: 1 },
   chatItem: {
     backgroundColor: '#FFFFFF',

@@ -24,6 +24,7 @@ const CoachSignup = ({ navigation, onBack }) => {
   const [step, setStep] = useState(1);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
   const [currentTimeSelection, setCurrentTimeSelection] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -929,39 +930,63 @@ const CoachSignup = ({ navigation, onBack }) => {
         {step === 10 && (
           <View style={styles.inner}>
             <Text style={styles.header}>Create Your Account</Text>
-            <Text style={styles.subtitle}>Almost done! Set up your login credentials</Text>
+            <Text style={styles.subtitle}>
+              Almost done! Set up your login credentials
+            </Text>
+
+            {/* Email */}
             <View style={styles.inputContainer}>
               <Text style={styles.label}>Email</Text>
               <TextInput
-                style={styles.input}
+                style={[styles.input, { color: "black" }]}
+                placeholder="Email"
+                placeholderTextColor="#7f8c8d"
                 value={email}
                 onChangeText={setEmail}
                 keyboardType="email-address"
                 autoCapitalize="none"
               />
             </View>
+
+            {/* Password */}
             <View style={styles.inputContainer}>
               <Text style={styles.label}>Password</Text>
-              <TextInput
-                style={styles.input}
-                secureTextEntry
-                value={password}
-                onChangeText={setPassword}
-              />
-              <Text style={styles.helperText}>Minimum 6 characters with uppercase, lowercase, and special character</Text>
+              <View style={styles.passwordContainer}>
+                <TextInput
+                  style={[styles.passwordInput, { color: "black" }]}
+                  placeholder="Password"
+                  placeholderTextColor="#7f8c8d"
+                  secureTextEntry={!showPassword}
+                  value={password}
+                  onChangeText={setPassword}
+                  autoCapitalize="none"
+                />
+                <TouchableOpacity
+                  onPress={() => setShowPassword(!showPassword)}
+                  style={styles.eyeIcon}
+                >
+                  <Ionicons
+                    name={showPassword ? "eye-off" : "eye"}
+                    size={24}
+                    color="#7f8c8d"
+                  />
+                </TouchableOpacity>
+              </View>
+              <Text style={styles.helperText}>
+                Minimum 6 characters with uppercase, lowercase, and special character
+              </Text>
             </View>
+
             <TouchableOpacity
-              style={[
-                styles.buttonPrimary,
-                { opacity: email && password ? 1 : 0.5 },
-              ]}
+              style={[styles.buttonPrimary, { opacity: email && password ? 1 : 0.5 }]}
               disabled={!(email && password)}
               onPress={handleCoachSignUp}
             >
               <Text style={styles.buttonText}>Create Account</Text>
-            </TouchableOpacity>
-          </View>
-        )}
+    </TouchableOpacity>
+  </View>
+)}
+
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -1281,6 +1306,21 @@ const styles = StyleSheet.create({
   spacer: {
     height: 20,
   },
+    passwordContainer: {
+  flexDirection: "row",
+  alignItems: "center",
+  backgroundColor: "white",
+  borderRadius: 8,
+  paddingRight: 10,
+},
+passwordInput: {
+  flex: 1,
+  padding: 12,
+  color: "black",
+},
+eyeIcon: {
+  paddingHorizontal: 5,
+},
 });
 
 export default CoachSignup;

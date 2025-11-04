@@ -66,6 +66,10 @@ export default function MealLog() {
   // image picker state
   const [selectedImage, setSelectedImage] = useState(null);
 
+  // ✅ Race condition prevention
+  const [searchId, setSearchId] = useState(0);
+  const [debounceTimer, setDebounceTimer] = useState(null);
+
   // ✅ Get meal type and selectedDate from navigation
   useEffect(() => {
     if (route.params?.mealType) {
@@ -87,6 +91,15 @@ export default function MealLog() {
       return () => clearTimeout(timer);
     }
   }, [message]);
+
+  // Cleanup debounce timer on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceTimer) {
+        clearTimeout(debounceTimer);
+      }
+    };
+  }, [debounceTimer]);
 
   const openGallery = async () => {
     try {
@@ -112,18 +125,29 @@ export default function MealLog() {
   ];
   const currentMeal = mealOptions.find((m) => m.label === meal);
 
-  // ✅ OPTIMIZED: Only 1 API call per search, store full nutrition immediately
+  // ✅ FIXED: Search with race condition prevention
   const searchFood = async (text) => {
-    setQuery(text);
     if (text.length > 1) {
       try {
         setLoading(true);
 
+        // Create unique ID for this search
+        const currentSearchId = Date.now();
+        setSearchId(currentSearchId);
+
         const { generic = [], branded = [] } = await searchFoods(text);
+
+        // Check if this is still the latest search
+        if (currentSearchId < searchId) {
+          console.log("⏭️ Ignoring outdated search results");
+          setLoading(false);
+          return;
+        }
+
         let initialResults = [...generic.slice(0, 8), ...branded.slice(0, 12)];
 
         // 🔹 Fetch and cache nutrition data for all results
-        const searchTimestamp = Date.now(); // Single timestamp for this search
+        const searchTimestamp = Date.now();
         const refinedResults = await Promise.all(
           initialResults.map(async (f, i) => {
             // ✅ ALWAYS use unique ID - API IDs can be duplicates!
@@ -181,6 +205,13 @@ export default function MealLog() {
           })
         );
 
+        // Final check before updating UI
+        if (currentSearchId < searchId) {
+          console.log("⏭️ Ignoring outdated nutrition results");
+          setLoading(false);
+          return;
+        }
+
         setFoods(refinedResults);
       } catch (err) {
         console.error("❌ Error searching food:", err);
@@ -190,6 +221,26 @@ export default function MealLog() {
       }
     } else {
       setFoods(defaultFoods);
+      setLoading(false);
+    }
+  };
+
+  // ✅ Debounced search handler
+  const handleSearchInput = (text) => {
+    setQuery(text);
+
+    if (debounceTimer) {
+      clearTimeout(debounceTimer);
+    }
+
+    if (text.length > 1) {
+      const timer = setTimeout(() => {
+        searchFood(text);
+      }, 300); // Wait 300ms after user stops typing
+      setDebounceTimer(timer);
+    } else {
+      setFoods(defaultFoods);
+      setLoading(false);
     }
   };
 
@@ -307,7 +358,7 @@ export default function MealLog() {
                 placeholder="Search to add food"
                 placeholderTextColor="#999"
                 value={query}
-                onChangeText={searchFood}
+                onChangeText={handleSearchInput}
               />
             </View>
 
@@ -393,8 +444,6 @@ export default function MealLog() {
             </TouchableOpacity>
           </View>
         )}
-
-
       </View>
 
       {/* CustomFoodModal */}

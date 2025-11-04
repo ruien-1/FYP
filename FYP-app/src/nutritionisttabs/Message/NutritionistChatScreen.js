@@ -35,7 +35,7 @@ import API from "../../api/backend";
 export default function NutritionistChatScreen() {
   const route = useRoute();
   const navigation = useNavigation();
-  const { userId, userName } = route.params || {};
+  const { userId, userName: userNameFromParams } = route.params || {};
   const currentUser = auth.currentUser;
 
   if (!userId || !currentUser) {
@@ -49,7 +49,9 @@ export default function NutritionistChatScreen() {
   const [messages, setMessages] = useState([]);
   const [text, setText] = useState("");
   const [respondedAppointments, setRespondedAppointments] = useState(new Set());
-  const [appointmentStatuses, setAppointmentStatuses] = useState({}); // Track statuses by appointmentId
+  const [appointmentStatuses, setAppointmentStatuses] = useState({});
+  const [nutritionistName, setNutritionistName] = useState("Nutritionist");
+  const [userName, setUserName] = useState(userNameFromParams || "User");
   const textInputRef = useRef(null);
   const isFetchingRef = useRef(false);
 
@@ -58,7 +60,55 @@ export default function NutritionistChatScreen() {
       ? `${currentUser.uid}_${userId}`
       : `${userId}_${currentUser.uid}`;
 
-  // Mark messages as read when screen is focused (when navigating back to chat)
+  // Fetch nutritionist name from Firestore
+  useEffect(() => {
+    const fetchNutritionistName = async () => {
+      try {
+        // First try nutritionist collection
+        const nutritionistDocRef = doc(db, "nutritionist", currentUser.uid);
+        const nutritionistDocSnap = await getDoc(nutritionistDocRef);
+        
+        if (nutritionistDocSnap.exists() && nutritionistDocSnap.data().name) {
+          setNutritionistName(nutritionistDocSnap.data().name);
+          console.log("✅ Fetched nutritionist name:", nutritionistDocSnap.data().name);
+          return;
+        }
+
+        // Fallback to nutritionist_info collection
+        const nutritionistInfoDocRef = doc(db, "nutritionist_info", currentUser.uid);
+        const nutritionistInfoDocSnap = await getDoc(nutritionistInfoDocRef);
+        
+        if (nutritionistInfoDocSnap.exists() && nutritionistInfoDocSnap.data().name) {
+          setNutritionistName(nutritionistInfoDocSnap.data().name);
+          console.log("✅ Fetched nutritionist name from info:", nutritionistInfoDocSnap.data().name);
+        } else {
+          console.warn("⚠️ Nutritionist name not found in Firestore");
+        }
+      } catch (error) {
+        console.error("❌ Error fetching nutritionist name:", error);
+      }
+    };
+    fetchNutritionistName();
+  }, [currentUser.uid]);
+
+  // Fetch user name from Firestore (in case it wasn't passed or needs updating)
+  useEffect(() => {
+    const fetchUserName = async () => {
+      try {
+        const userDocRef = doc(db, "user", userId);
+        const userDocSnap = await getDoc(userDocRef);
+        if (userDocSnap.exists() && userDocSnap.data().name) {
+          setUserName(userDocSnap.data().name);
+          console.log("✅ Fetched user name:", userDocSnap.data().name);
+        }
+      } catch (error) {
+        console.error("❌ Error fetching user name:", error);
+      }
+    };
+    fetchUserName();
+  }, [userId]);
+
+  // Mark messages as read when screen is focused
   useFocusEffect(
     useCallback(() => {
       const markMessagesAsRead = async () => {
@@ -91,7 +141,7 @@ export default function NutritionistChatScreen() {
     }, [chatId, currentUser.uid])
   );
 
-  // 🔥 Check which appointments have been responded to from messages
+  // Check which appointments have been responded to from messages
   const updateRespondedAppointments = useCallback((allMessages) => {
     const responded = new Set();
     
@@ -110,7 +160,7 @@ export default function NutritionistChatScreen() {
     setRespondedAppointments(responded);
   }, [currentUser.uid]);
 
-  // 🔥 Check appointment statuses for all pending appointment messages
+  // Check appointment statuses for all pending appointment messages
   useEffect(() => {
     const checkAppointmentStatuses = async () => {
       try {
@@ -134,7 +184,7 @@ export default function NutritionistChatScreen() {
     checkAppointmentStatuses();
   }, [currentUser.uid, userId]);
 
-  // 🔥 Listen to messages
+  // Listen to messages
   useEffect(() => {
     const q = query(
       collection(db, "chats", chatId, "messages"),
@@ -217,14 +267,16 @@ export default function NutritionistChatScreen() {
         createdAt: serverTimestamp(),
         user: {
           _id: currentUser.uid,
-          name: currentUser.displayName
+          name: nutritionistName
         },
         read: false,
       });
+      
+      console.log("✅ Message sent with nutritionist name:", nutritionistName);
     } catch (error) {
       console.error("Error sending message:", error.message);
     }
-  }, [chatId, currentUser]);
+  }, [chatId, currentUser, nutritionistName]);
 
   const renderCustomInputToolbar = () => (
     <View style={styles.inputToolbar}>

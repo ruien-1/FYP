@@ -21,8 +21,8 @@ import {
   onSnapshot,
   doc,
   updateDoc,
+  getDoc,
 } from 'firebase/firestore';
-import API from '../../api/backend';
 
 export default function ChatList() {
   const navigation = useNavigation();
@@ -117,34 +117,43 @@ export default function ChatList() {
         const expertTypeFromChat = chatData.expertType || 'coach';
 
         let expertInfo = null;
+
+        // Fetch from Firestore instead of API
         try {
-          const coachResponse = await API.get(`/coaches/${otherUserId}`);
-          if (coachResponse?.data) {
+          // Try coach collection first
+          const coachDocRef = doc(db, "coach", otherUserId);
+          const coachSnap = await getDoc(coachDocRef);
+          
+          if (coachSnap.exists()) {
+            const coachData = coachSnap.data();
             expertInfo = {
               id: otherUserId,
-              name: coachResponse.data.name || expertNameFromChat,
+              name: coachData.name || expertNameFromChat,
               type: 'coach',
               emoji: '🏋️‍♂️',
-              specialization: coachResponse.data.specialization || '',
+              specialization: coachData.specialization || '',
             };
-          }
-        } catch {
-          try {
-            const nutritionistResponse = await API.get(`/nutritionists/${otherUserId}`);
-            if (nutritionistResponse?.data) {
+          } else {
+            // Try nutritionist collection
+            const nutritionistDocRef = doc(db, "nutritionist", otherUserId);
+            const nutritionistSnap = await getDoc(nutritionistDocRef);
+            
+            if (nutritionistSnap.exists()) {
+              const nutritionistData = nutritionistSnap.data();
               expertInfo = {
                 id: otherUserId,
-                name: nutritionistResponse.data.name || expertNameFromChat,
+                name: nutritionistData.name || expertNameFromChat,
                 type: 'nutritionist',
                 emoji: '🥗',
-                specialization: nutritionistResponse.data.specialization || '',
+                specialization: nutritionistData.specialization || '',
               };
             }
-          } catch {
-            expertInfo = null;
           }
+        } catch (error) {
+          console.log('⚠️ Error fetching expert from Firestore:', error);
         }
 
+        // Fallback if not found
         if (!expertInfo) {
           expertInfo = {
             id: otherUserId,

@@ -1316,7 +1316,7 @@ const CoachProfileTab = () => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F8FAFC' },
+  container: { flex: 1, backgroundColor: '#E8F0FF' },
   scrollView: { flex: 1 },
   loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 20 },
   loadingText: { marginTop: 16, fontSize: 16, color: '#666', fontWeight: '500' },

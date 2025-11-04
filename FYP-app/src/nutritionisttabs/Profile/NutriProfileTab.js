@@ -1324,7 +1324,7 @@ const handleLogout = async () => {
 const styles = StyleSheet.create({
   container: { 
     flex: 1, 
-    backgroundColor: '#F8FAFC' 
+    backgroundColor: '#E8F0FF' 
   },
   scrollView: { 
     flex: 1 

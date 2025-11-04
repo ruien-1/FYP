@@ -144,6 +144,8 @@ app.post("/complete-nutritionist-signup", async (req, res) => {
     const {
       name,
       age,
+      gender,
+      languages,
       credentials,
       specializations = [],
       yearsOfExperience,
@@ -164,6 +166,8 @@ app.post("/complete-nutritionist-signup", async (req, res) => {
       uid,
       name,
       age,
+      gender,
+      languages,
       credentials,
       specializations,
       yearsOfExperience,

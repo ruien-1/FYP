@@ -31,7 +31,10 @@ export default function PendingAction() {
 
       const response = await API.get("/workout-plans/coach", {
         params: { coachId: currentUser.uid, status: "confirmed" },
-      }).catch(() => ({ data: { data: [] } }));
+      }).catch((err) => {
+        console.error("Error fetching confirmed workout plans:", err);
+        return { data: { data: [] } };
+      });
 
       const workoutPlanData = response.data?.data || [];
       setWorkoutPlans(workoutPlanData);

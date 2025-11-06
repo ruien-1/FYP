@@ -261,23 +261,26 @@ export default function CoachesChatScreen() {
 
   const handleRequestWorkoutPlan = async () => {
     try {
-      // Try to create a backend workout plan request if available
+      // Create a backend workout plan request
       let workoutPlanId = null;
+      const workoutPlanData = {
+        userId: currentUser.uid,
+        userName: userName || "User",
+        expertId: coachId,
+        expertName: coachName || "Coach",
+        duration: "1 week",
+        requestMessage: "I would like to request a personalized 1-week workout plan.",
+        status: "pending",
+        createdAt: new Date().toISOString(),
+      };
+      
       try {
-        const workoutPlanData = {
-          userId: currentUser.uid,
-          userName: userName || "User",
-          expertId: coachId,
-          expertName: coachName || "Coach",
-          duration: "1 week",
-          requestMessage: "I would like to request a personalized 1-week workout plan.",
-          status: "pending",
-          createdAt: new Date().toISOString(),
-        };
         const resp = await API.post("/workout-plans/coach", workoutPlanData);
-        workoutPlanId = resp.data?.workoutPlanId || null;
-      } catch (_) {
-        // Silently ignore if endpoint not implemented yet
+        workoutPlanId = resp.data?.workoutPlanId || resp.data?.data?.id || null;
+        console.log("✅ Workout plan request created:", workoutPlanId);
+      } catch (apiError) {
+        console.error("❌ Error creating workout plan request:", apiError);
+        // Still continue to send chat message even if API fails
       }
 
       const workoutMessage = `💪 Workout Plan Request\n\nDuration: 1 Week\n\nI would like to request a personalized workout plan for one week. Please provide a detailed schedule.`;
@@ -340,6 +343,17 @@ export default function CoachesChatScreen() {
           ]}>
             {item.text}
           </Text>
+          {item.messageType === 'workoutPlan' && item.workoutPlanDetails && !isCurrentUser && (
+            <TouchableOpacity
+              style={styles.viewPlanButton}
+              onPress={() => navigation.navigate('WorkoutPlanDetails', {
+                workoutPlanDetails: item.workoutPlanDetails,
+              })}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.viewPlanButtonText}>View Workout Plan</Text>
+            </TouchableOpacity>
+          )}
         </View>
         <Text style={[
           styles.messageTime,
@@ -483,7 +497,7 @@ export default function CoachesChatScreen() {
       <Modal
         visible={showAppointmentModal}
         transparent={true}
-        animationType="fade"
+        animationType="slide"
         onRequestClose={() => setShowAppointmentModal(false)}
       >
         <View style={styles.modalOverlay}>
@@ -717,6 +731,19 @@ const styles = StyleSheet.create({
     color: '#000000',
     marginLeft: 10,
     textAlign: 'left',
+  },
+  viewPlanButton: {
+    backgroundColor: '#007AFF',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 8,
+    marginTop: 8,
+    alignItems: 'center',
+  },
+  viewPlanButtonText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '600',
   },
   inputWrapper: {
     backgroundColor: '#E8F0FF',

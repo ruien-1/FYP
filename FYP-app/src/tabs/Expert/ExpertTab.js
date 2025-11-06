@@ -396,9 +396,9 @@ const setupUnreadListener = () => {
                 Connect with certified
               </Text>
               <Text style={styles.expertCardText}>
-                nutritionists for advice and
+                nutritionists for meal
               </Text>
-              <Text style={styles.expertCardText}>meal plans</Text>
+              <Text style={styles.expertCardText}>plans and advice</Text>
               <View style={styles.findButton}>
                 <Text style={styles.findButtonText}>Find Nutritionist</Text>
               </View>
@@ -633,17 +633,19 @@ const styles = StyleSheet.create({
     color: "#333",
     lineHeight: 16,
   },
-  findButton: {
-    backgroundColor: "#7BA3FF",
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 20,
-    marginTop: 12,
-  },
+findButton: {
+  backgroundColor: "#7BA3FF",
+  paddingHorizontal: 16,  // Changed from 20 to 16
+  paddingVertical: 10,
+  borderRadius: 20,
+  marginTop: 12,
+  minWidth: 120,  // Add this line to ensure minimum width
+},
   findButtonText: {
     color: "#FFF",
     fontWeight: "600",
-    fontSize: 13,
+    fontSize: 12,
+    textAlign: 'center',
   },
   appointmentsSection: {
     marginBottom: 20,

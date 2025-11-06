@@ -73,10 +73,16 @@ export default function CoachHomeTab() {
         }),
         API.get("/workout-plans/coach", {
           params: { coachId: currentUser.uid, status: "pending" },
-        }).catch(() => ({ data: { data: [] } })),
+        }).catch((err) => {
+          console.error("Error fetching pending workout plans:", err);
+          return { data: { data: [] } };
+        }),
         API.get("/workout-plans/coach", {
           params: { coachId: currentUser.uid, status: "confirmed" },
-        }).catch(() => ({ data: { data: [] } })),
+        }).catch((err) => {
+          console.error("Error fetching confirmed workout plans:", err);
+          return { data: { data: [] } };
+        }),
         API.get("/coacharticle", {
           params: { coachId: currentUser.uid },
         }),

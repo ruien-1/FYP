@@ -39,7 +39,10 @@ export default function PendingRequest() {
         }),
         API.get("/workout-plans/coach", {
           params: { coachId: currentUser.uid, status: "pending" },
-        }).catch(() => ({ data: { data: [] } })), // backend may not exist yet
+        }).catch((err) => {
+          console.error("Error fetching workout plan counts:", err);
+          return { data: { data: [] } };
+        }),
       ]);
 
       const appointmentData = appointmentResponse.data?.data || [];
@@ -62,7 +65,10 @@ export default function PendingRequest() {
       if (selectedType === "workout") {
         const workoutPlanResponse = await API.get("/workout-plans/coach", {
           params: { coachId: currentUser.uid, status: "pending" },
-        }).catch(() => ({ data: { data: [] } }));
+        }).catch((err) => {
+          console.error("Error fetching workout plans:", err);
+          return { data: { data: [] } };
+        });
         const workoutPlanData = workoutPlanResponse.data?.data || [];
         setRequests(workoutPlanData);
       } else {
@@ -460,12 +466,13 @@ const styles = StyleSheet.create({
     color: "#000",
     marginLeft: 10,
   },
-  tabContainer: {
+tabContainer: {
     flexDirection: "row",
     justifyContent: "space-around",
     backgroundColor: "#CFE3FF",
     borderRadius: 16,
     paddingVertical: 10,
+    paddingHorizontal: 8,
     marginBottom: 20,
   },
   tab: {
@@ -474,17 +481,18 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     flexDirection: "row",
     justifyContent: "center",
-    marginHorizontal: 6,
+    marginHorizontal: 3,
     borderRadius: 12,
+    paddingHorizontal: 6,
   },
   activeTab: {
     backgroundColor: "#007AFF",
   },
   tabText: {
-    fontSize: 15,
+    fontSize: 12,
     fontWeight: "600",
     color: "#333",
-    marginRight: 6,
+    marginRight: 5,
   },
   activeTabText: {
     color: "#fff",

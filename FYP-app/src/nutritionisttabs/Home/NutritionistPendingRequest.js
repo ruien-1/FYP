@@ -265,7 +265,7 @@ export default function NutritionistPendingRequest() {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={24} color="#007AFF" />
+          <Ionicons name="arrow-back" size={24} color="#000000ff" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Pending Request</Text>
       </View>
@@ -445,28 +445,30 @@ const styles = StyleSheet.create({
     color: "#000",
     marginLeft: 10,
   },
-  tabContainer: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    backgroundColor: "#CFE3FF",
-    borderRadius: 16,
-    paddingVertical: 10,
-    marginBottom: 20,
-  },
-  tab: {
-    flex: 1,
-    alignItems: "center",
-    paddingVertical: 8,
-    flexDirection: "row",
-    justifyContent: "center",
-    marginHorizontal: 6,
-    borderRadius: 12,
-  },
+tabContainer: {
+  flexDirection: "row",
+  justifyContent: "space-around",
+  backgroundColor: "#CFE3FF",
+  borderRadius: 16,
+  paddingVertical: 10,
+  paddingHorizontal: 4,  // Add this line
+  marginBottom: 20,
+},
+tab: {
+  flex: 1,
+  alignItems: "center",
+  paddingVertical: 8,
+  flexDirection: "row",
+  justifyContent: "center",
+  marginHorizontal: 2,  // Changed from 4 to 3
+  borderRadius: 12,
+  paddingHorizontal: 4,
+},
   activeTab: {
     backgroundColor: "#007AFF",
   },
   tabText: {
-    fontSize: 15,
+    fontSize: 13,
     fontWeight: "600",
     color: "#333",
     marginRight: 6,

@@ -617,7 +617,7 @@ export default function NutChatScreen() {
       <Modal
         visible={showAppointmentModal}
         transparent={true}
-        animationType="slide"
+        animationType="fade"
         onRequestClose={() => {
           setShowAppointmentModal(false);
           setShowDatePicker(false);
@@ -735,7 +735,7 @@ export default function NutChatScreen() {
       <Modal
         visible={showDietPlanModal}
         transparent={true}
-        animationType="slide"
+        animationType="fade"
         onRequestClose={() => setShowDietPlanModal(false)}
       >
         <TouchableOpacity 

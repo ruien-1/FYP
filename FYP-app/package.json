@@ -19,6 +19,7 @@
     "cheerio": "^1.1.2",
     "expo": "^54.0.7",
     "expo-camera": "~17.0.7",
+    "expo-crypto": "^15.0.7",
     "expo-device": "~8.0.9",
     "expo-document-picker": "~14.0.7",
     "expo-image-picker": "~17.0.8",

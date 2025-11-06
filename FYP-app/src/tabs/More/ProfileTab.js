@@ -1,108 +1,157 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, Dimensions } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { auth, db } from "../../firebaseConfig";
 import { doc, getDoc } from "firebase/firestore";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
+
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
+const WALLPAPER_HEIGHT = SCREEN_HEIGHT * 0.5; // Top half of screen
 
 const ProfileTab = () => {
   const [streak, setStreak] = useState(0);
+  const [userName, setUserName] = useState("User");
+  const [profileImage, setProfileImage] = useState(null);
+  const [wallpaperImage, setWallpaperImage] = useState(null);
+  const [achievements, setAchievements] = useState(1);
   const navigation = useNavigation();
 
   useEffect(() => {
-    const fetchStreak = async () => {
-      try {
-        const user = auth.currentUser;
-        if (!user) return;
-
-        const userRef = doc(db, "user", user.uid);
-        const snap = await getDoc(userRef);
-
-        if (snap.exists()) {
-          const data = snap.data();
-          setStreak(data.streak || 0);
-        }
-      } catch (error) {
-        console.error("Error fetching streak:", error);
-      }
-    };
-
-    fetchStreak();
+    fetchUserData();
   }, []);
 
+  // Refresh data when screen is focused (after editing)
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchUserData();
+    }, [])
+  );
+
+  const fetchUserData = async () => {
+    try {
+      const user = auth.currentUser;
+      if (!user) return;
+
+      const userRef = doc(db, "user", user.uid);
+      const snap = await getDoc(userRef);
+
+      if (snap.exists()) {
+        const data = snap.data();
+        setStreak(data.streak || 0);
+        setUserName(data.name || "User");
+        setProfileImage(data.profileImage || null);
+        setWallpaperImage(data.wallpaperImage || null);
+        // You can add achievements count from data if available
+      }
+    } catch (error) {
+      console.error("Error fetching user data:", error);
+    }
+  };
+
   return (
-    <SafeAreaView style={styles.container}>
-    {/* Header */}
-    <View style={styles.headerRow}>
-      <TouchableOpacity onPress={() => navigation.goBack()}>
-        <Ionicons name="chevron-back" size={26} color="#333" />
-      </TouchableOpacity>
-      <Text style={styles.headerTitle}>My Profile</Text>
-      <View style={{ width: 26 }} />
-    </View>
+    <SafeAreaView style={styles.container} edges={[]}>
+      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        {/* Wallpaper Section - Top Half */}
+        <View style={styles.wallpaperContainer}>
+          {/* Wallpaper Image */}
+          <Image
+            source={{
+              uri: wallpaperImage || "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800&q=80"
+            }}
+            style={styles.wallpaperImage}
+            resizeMode="cover"
+          />
+          
+          {/* Overlay for better text visibility */}
+          <View style={styles.wallpaperOverlay} />
 
+          {/* Back Button - Top Left */}
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => navigation.goBack()}
+          >
+            <Ionicons name="chevron-back" size={28} color="#fff" />
+          </TouchableOpacity>
 
-      {/* Profile Card */}
-      <View style={styles.profileCard}>
-        <View style={styles.profileInfo}>
-          <Text style={styles.name}>Tom</Text>
-          <Text style={styles.bio} numberOfLines={2}>
-            This is Tom’s bio
-          </Text>
-        </View>
-        <TouchableOpacity style={styles.editButton}
-          onPress={() => navigation.navigate("EditProfile")}
-        
-        >
-          <Text style={styles.editText}>Edit profile</Text>
-        </TouchableOpacity>
-      </View>
+          {/* Edit Icon - Top Right */}
+          <TouchableOpacity
+            style={styles.editIconButton}
+            onPress={() => navigation.navigate("EditProfile")}
+          >
+            <Ionicons name="create-outline" size={24} color="#fff" />
+          </TouchableOpacity>
 
-      {/* Info Card */}
-      <View style={styles.infoCard}>
-        <View style={styles.infoBox}>
-          <Text style={styles.infoNumber}>{streak}</Text>
-          <Text style={styles.infoLabel}>Day streak</Text>
-        </View>
-        <View style={styles.divider} />
-        <View style={styles.infoBox}>
-          <Text style={styles.infoNumber}>1</Text>
-          <Text style={styles.infoLabel}>Achievements</Text>
-        </View>
-      </View>
+          {/* Profile Picture - Positioned at 2/5 from top */}
+          <View style={styles.profilePictureContainer}>
+            {profileImage ? (
+              <Image
+                source={{ uri: profileImage }}
+                style={styles.profilePicture}
+              />
+            ) : (
+              <View style={styles.profilePicturePlaceholder}>
+                <Text style={styles.profilePictureInitial}>
+                  {userName.charAt(0).toUpperCase()}
+                </Text>
+              </View>
+            )}
+          </View>
 
-      {/* Achievements */}
-      <View style={styles.section}>
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Achievements</Text>
-          <Text style={styles.viewAll}>View all</Text>
-        </View>
-        <View style={styles.achievementBox}>
-          <Text style={styles.achievementIcon}>🏆</Text>
-        </View>
-      </View>
+          {/* User Name */}
+          <View style={styles.userNameContainer}>
+            <Text style={styles.userName}>{userName}</Text>
+          </View>
 
-      {/* Membership */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Membership</Text>
-        <View style={styles.membershipBox}>
-          <View style={styles.membershipHeader}>
-            <Text style={styles.membershipText}>
-              Renews on 20 September 2025 (Monthly Plan)
-            </Text>
-            <View style={styles.premiumTag}>
-              <Text style={styles.premiumText}>Premium</Text>
+          {/* Stats Container - Translucent, slightly above bottom */}
+          <View style={styles.statsContainer}>
+            <View style={styles.statBox}>
+              <Text style={styles.statNumber}>{streak}</Text>
+              <Text style={styles.statLabel}>Day streak</Text>
+            </View>
+            <View style={styles.statDivider} />
+            <View style={styles.statBox}>
+              <Text style={styles.statNumber}>{achievements}</Text>
+              <Text style={styles.statLabel}>Achievements</Text>
             </View>
           </View>
-          <Text style={styles.benefit}>✅ Unlimited access to all features</Text>
-          <TouchableOpacity style={styles.manageButton}
-            onPress={() => navigation.navigate("ManageMembership")}
-          >
-            <Text style={styles.manageText}>Manage Membership</Text>
-          </TouchableOpacity>
         </View>
-      </View>
+
+        {/* Second Half - Achievements and Membership */}
+        <View style={styles.bottomSection}>
+          {/* Achievements */}
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Achievements</Text>
+              <Text style={styles.viewAll}>View all</Text>
+            </View>
+            <View style={styles.achievementBox}>
+              <Text style={styles.achievementIcon}>🏆</Text>
+            </View>
+          </View>
+
+          {/* Membership */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Membership</Text>
+            <View style={styles.membershipBox}>
+              <View style={styles.membershipHeader}>
+                <Text style={styles.membershipText}>
+                  Renews on 20 September 2025 (Monthly Plan)
+                </Text>
+                <View style={styles.premiumTag}>
+                  <Text style={styles.premiumText}>Premium</Text>
+                </View>
+              </View>
+              <Text style={styles.benefit}>✅ Unlimited access to all features</Text>
+              <TouchableOpacity style={styles.manageButton}
+                onPress={() => navigation.navigate("ManageMembership")}
+              >
+                <Text style={styles.manageText}>Manage Membership</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </ScrollView>
     </SafeAreaView>
   );
 };
@@ -110,91 +159,143 @@ const ProfileTab = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#E8F0FF", 
-    paddingHorizontal: 16,
+    backgroundColor: "#E8F0FF",
   },
-  headerRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginBottom: 12,
-  },
-  backArrow: {
-    fontSize: 24,
-    color: "#333",
-    paddingHorizontal: 6,
-  },
-  headerTitle: {
-    fontSize: 22,
-    fontWeight: "600",
-    color: "#555",
-  },
-
-  profileCard: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#fff",
-    padding: 16,
-    borderRadius: 14,
-    marginBottom: 16,
-    shadowColor: "#000",
-    shadowOpacity: 0.06,
-    shadowRadius: 6,
-    elevation: 2,
-  },
-  profileInfo: {
+  scrollView: {
     flex: 1,
   },
-  name: {
-    fontSize: 18,
-    fontWeight: "600",
-    marginBottom: 4,
+  // Wallpaper Section
+  wallpaperContainer: {
+    height: WALLPAPER_HEIGHT,
+    width: "100%",
+    position: "relative",
   },
-  bio: {
-    fontSize: 14,
-    color: "#777",
-    maxWidth: "95%",
+  wallpaperImage: {
+    width: "100%",
+    height: "100%",
   },
-  editButton: {
-    backgroundColor: "#eef1f6",
-    paddingHorizontal: 14,
-    paddingVertical: 6,
-    borderRadius: 10,
+  wallpaperOverlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(0, 0, 0, 0.3)", // Dark overlay for better text visibility
   },
-  editText: {
-    fontSize: 13,
-    fontWeight: "500",
-    color: "#444",
+  backButton: {
+    position: "absolute",
+    top: 40,
+    left: 10,
+    width: 44,
+    height: 44,
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 10,
   },
-  infoCard: {
+  editIconButton: {
+    position: "absolute",
+    top: 40,
+    right: 20,
+    width: 44,
+    height: 44,
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 10,
+  },
+  profilePictureContainer: {
+    position: "absolute",
+    top: WALLPAPER_HEIGHT * 0.30, // Moved up - around 35% from top
+    left: "50%",
+    marginLeft: -60, // Half of profile picture width (120/2)
+    zIndex: 5,
+  },
+  profilePicture: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    borderWidth: 4,
+    borderColor: "#fff",
+  },
+  profilePicturePlaceholder: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    backgroundColor: "#4a6cf7",
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 4,
+    borderColor: "#fff",
+  },
+  profilePictureInitial: {
+    fontSize: 48,
+    fontWeight: "700",
+    color: "#fff",
+  },
+  userNameContainer: {
+    position: "absolute",
+    top: WALLPAPER_HEIGHT * 0.58, // Slightly below halfway mark (52%)
+    left: 0,
+    right: 0,
+    alignItems: "center",
+    zIndex: 5,
+  },
+  userName: {
+    fontSize: 24,
+    fontWeight: "700",
+    color: "#fff",
+    textShadowColor: "rgba(0, 0, 0, 0.5)",
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 4,
+  },
+  statsContainer: {
+    position: "absolute",
+    bottom: 25, // Slightly above bottom
+    left: 20,
+    right: 20,
     flexDirection: "row",
     justifyContent: "space-around",
-    backgroundColor: "#fff",
-    borderRadius: 14,
+    backgroundColor: "rgba(255, 255, 255, 0.2)", // More translucent
+    borderRadius: 16,
     padding: 18,
-    marginBottom: 18,
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.35)",
+    zIndex: 5,
     shadowColor: "#000",
-    shadowOpacity: 0.06,
-    shadowRadius: 6,
-    elevation: 2,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
   },
-  infoBox: {
+  statBox: {
     alignItems: "center",
     flex: 1,
   },
-  infoNumber: {
-    fontSize: 22,
+  statNumber: {
+    fontSize: 28,
     fontWeight: "700",
-    color: "#222",
+    color: "#fff",
+    textShadowColor: "rgba(0, 0, 0, 0.3)",
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
   },
-  infoLabel: {
-    fontSize: 13,
-    color: "#666",
-    marginTop: 2,
+  statLabel: {
+    fontSize: 14,
+    color: "#fff",
+    marginTop: 4,
+    textShadowColor: "rgba(0, 0, 0, 0.3)",
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
   },
-  divider: {
+  statDivider: {
     width: 1,
-    backgroundColor: "#e5e5e5",
+    backgroundColor: "rgba(255, 255, 255, 0.4)",
+    marginHorizontal: 10,
+  },
+  // Bottom Section
+  bottomSection: {
+    paddingHorizontal: 16,
+    paddingTop: 20,
+    paddingBottom: 20,
   },
   section: {
     marginBottom: 22,

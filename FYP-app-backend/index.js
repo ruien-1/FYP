@@ -4410,6 +4410,102 @@ app.post("/submit-review", async (req, res) => {
   }
 });
 
+// Get user data by UID (including membership status)
+app.get("/user/:uid", async (req, res) => {
+  try {
+    const { uid } = req.params;
+    
+    if (!uid) {
+      return res.status(400).json({
+        success: false,
+        error: "UID is required",
+      });
+    }
+
+    const userDoc = await db.collection("user").doc(uid).get();
+    
+    if (!userDoc.exists) {
+      return res.status(404).json({
+        success: false,
+        error: "User not found",
+      });
+    }
+
+    const userData = userDoc.data();
+    
+    res.status(200).json({
+      success: true,
+      user: userData,
+    });
+  } catch (error) {
+    console.error("Error fetching user:", error);
+    res.status(500).json({
+      success: false,
+      error: error.message,
+    });
+  }
+});
+
+// Update user membership status
+app.put("/user/:uid/membership", async (req, res) => {
+  try {
+    const { uid } = req.params;
+    const { membership, planType } = req.body;
+    
+    if (!uid) {
+      return res.status(400).json({
+        success: false,
+        error: "UID is required",
+      });
+    }
+
+    if (!membership) {
+      return res.status(400).json({
+        success: false,
+        error: "Membership status is required",
+      });
+    }
+
+    // Verify user exists
+    const userDoc = await db.collection("user").doc(uid).get();
+    
+    if (!userDoc.exists) {
+      return res.status(404).json({
+        success: false,
+        error: "User not found",
+      });
+    }
+
+    // Update membership status
+    const updateData = {
+      membership,
+      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+    };
+
+    // If planType is provided, also update it
+    if (planType) {
+      updateData.planType = planType;
+    }
+
+    await db.collection("user").doc(uid).update(updateData);
+
+    // Fetch updated user data
+    const updatedUserDoc = await db.collection("user").doc(uid).get();
+    
+    res.status(200).json({
+      success: true,
+      message: "Membership updated successfully",
+      user: updatedUserDoc.data(),
+    });
+  } catch (error) {
+    console.error("Error updating membership:", error);
+    res.status(500).json({
+      success: false,
+      error: error.message,
+    });
+  }
+});
+
 
 // Start server
 const PORT = process.env.PORT || 5000;

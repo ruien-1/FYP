@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
-import { View, Text, Button, Image, ActivityIndicator, StyleSheet } from "react-native";
+import { View, Text, Button, Image, ActivityIndicator, TouchableOpacity, StyleSheet } from "react-native";
 import { CameraView, useCameraPermissions } from "expo-camera";
+import * as ImagePicker from "expo-image-picker";
 import Constants from "expo-constants";
 
 export default function FoodRecognition() {
@@ -25,6 +26,20 @@ export default function FoodRecognition() {
       const pic = await cameraRef.current.takePictureAsync({ base64: true , quality: 0.5 });
       setPhoto(pic.uri);
       sendToBackend(pic.base64);
+    }
+  };
+
+    // Pick photo from gallery
+  const pickImage = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      base64: true,
+      quality: 0.5,
+    });
+
+    if (!result.canceled) {
+      const asset = result.assets[0];
+      setPhoto(asset.uri);
+      sendToBackend(asset.base64);
     }
   };
 
@@ -57,17 +72,18 @@ export default function FoodRecognition() {
       </View>
     );
   }
-
-  return (
+    return (
     <View style={{ flex: 1 }}>
       {!photo ? (
-        <CameraView
-          style={{ flex: 1 }}
-          facing="back"
-          ref={cameraRef}
-        >
-          <View style={styles.snapButton}>
-            <Button title="Snap" onPress={takePhoto} />
+        <CameraView style={{ flex: 1 }} facing="back" ref={cameraRef}>
+          {/* Bottom controls: Gallery (left) + Snap (right) */}
+          <View style={styles.controls}>
+            <TouchableOpacity style={styles.galleryButton} onPress={pickImage}>
+              <Text style={{ fontSize: 20 }}>🖼️</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.snapButton} onPress={takePhoto}>
+              <Text style={{ fontSize: 20 }}>📷</Text>
+            </TouchableOpacity>
           </View>
         </CameraView>
       ) : (
@@ -91,16 +107,25 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  snapButton: {
+  controls: {
     flex: 1,
-    backgroundColor: "transparent",
     flexDirection: "row",
-    justifyContent: "center",
+    justifyContent: "space-between",
     alignItems: "flex-end",
-    marginBottom: 20,
+    padding: 20,
+    backgroundColor: "transparent",
+  },
+  galleryButton: {
+    backgroundColor: "rgba(0,0,0,0.3)",
+    padding: 10,
+    borderRadius: 30,
+  },
+  snapButton: {
+    backgroundColor: "rgba(0,0,0,0.3)",
+    padding: 10,
+    borderRadius: 30,
   },
 });
-
 
 
 

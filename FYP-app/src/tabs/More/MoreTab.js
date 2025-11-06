@@ -1,13 +1,51 @@
-import React from "react";
+import React, { useState } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-import { useNavigation, CommonActions } from "@react-navigation/native";
+import { useNavigation, CommonActions, useFocusEffect } from "@react-navigation/native";
 import { signOut } from "firebase/auth";  
-import { auth } from "../../firebaseConfig";  
+import { auth, db } from "../../firebaseConfig";
+import { doc, getDoc } from "firebase/firestore";
 
 const MoreTab = () => {
   const navigation = useNavigation();
+  const [membership, setMembership] = useState("free");
+  const [loading, setLoading] = useState(true);
+
+  const fetchUserMembership = async () => {
+    try {
+      const user = auth.currentUser;
+      if (!user) {
+        setLoading(false);
+        return;
+      }
+
+      // Fetch directly from Firestore
+      const userRef = doc(db, "user", user.uid);
+      const userSnap = await getDoc(userRef);
+
+      if (userSnap.exists()) {
+        const userData = userSnap.data();
+        setMembership(userData.membership || "free");
+      } else {
+        // Default to free if user document doesn't exist
+        setMembership("free");
+      }
+    } catch (error) {
+      console.error("Error fetching membership:", error);
+      // Default to free on error
+      setMembership("free");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Fetch membership when screen is focused
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchUserMembership();
+    }, [])
+  );
 
   const handleLogout = async () => {
     try {
@@ -40,12 +78,14 @@ const MoreTab = () => {
         </View>
 
         {/* Menu Items */}
-        <TouchableOpacity style={styles.menuItem}
-          onPress={() => navigation.navigate("UpgradePremium")}
-        >
-          <Ionicons name="diamond-outline" size={20} color="#4a6cf7" style={styles.menuIcon} />
-          <Text style={styles.menuText}>Upgrade to Premium</Text>
-        </TouchableOpacity>
+        {membership === "free" && (
+          <TouchableOpacity style={styles.menuItem}
+            onPress={() => navigation.navigate("UpgradePremium")}
+          >
+            <Ionicons name="diamond-outline" size={20} color="#4a6cf7" style={styles.menuIcon} />
+            <Text style={styles.menuText}>Upgrade to Premium</Text>
+          </TouchableOpacity>
+        )}
 
         <TouchableOpacity
           style={styles.menuItem}

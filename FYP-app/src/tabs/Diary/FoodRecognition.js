@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { View, Text, Button, Image, ActivityIndicator, TouchableOpacity, StyleSheet } from "react-native";
+import { View, Text, Button, Image, ActivityIndicator, StyleSheet } from "react-native";
 import { CameraView, useCameraPermissions } from "expo-camera";
 
 // ✅ Use __DEV__ to automatically switch between local & deployed backend
@@ -28,20 +28,6 @@ export default function FoodRecognition() {
       });
       setPhoto(pic.uri);
       sendToBackend(pic.base64);
-    }
-  };
-
-    // Pick photo from gallery
-  const pickImage = async () => {
-    const result = await ImagePicker.launchImageLibraryAsync({
-      base64: true,
-      quality: 0.5,
-    });
-
-    if (!result.canceled) {
-      const asset = result.assets[0];
-      setPhoto(asset.uri);
-      sendToBackend(asset.base64);
     }
   };
 
@@ -83,7 +69,8 @@ export default function FoodRecognition() {
       </View>
     );
   }
-    return (
+
+  return (
     <View style={{ flex: 1 }}>
       {!photo ? (
         <CameraView style={{ flex: 1 }} facing="back" ref={cameraRef}>
@@ -118,22 +105,12 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  controls: {
-    flex: 1,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-end",
-    padding: 20,
-    backgroundColor: "transparent",
-  },
-  galleryButton: {
-    backgroundColor: "rgba(0,0,0,0.3)",
-    padding: 10,
-    borderRadius: 30,
-  },
   snapButton: {
-    backgroundColor: "rgba(0,0,0,0.3)",
-    padding: 10,
-    borderRadius: 30,
+    flex: 1,
+    backgroundColor: "transparent",
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "flex-end",
+    marginBottom: 20,
   },
 });

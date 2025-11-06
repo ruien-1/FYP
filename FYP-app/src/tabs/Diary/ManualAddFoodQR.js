@@ -458,7 +458,7 @@ export default function ManualAddFoodQR() {
 }
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: "#f5f7fa" },
+  safeArea: { flex: 1, backgroundColor: "#E8F0FF" },
   container: { flex: 1 },
   contentContainer: { padding: 20, paddingBottom: 40 },
   headerContainer: {

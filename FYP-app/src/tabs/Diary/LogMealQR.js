@@ -425,7 +425,7 @@ export default function LogMealQR() {
 const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
-    backgroundColor: "#f5f5f5",
+    backgroundColor: "#E8F0FF",
     paddingTop: 60,
     paddingBottom: 20,
   },

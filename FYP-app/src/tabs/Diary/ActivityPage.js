@@ -7,11 +7,13 @@ import {
   FlatList,
   TouchableOpacity,
   ActivityIndicator,
+  Alert,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import API from "../../api/backend";
-import { auth } from "../../firebaseConfig";
+import { auth, db } from "../../firebaseConfig";
+import { doc, getDoc } from "firebase/firestore";
 import CustomActivityModal from "./CustomActivityModal";
 import AddActivityModal from "./AddActivityModal";
 
@@ -30,6 +32,9 @@ export default function ActivityPage({ route, navigation }) {
 
   // Custom activities state
   const [myActivities, setMyActivities] = useState([]);
+  
+  // Membership status
+  const [membership, setMembership] = useState("free");
 
   const selectedDate =
     route.params?.selectedDate || new Date().toISOString().split("T")[0];
@@ -38,6 +43,25 @@ export default function ActivityPage({ route, navigation }) {
   useEffect(() => {
     loadDefaultActivities();
     loadMyActivities();
+  }, []);
+
+  // Fetch membership status
+  useEffect(() => {
+    const fetchMembership = async () => {
+      try {
+        const user = auth.currentUser;
+        if (!user) return;
+        const userRef = doc(db, "user", user.uid);
+        const userSnap = await getDoc(userRef);
+        if (userSnap.exists()) {
+          const userData = userSnap.data();
+          setMembership(userData.membership || "free");
+        }
+      } catch (error) {
+        console.error("Error fetching membership:", error);
+      }
+    };
+    fetchMembership();
   }, []);
 
   const loadDefaultActivities = async () => {
@@ -148,27 +172,73 @@ export default function ActivityPage({ route, navigation }) {
         {/* Bottom buttons */}
         <View style={styles.bottomButtons}>
           <TouchableOpacity
-            style={styles.bottomButton}
+            style={[styles.bottomButton, membership !== "premium" && styles.bottomButtonLocked]}
             onPress={() => {
+              if (membership !== "premium") {
+                Alert.alert(
+                  "Premium Feature",
+                  "Sign up for Premium to unlock this feature!",
+                  [
+                    { text: "Cancel", style: "cancel" },
+                    {
+                      text: "Upgrade",
+                      onPress: () => navigation.navigate("UpgradePremium"),
+                    },
+                  ]
+                );
+                return;
+              }
               setModalType("add");
               setEditingActivity(null);
               setCustomActivityModalVisible(true); // Open CustomActivityModal
             }}
           >
-            <Ionicons name="add-circle-outline" size={18} color="#333" />
-            <Text style={styles.bottomButtonText}>Add New Activity</Text>
+            <View style={{ position: "relative" }}>
+              <Ionicons name="add-circle-outline" size={18} color={membership !== "premium" ? "#999" : "#333"} />
+              {membership !== "premium" && (
+                <View style={styles.lockIconOverlay}>
+                  <Ionicons name="lock-closed" size={10} color="#fff" />
+                </View>
+              )}
+            </View>
+            <Text style={[styles.bottomButtonText, membership !== "premium" && styles.bottomButtonTextLocked]}>
+              Add New Activity
+            </Text>
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={styles.bottomButton}
+            style={[styles.bottomButton, membership !== "premium" && styles.bottomButtonLocked]}
             onPress={() => {
+              if (membership !== "premium") {
+                Alert.alert(
+                  "Premium Feature",
+                  "Sign up for Premium to unlock this feature!",
+                  [
+                    { text: "Cancel", style: "cancel" },
+                    {
+                      text: "Upgrade",
+                      onPress: () => navigation.navigate("UpgradePremium"),
+                    },
+                  ]
+                );
+                return;
+              }
               setModalType("list");
               setEditingActivity(null);
               setCustomActivityModalVisible(true); // Open CustomActivityModal for list
             }}
           >
-            <Ionicons name="list" size={18} color="#333" />
-            <Text style={styles.bottomButtonText}>My Activities</Text>
+            <View style={{ position: "relative" }}>
+              <Ionicons name="list" size={18} color={membership !== "premium" ? "#999" : "#333"} />
+              {membership !== "premium" && (
+                <View style={styles.lockIconOverlay}>
+                  <Ionicons name="lock-closed" size={10} color="#fff" />
+                </View>
+              )}
+            </View>
+            <Text style={[styles.bottomButtonText, membership !== "premium" && styles.bottomButtonTextLocked]}>
+              My Activities
+            </Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -294,5 +364,24 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "500",
     color: "#333",
+  },
+  bottomButtonLocked: {
+    opacity: 0.6,
+  },
+  bottomButtonTextLocked: {
+    color: "#999",
+  },
+  lockIconOverlay: {
+    position: "absolute",
+    top: -4,
+    right: -4,
+    backgroundColor: "#FF6B6B",
+    borderRadius: 6,
+    width: 14,
+    height: 14,
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#fff",
   },
 });

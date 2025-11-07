@@ -24,7 +24,7 @@ import * as Crypto from "expo-crypto";
 export default function CheckoutScreen() {
   const navigation = useNavigation();
   const route = useRoute();
-  const { selectedPlan } = route.params || {};
+  const { selectedPlan, isUpdatingPayment } = route.params || {};
 
   // Modal state
   const [showCardModal, setShowCardModal] = useState(false);
@@ -256,7 +256,9 @@ export default function CheckoutScreen() {
   };
 
   const handleConfirmSubscribe = async () => {
-    if (!cardSaved) {
+    // For payment updates, card should already be saved via the modal
+    // For new subscriptions, card must be saved first
+    if (!isUpdatingPayment && !cardSaved) {
       Alert.alert("Error", "Please add a payment method first");
       return;
     }
@@ -270,12 +272,46 @@ export default function CheckoutScreen() {
         return;
       }
 
+      // If just updating payment method, just confirm the update
+      if (isUpdatingPayment) {
+        if (!cardSaved) {
+          Alert.alert("Error", "Please add a payment method first");
+          setIsLoading(false);
+          return;
+        }
+        Alert.alert(
+          "Success",
+          "Payment method updated successfully!",
+          [
+            {
+              text: "OK",
+              onPress: () => {
+                navigation.goBack();
+              },
+            },
+          ]
+        );
+        setIsLoading(false);
+        return;
+      }
+
+      // Calculate renewal date based on plan type
+      const now = new Date();
+      const renewalDate = new Date(now);
+      if (selectedPlan === "monthly") {
+        renewalDate.setMonth(renewalDate.getMonth() + 1);
+      } else if (selectedPlan === "yearly") {
+        renewalDate.setFullYear(renewalDate.getFullYear() + 1);
+      }
+
       // Update membership status directly in Firestore
       const userRef = doc(db, "user", user.uid);
       await updateDoc(userRef, {
         membership: "premium",
         planType: selectedPlan,
-        premiumActivatedAt: new Date().toISOString(),
+        premiumActivatedAt: now.toISOString(),
+        renewalDate: renewalDate.toISOString(),
+        subscriptionCancelled: false, // Reset cancellation status if resubscribing
       });
 
       Alert.alert(
@@ -310,20 +346,24 @@ export default function CheckoutScreen() {
       </TouchableOpacity>
 
       {/* Title */}
-      <Text style={styles.header}>Confirm Your Plan</Text>
+      <Text style={styles.header}>
+        {isUpdatingPayment ? "Update Payment Method" : "Confirm Your Plan"}
+      </Text>
 
-      {/* Plan Box */}
-      <View style={styles.planBox}>
-        <Text style={styles.planTitle}>
-          {selectedPlan === "monthly" ? "Monthly Plan" : "Yearly Plan"}
-        </Text>
-        <Text style={styles.planPrice}>
-          {selectedPlan === "monthly" ? "$8.99 / month" : "$92.00 / year"}
-        </Text>
-        {selectedPlan === "yearly" && (
-          <Text style={styles.planDiscount}>15% OFF</Text>
-        )}
-      </View>
+      {/* Plan Box - Only show if not updating payment */}
+      {!isUpdatingPayment && (
+        <View style={styles.planBox}>
+          <Text style={styles.planTitle}>
+            {selectedPlan === "monthly" ? "Monthly Plan" : "Yearly Plan"}
+          </Text>
+          <Text style={styles.planPrice}>
+            {selectedPlan === "monthly" ? "$8.99 / month" : "$92.00 / year"}
+          </Text>
+          {selectedPlan === "yearly" && (
+            <Text style={styles.planDiscount}>15% OFF</Text>
+          )}
+        </View>
+      )}
 
       {/* Payment Method */}
       <View style={styles.paymentSection}>
@@ -361,7 +401,9 @@ export default function CheckoutScreen() {
         {isLoading ? (
           <ActivityIndicator color="#fff" />
         ) : (
-          <Text style={styles.confirmButtonText}>Confirm & Subscribe</Text>
+          <Text style={styles.confirmButtonText}>
+            {isUpdatingPayment ? "Update Payment Method" : "Confirm & Subscribe"}
+          </Text>
         )}
       </TouchableOpacity>
 

@@ -15,7 +15,9 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation, useRoute, useFocusEffect } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import API from "../../api/backend";
-import { auth } from "../../firebaseConfig";
+import { auth, db } from "../../firebaseConfig";
+import { doc, getDoc } from "firebase/firestore";
+import { Alert } from "react-native";
 import LogMealModal from "./LogMealModal";
 import FilterModal from "./FilterModal";
 import CustomRecipeModal from "./CustomRecipeModal"; 
@@ -54,6 +56,9 @@ export default function RecipeList() {
     diets: [],
     intolerances: [],
   });
+
+  // Membership status
+  const [membership, setMembership] = useState("free");
 
   // fetch recipes from firestore
   useEffect(() => {
@@ -96,8 +101,43 @@ export default function RecipeList() {
   useFocusEffect(
     React.useCallback(() => {
       fetchFavorites();
+      // Refresh membership on focus
+      const fetchMembership = async () => {
+        try {
+          const user = auth.currentUser;
+          if (!user) return;
+          const userRef = doc(db, "user", user.uid);
+          const userSnap = await getDoc(userRef);
+          if (userSnap.exists()) {
+            const userData = userSnap.data();
+            setMembership(userData.membership || "free");
+          }
+        } catch (error) {
+          console.error("Error fetching membership:", error);
+        }
+      };
+      fetchMembership();
     }, [])
   );
+
+  // Fetch membership status on mount
+  useEffect(() => {
+    const fetchMembership = async () => {
+      try {
+        const user = auth.currentUser;
+        if (!user) return;
+        const userRef = doc(db, "user", user.uid);
+        const userSnap = await getDoc(userRef);
+        if (userSnap.exists()) {
+          const userData = userSnap.data();
+          setMembership(userData.membership || "free");
+        }
+      } catch (error) {
+        console.error("Error fetching membership:", error);
+      }
+    };
+    fetchMembership();
+  }, []);
 
   // Auto-select filter based on chosen category
   useEffect(() => {
@@ -297,25 +337,71 @@ export default function RecipeList() {
               </TouchableOpacity>
 
               <TouchableOpacity
-                style={styles.actionBtn}
+                style={[styles.actionBtn, membership !== "premium" && styles.actionBtnLocked]}
                 onPress={() => {
+                  if (membership !== "premium") {
+                    Alert.alert(
+                      "Premium Feature",
+                      "Sign up for Premium to unlock this feature!",
+                      [
+                        { text: "Cancel", style: "cancel" },
+                        {
+                          text: "Upgrade",
+                          onPress: () => navigation.navigate("UpgradePremium"),
+                        },
+                      ]
+                    );
+                    return;
+                  }
                   setModalType("add");
                   setCustomModalVisible(true);
                 }}
               >
-                <Ionicons name="add-circle-outline" size={18} color="#4A90E2" />
-                <Text style={styles.actionBtnText}>Add Recipe</Text>
+                <View style={{ position: "relative" }}>
+                  <Ionicons name="add-circle-outline" size={18} color={membership !== "premium" ? "#999" : "#4A90E2"} />
+                  {membership !== "premium" && (
+                    <View style={styles.lockIconOverlay}>
+                      <Ionicons name="lock-closed" size={10} color="#fff" />
+                    </View>
+                  )}
+                </View>
+                <Text style={[styles.actionBtnText, membership !== "premium" && styles.actionBtnTextLocked]}>
+                  Add Recipe
+                </Text>
               </TouchableOpacity>
 
               <TouchableOpacity
-                style={styles.actionBtn}
+                style={[styles.actionBtn, membership !== "premium" && styles.actionBtnLocked]}
                 onPress={() => {
+                  if (membership !== "premium") {
+                    Alert.alert(
+                      "Premium Feature",
+                      "Sign up for Premium to unlock this feature!",
+                      [
+                        { text: "Cancel", style: "cancel" },
+                        {
+                          text: "Upgrade",
+                          onPress: () => navigation.navigate("UpgradePremium"),
+                        },
+                      ]
+                    );
+                    return;
+                  }
                   setModalType("list");
                   setCustomModalVisible(true);
                 }}
               >
-                <Ionicons name="book-outline" size={18} color="#4A90E2" />
-                <Text style={styles.actionBtnText}>My Recipes</Text>
+                <View style={{ position: "relative" }}>
+                  <Ionicons name="book-outline" size={18} color={membership !== "premium" ? "#999" : "#4A90E2"} />
+                  {membership !== "premium" && (
+                    <View style={styles.lockIconOverlay}>
+                      <Ionicons name="lock-closed" size={10} color="#fff" />
+                    </View>
+                  )}
+                </View>
+                <Text style={[styles.actionBtnText, membership !== "premium" && styles.actionBtnTextLocked]}>
+                  My Recipes
+                </Text>
               </TouchableOpacity>
             </View>
 
@@ -643,6 +729,25 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: "600",
     color: "#333",
+  },
+  actionBtnLocked: {
+    opacity: 0.6,
+  },
+  actionBtnTextLocked: {
+    color: "#999",
+  },
+  lockIconOverlay: {
+    position: "absolute",
+    top: -4,
+    right: -4,
+    backgroundColor: "#FF6B6B",
+    borderRadius: 6,
+    width: 14,
+    height: 14,
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#fff",
   },
   
   // Section

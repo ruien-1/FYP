@@ -15,6 +15,9 @@ const ProfileTab = () => {
   const [profileImage, setProfileImage] = useState(null);
   const [wallpaperImage, setWallpaperImage] = useState(null);
   const [achievements, setAchievements] = useState(1);
+  const [membership, setMembership] = useState("free");
+  const [planType, setPlanType] = useState(null);
+  const [renewalDate, setRenewalDate] = useState(null);
   const navigation = useNavigation();
 
   useEffect(() => {
@@ -31,6 +34,9 @@ const ProfileTab = () => {
         setUserName(data.name || "User");
         setProfileImage(data.profileImage || null);
         setWallpaperImage(data.wallpaperImage || null);
+        setMembership(data.membership || "free");
+        setPlanType(data.planType || null);
+        setRenewalDate(data.renewalDate || null);
         console.log("ProfileTab: Streak updated to", data.streak || 0);
       }
     }, (error) => {
@@ -62,11 +68,28 @@ const ProfileTab = () => {
         setUserName(data.name || "User");
         setProfileImage(data.profileImage || null);
         setWallpaperImage(data.wallpaperImage || null);
+        setMembership(data.membership || "free");
+        setPlanType(data.planType || null);
+        setRenewalDate(data.renewalDate || null);
         // You can add achievements count from data if available
       }
     } catch (error) {
       console.error("Error fetching user data:", error);
     }
+  };
+
+  // Format renewal date for display
+  const formatRenewalDate = (dateString) => {
+    if (!dateString) return "";
+    const date = new Date(dateString);
+    const day = date.getDate();
+    const monthNames = [
+      "January", "February", "March", "April", "May", "June",
+      "July", "August", "September", "October", "November", "December"
+    ];
+    const month = monthNames[date.getMonth()];
+    const year = date.getFullYear();
+    return `${day} ${month} ${year}`;
   };
 
   return (
@@ -151,25 +174,29 @@ const ProfileTab = () => {
           </View>
 
           {/* Membership */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Membership</Text>
-            <View style={styles.membershipBox}>
-              <View style={styles.membershipHeader}>
-                <Text style={styles.membershipText}>
-                  Renews on 20 September 2025 (Monthly Plan)
-                </Text>
-                <View style={styles.premiumTag}>
-                  <Text style={styles.premiumText}>Premium</Text>
+          {membership === "premium" && (
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Membership</Text>
+              <View style={styles.membershipBox}>
+                <View style={styles.membershipHeader}>
+                  <Text style={styles.membershipText}>
+                    {renewalDate
+                      ? `Renews on ${formatRenewalDate(renewalDate)} (${planType === "monthly" ? "Monthly" : "Yearly"} Plan)`
+                      : "Premium Membership"}
+                  </Text>
+                  <View style={styles.premiumTag}>
+                    <Text style={styles.premiumText}>Premium</Text>
+                  </View>
                 </View>
+                <Text style={styles.benefit}>✅ Unlimited access to all features</Text>
+                <TouchableOpacity style={styles.manageButton}
+                  onPress={() => navigation.navigate("ManageMembership")}
+                >
+                  <Text style={styles.manageText}>Manage Membership</Text>
+                </TouchableOpacity>
               </View>
-              <Text style={styles.benefit}>✅ Unlimited access to all features</Text>
-              <TouchableOpacity style={styles.manageButton}
-                onPress={() => navigation.navigate("ManageMembership")}
-              >
-                <Text style={styles.manageText}>Manage Membership</Text>
-              </TouchableOpacity>
             </View>
-          </View>
+          )}
         </View>
       </ScrollView>
     </SafeAreaView>

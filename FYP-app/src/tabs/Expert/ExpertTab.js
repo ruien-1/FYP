@@ -16,7 +16,7 @@ import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { auth, db } from "../../firebaseConfig";
-import { collection, addDoc, serverTimestamp, query, where, onSnapshot } from "firebase/firestore";
+import { collection, addDoc, serverTimestamp, query, where, onSnapshot, doc, getDoc } from "firebase/firestore";
 import API from "../../api/backend";
 
 export default function ExpertTab() {
@@ -32,11 +32,47 @@ export default function ExpertTab() {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [membership, setMembership] = useState("free");
+
+  // Fetch membership status
+  useEffect(() => {
+    const fetchMembership = async () => {
+      try {
+        const user = auth.currentUser;
+        if (!user) return;
+        const userRef = doc(db, "user", user.uid);
+        const userSnap = await getDoc(userRef);
+        if (userSnap.exists()) {
+          const userData = userSnap.data();
+          setMembership(userData.membership || "free");
+        }
+      } catch (error) {
+        console.error("Error fetching membership:", error);
+      }
+    };
+    fetchMembership();
+  }, []);
 
   useFocusEffect(
     React.useCallback(() => {
       fetchUpcomingAppointments();
       setupUnreadListener();
+      // Refresh membership on focus
+      const fetchMembership = async () => {
+        try {
+          const user = auth.currentUser;
+          if (!user) return;
+          const userRef = doc(db, "user", user.uid);
+          const userSnap = await getDoc(userRef);
+          if (userSnap.exists()) {
+            const userData = userSnap.data();
+            setMembership(userData.membership || "free");
+          }
+        } catch (error) {
+          console.error("Error fetching membership:", error);
+        }
+      };
+      fetchMembership();
     }, [])
   );
 
@@ -326,6 +362,34 @@ const setupUnreadListener = () => {
       </View>
     );
   };
+
+  // Premium unlock page for free users
+  if (membership !== "premium") {
+    return (
+      <SafeAreaView style={styles.safe}>
+        <View style={styles.premiumUnlockContainer}>
+          <View style={styles.premiumUnlockContent}>
+            <View style={styles.lockIconContainer}>
+              <Ionicons name="lock-closed" size={64} color="#007AFF" />
+            </View>
+            <Text style={styles.premiumUnlockTitle}>Premium Feature</Text>
+            <Text style={styles.premiumUnlockText}>
+              Sign up for Premium to unlock consultation with our certified experts!
+            </Text>
+            <Text style={styles.premiumUnlockSubtext}>
+              Get personalized advice from coaches and nutritionists
+            </Text>
+            <TouchableOpacity
+              style={styles.upgradeButton}
+              onPress={() => navigation.navigate("UpgradePremium")}
+            >
+              <Text style={styles.upgradeButtonText}>Upgrade to Premium</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -871,5 +935,66 @@ findButton: {
     fontSize: 16,
     fontWeight: '600',
     color: '#fff',
+  },
+  premiumUnlockContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  premiumUnlockContent: {
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    borderRadius: 20,
+    padding: 40,
+    width: '100%',
+    maxWidth: 400,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    elevation: 5,
+  },
+  lockIconContainer: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    backgroundColor: '#E8F0FF',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  premiumUnlockTitle: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#333',
+    marginBottom: 12,
+    textAlign: 'center',
+  },
+  premiumUnlockText: {
+    fontSize: 16,
+    color: '#666',
+    textAlign: 'center',
+    marginBottom: 8,
+    lineHeight: 24,
+  },
+  premiumUnlockSubtext: {
+    fontSize: 14,
+    color: '#999',
+    textAlign: 'center',
+    marginBottom: 32,
+    lineHeight: 20,
+  },
+  upgradeButton: {
+    backgroundColor: '#007AFF',
+    paddingVertical: 14,
+    paddingHorizontal: 32,
+    borderRadius: 12,
+    width: '100%',
+  },
+  upgradeButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+    textAlign: 'center',
   },
 });

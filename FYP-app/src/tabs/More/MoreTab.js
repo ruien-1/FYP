@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation, CommonActions, useFocusEffect } from "@react-navigation/native";
@@ -11,6 +11,8 @@ const MoreTab = () => {
   const navigation = useNavigation();
   const [membership, setMembership] = useState("free");
   const [loading, setLoading] = useState(true);
+  const [userName, setUserName] = useState("User");
+  const [profileImage, setProfileImage] = useState(null);
 
   const fetchUserMembership = async () => {
     try {
@@ -27,14 +29,20 @@ const MoreTab = () => {
       if (userSnap.exists()) {
         const userData = userSnap.data();
         setMembership(userData.membership || "free");
+        setUserName(userData.name || "User");
+        setProfileImage(userData.profileImage || null);
       } else {
         // Default to free if user document doesn't exist
         setMembership("free");
+        setUserName("User");
+        setProfileImage(null);
       }
     } catch (error) {
       console.error("Error fetching membership:", error);
       // Default to free on error
       setMembership("free");
+      setUserName("User");
+      setProfileImage(null);
     } finally {
       setLoading(false);
     }
@@ -71,10 +79,19 @@ const MoreTab = () => {
       <ScrollView contentContainerStyle={styles.content}>
         {/* User Avatar + Name */}
         <View style={styles.profileBox}>
-          <View style={styles.avatar}>
-            <Ionicons name="person-circle" size={70} color="#888" />
-          </View>
-          <Text style={styles.name}>Tom</Text>
+          {profileImage ? (
+            <Image
+              source={{ uri: profileImage }}
+              style={styles.avatarImage}
+            />
+          ) : (
+            <View style={styles.avatar}>
+              <Text style={styles.avatarInitial}>
+                {userName.charAt(0).toUpperCase()}
+              </Text>
+            </View>
+          )}
+          <Text style={styles.name}>{userName}</Text>
         </View>
 
         {/* Menu Items */}
@@ -143,7 +160,24 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   avatar: {
+    width: 70,
+    height: 70,
+    borderRadius: 35,
+    backgroundColor: "#4a6cf7",
+    justifyContent: "center",
+    alignItems: "center",
     marginBottom: 8,
+  },
+  avatarImage: {
+    width: 70,
+    height: 70,
+    borderRadius: 35,
+    marginBottom: 8,
+  },
+  avatarInitial: {
+    fontSize: 28,
+    fontWeight: "700",
+    color: "#fff",
   },
   name: {
     fontSize: 18,

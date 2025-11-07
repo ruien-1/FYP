@@ -1,13 +1,46 @@
 // UpgradePremium.js
-import React, { useState } from "react";
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import React, { useState, useEffect } from "react";
+import { View, Text, StyleSheet, TouchableOpacity, Image } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useFocusEffect } from "@react-navigation/native";
+import { auth, db } from "../../firebaseConfig";
+import { doc, getDoc } from "firebase/firestore";
 
 export default function UpgradePremium() {
   const navigation = useNavigation();
   const [selectedPlan, setSelectedPlan] = useState(null);
+  const [userName, setUserName] = useState("User");
+  const [profileImage, setProfileImage] = useState(null);
+
+  // Fetch user data
+  const fetchUserData = async () => {
+    try {
+      const user = auth.currentUser;
+      if (!user) return;
+
+      const userRef = doc(db, "user", user.uid);
+      const snap = await getDoc(userRef);
+
+      if (snap.exists()) {
+        const data = snap.data();
+        setUserName(data.name || "User");
+        setProfileImage(data.profileImage || null);
+      }
+    } catch (error) {
+      console.error("Error fetching user data:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchUserData();
+  }, []);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchUserData();
+    }, [])
+  );
 
   return (
     <SafeAreaView style={styles.container}>
@@ -18,10 +51,19 @@ export default function UpgradePremium() {
 
       {/* Profile */}
       <View style={styles.profileContainer}>
-        <View style={styles.avatar}>
-          <Ionicons name="person" size={40} color="#000" />
-        </View>
-        <Text style={styles.username}>Tom</Text>
+        {profileImage ? (
+          <Image
+            source={{ uri: profileImage }}
+            style={styles.avatarImage}
+          />
+        ) : (
+          <View style={styles.avatar}>
+            <Text style={styles.avatarInitial}>
+              {userName.charAt(0).toUpperCase()}
+            </Text>
+          </View>
+        )}
+        <Text style={styles.username}>{userName}</Text>
       </View>
 
       {/* Subscription Options */}
@@ -99,7 +141,7 @@ const styles = StyleSheet.create({
   },
   backButton: {
     position: "absolute",
-    top: 40,
+    top: 50,
     left: 15,
     zIndex: 1,
   },
@@ -111,10 +153,21 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: "#ccc",
+    backgroundColor: "#4a6cf7",
     justifyContent: "center",
     alignItems: "center",
     marginBottom: 10,
+  },
+  avatarImage: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    marginBottom: 10,
+  },
+  avatarInitial: {
+    fontSize: 32,
+    fontWeight: "700",
+    color: "#fff",
   },
   username: {
     fontSize: 18,

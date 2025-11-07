@@ -13,16 +13,23 @@ import {
   Image,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
+import * as FileSystemLegacy from "expo-file-system/legacy";
 import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useNavigation, useRoute } from "@react-navigation/native";
+import { useNavigation, useRoute, useFocusEffect } from "@react-navigation/native";
 import { searchFoods, fetchNutrition } from "../../api/nutritionix";
 import CustomFoodModal from "./CustomFoodModal";
 
 // 🔹 API backend
 import API from "../../api/backend";
-import { auth } from "../../firebaseConfig";
+import { auth, db } from "../../firebaseConfig";
+import { doc, getDoc } from "firebase/firestore";
 import { cancelMealReminderNotifications } from "../Home/notificationService";
+
+// ✅ Use __DEV__ to automatically switch between local & deployed backend
+const DEV_API_URL = "http://192.168.1.15:5000";
+const PROD_API_URL = "https://fyp-0rqn.onrender.com";
+const API_URL = __DEV__ ? DEV_API_URL : PROD_API_URL;
 
 // 🔹 Default foods
 const defaultFoods = [
@@ -66,10 +73,15 @@ export default function MealLog() {
 
   // image picker state
   const [selectedImage, setSelectedImage] = useState(null);
+  const [processingImage, setProcessingImage] = useState(false);
+  const [recognitionResult, setRecognitionResult] = useState(null);
 
   // ✅ Race condition prevention
   const [searchId, setSearchId] = useState(0);
   const [debounceTimer, setDebounceTimer] = useState(null);
+  
+  // Membership status
+  const [membership, setMembership] = useState("free");
 
   // ✅ Get meal type and selectedDate from navigation
   useEffect(() => {
@@ -77,7 +89,42 @@ export default function MealLog() {
       const cap = route.params.mealType.charAt(0).toUpperCase() + route.params.mealType.slice(1);
       setMeal(cap);
     }
-  }, [route.params]);
+  }, [route.params?.mealType]);
+
+  // Handle recognized food from FoodRecognition when screen is focused
+  useFocusEffect(
+    React.useCallback(() => {
+      if (route.params?.recognizedFood || route.params?.searchQuery) {
+        const foodName = route.params.recognizedFood || route.params.searchQuery;
+        setQuery(foodName);
+        // Trigger search directly
+        if (foodName && foodName.length > 1) {
+          searchFood(foodName);
+        }
+        // Clear params to prevent re-triggering
+        navigation.setParams({ recognizedFood: undefined, searchQuery: undefined });
+      }
+    }, [route.params?.recognizedFood, route.params?.searchQuery])
+  );
+
+  // Fetch membership status
+  useEffect(() => {
+    const fetchMembership = async () => {
+      try {
+        const user = auth.currentUser;
+        if (!user) return;
+        const userRef = doc(db, "user", user.uid);
+        const userSnap = await getDoc(userRef);
+        if (userSnap.exists()) {
+          const userData = userSnap.data();
+          setMembership(userData.membership || "free");
+        }
+      } catch (error) {
+        console.error("Error fetching membership:", error);
+      }
+    };
+    fetchMembership();
+  }, []);
 
   // ✅ Load default foods on mount
   useEffect(() => {
@@ -108,13 +155,69 @@ export default function MealLog() {
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
         aspect: [4, 3],
-        quality: 1,
+        quality: 0.5,
+        base64: false,
       });
-      if (!result.canceled) {
-        setSelectedImage(result.assets[0].uri);
+      if (!result.canceled && result.assets[0]) {
+        const imageUri = result.assets[0].uri;
+        setSelectedImage(imageUri);
+        await processImageForRecognition(imageUri);
       }
     } catch (err) {
       console.warn("ImagePicker error:", err);
+      Alert.alert("Error", "Failed to select image from gallery");
+    }
+  };
+
+  // Process image for food recognition (used for both camera and gallery)
+  const processImageForRecognition = async (imageUri) => {
+    try {
+      setProcessingImage(true);
+      setRecognitionResult(null);
+
+      // Convert image to base64
+      const base64Image = await FileSystemLegacy.readAsStringAsync(imageUri, {
+        encoding: FileSystemLegacy.EncodingType.Base64,
+      });
+
+      // Send to backend for recognition
+      console.log("📤 Sending image to backend:", `${API_URL}/recognize-food`);
+      const response = await fetch(`${API_URL}/recognize-food`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ image: base64Image }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log("✅ Response from backend:", data);
+      const recognizedFood = data.food || "Unknown";
+      setRecognitionResult(recognizedFood);
+
+      // Show result and allow user to search for the recognized food
+      Alert.alert(
+        "Food Recognized",
+        `Recognized as: ${recognizedFood}\n\nWould you like to search for this food?`,
+        [
+          { text: "Cancel", style: "cancel" },
+          {
+            text: "Search",
+            onPress: () => {
+              setQuery(recognizedFood);
+              handleSearchInput(recognizedFood);
+            },
+          },
+        ]
+      );
+    } catch (error) {
+      console.error("❌ Error recognizing food:", error);
+      Alert.alert("Error", "Failed to recognize food. Please try again.");
+      setRecognitionResult(null);
+    } finally {
+      setProcessingImage(false);
     }
   };
 
@@ -339,20 +442,50 @@ export default function MealLog() {
 
         {/* Tabs */}
         <View style={styles.headerTabs}>
-          {["Search", "Photo", "Barcode"].map((tab) => (
-            <TouchableOpacity
-              key={tab}
-              style={[styles.tabButton, activeTab === tab && styles.tabButtonActive]}
-              onPress={() => setActiveTab(tab)}
-            >
-              <Ionicons
-                name={tab === "Search" ? "search" : tab === "Photo" ? "camera" : "barcode-outline"}
-                size={20}
-                color={activeTab === tab ? "#fff" : "#4A90E2"}
-              />
-              <Text style={[styles.tabText, activeTab === tab && styles.tabTextActive]}>{tab}</Text>
-            </TouchableOpacity>
-          ))}
+          {["Search", "Photo", "Barcode"].map((tab) => {
+            const isPremiumFeature = tab === "Photo" || tab === "Barcode";
+            const isLocked = isPremiumFeature && membership !== "premium";
+            
+            return (
+              <TouchableOpacity
+                key={tab}
+                style={[styles.tabButton, activeTab === tab && styles.tabButtonActive, isLocked && styles.tabButtonLocked]}
+                onPress={() => {
+                  if (isLocked) {
+                    Alert.alert(
+                      "Premium Feature",
+                      "Sign up for Premium to unlock this feature!",
+                      [
+                        { text: "Cancel", style: "cancel" },
+                        {
+                          text: "Upgrade",
+                          onPress: () => navigation.navigate("UpgradePremium"),
+                        },
+                      ]
+                    );
+                  } else {
+                    setActiveTab(tab);
+                  }
+                }}
+              >
+                <View style={{ position: "relative" }}>
+                  <Ionicons
+                    name={tab === "Search" ? "search" : tab === "Photo" ? "camera" : "barcode-outline"}
+                    size={20}
+                    color={activeTab === tab ? "#fff" : isLocked ? "#999" : "#4A90E2"}
+                  />
+                  {isLocked && (
+                    <View style={styles.lockIconOverlay}>
+                      <Ionicons name="lock-closed" size={12} color="#fff" />
+                    </View>
+                  )}
+                </View>
+                <Text style={[styles.tabText, activeTab === tab && styles.tabTextActive, isLocked && styles.tabTextLocked]}>
+                  {tab}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
         </View>
 
         {/* Search Tab */}
@@ -415,7 +548,20 @@ export default function MealLog() {
             <Text style={styles.title}>Snap your food for facts</Text>
             <View style={styles.imageBox}>
               {selectedImage ? (
-                <Image source={{ uri: selectedImage }} style={styles.previewImage} />
+                <>
+                  <Image source={{ uri: selectedImage }} style={styles.previewImage} />
+                  {processingImage && (
+                    <View style={styles.processingOverlay}>
+                      <ActivityIndicator size="large" color="#4A90E2" />
+                      <Text style={styles.processingText}>Recognizing food...</Text>
+                    </View>
+                  )}
+                  {recognitionResult && !processingImage && (
+                    <View style={styles.resultOverlay}>
+                      <Text style={styles.resultText}>Recognized: {recognitionResult}</Text>
+                    </View>
+                  )}
+                </>
               ) : (
                 <Text style={styles.noImageText}>No Image Selected</Text>
               )}
@@ -426,9 +572,24 @@ export default function MealLog() {
             >
               <Text style={styles.actionText}>📷 Take Photo</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.actionButton} onPress={openGallery}>
+            <TouchableOpacity 
+              style={styles.actionButton} 
+              onPress={openGallery}
+              disabled={processingImage}
+            >
               <Text style={styles.actionText}>🖼️ Gallery</Text>
             </TouchableOpacity>
+            {selectedImage && !processingImage && (
+              <TouchableOpacity
+                style={[styles.actionButton, styles.clearButton]}
+                onPress={() => {
+                  setSelectedImage(null);
+                  setRecognitionResult(null);
+                }}
+              >
+                <Text style={styles.clearButtonText}>Clear Image</Text>
+              </TouchableOpacity>
+            )}
           </View>
         )}
 
@@ -596,6 +757,21 @@ const styles = StyleSheet.create({
   tabButtonActive: { backgroundColor: "#4A90E2" },
   tabText: { marginLeft: 6, fontWeight: "600", color: "#4A90E2" },
   tabTextActive: { color: "#fff" },
+  tabTextLocked: { color: "#999" },
+  tabButtonLocked: { opacity: 0.6 },
+  lockIconOverlay: {
+    position: "absolute",
+    top: -4,
+    right: -4,
+    backgroundColor: "#FF6B6B",
+    borderRadius: 8,
+    width: 16,
+    height: 16,
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#fff",
+  },
   searchBar: { flexDirection: "row", alignItems: "center", backgroundColor: "#fff", borderRadius: 12, paddingHorizontal: 12, paddingVertical: 10, marginBottom: 14 },
   searchInput: { flex: 1, fontSize: 16, color: "#333" },
   loadingContainer: {
@@ -707,4 +883,44 @@ const styles = StyleSheet.create({
   },
   previewImage: { width: "100%", height: "100%", resizeMode: "cover" },
   noImageText: { color: "#666", fontSize: 15 },
+  processingOverlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+    borderRadius: 14,
+  },
+  processingText: {
+    color: "#fff",
+    marginTop: 12,
+    fontSize: 14,
+    fontWeight: "600",
+  },
+  resultOverlay: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: "rgba(0, 0, 0, 0.7)",
+    padding: 12,
+    borderBottomLeftRadius: 14,
+    borderBottomRightRadius: 14,
+  },
+  resultText: {
+    color: "#fff",
+    fontSize: 14,
+    fontWeight: "600",
+    textAlign: "center",
+  },
+  clearButton: {
+    backgroundColor: "#FF6B6B",
+    marginTop: 8,
+  },
+  clearButtonText: {
+    color: "#fff",
+  },
 });

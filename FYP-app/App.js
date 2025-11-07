@@ -146,6 +146,8 @@ function DiaryStack() {
       <DiaryStackNav.Screen name="ActivityPage" component={ActivityPage} />
       <DiaryStackNav.Screen name="DeleteActivity" component={DeleteActivity} />
       <DiaryStackNav.Screen name="WeightPage" component={WeightPage} />
+      <DiaryStackNav.Screen name="UpgradePremium" component={UpgradePremium} />
+      <DiaryStackNav.Screen name="CheckoutScreen" component={CheckoutScreen} />
     </DiaryStackNav.Navigator>
   );
 }
@@ -159,6 +161,8 @@ function RecipeStack() {
       <RecipeStackNav.Screen name="ViewRestaurant" component={ViewRestaurant} />
       <RecipeStackNav.Screen name="ViewMoreRecipes" component={ViewMoreRecipes} />
       <RecipeStackNav.Screen name="FavRecipes" component={FavRecipes} />
+      <RecipeStackNav.Screen name="UpgradePremium" component={UpgradePremium} />
+      <RecipeStackNav.Screen name="CheckoutScreen" component={CheckoutScreen} />
     </RecipeStackNav.Navigator>
   );
 }
@@ -178,6 +182,8 @@ function ExpertStack() {
       <ExpertStackNav.Screen name="WorkoutPlanDetails" component={WorkoutPlanDetails} />
       <ExpertStackNav.Screen name="CoachesChatScreen" component={CoachesChatScreen} />
       <ExpertStackNav.Screen name="ChatList" component={ChatList} />
+      <ExpertStackNav.Screen name="UpgradePremium" component={UpgradePremium} />
+      <ExpertStackNav.Screen name="CheckoutScreen" component={CheckoutScreen} />
     </ExpertStackNav.Navigator>
   );
 }

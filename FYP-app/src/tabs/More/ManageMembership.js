@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -9,26 +9,126 @@ import {
   TextInput,
   Keyboard,
   TouchableWithoutFeedback,
+  Alert,
+  ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useFocusEffect } from "@react-navigation/native";
+import { auth, db } from "../../firebaseConfig";
+import { doc, getDoc, updateDoc } from "firebase/firestore";
 
 export default function ManageMembership() {
   const navigation = useNavigation();
   const [showChangePlan, setShowChangePlan] = useState(false);
-  const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
+  const [showPlanChangeConfirm, setShowPlanChangeConfirm] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Membership data
+  const [planType, setPlanType] = useState("monthly");
+  const [renewalDate, setRenewalDate] = useState(null);
+  const [subscriptionCancelled, setSubscriptionCancelled] = useState(false);
 
   // Change Plan
   const [selectedPlan, setSelectedPlan] = useState("monthly");
 
-  // Payment fields
+  // Payment fields (not used anymore - will navigate to CheckoutScreen)
   const [cardName, setCardName] = useState("");
   const [cardNumber, setCardNumber] = useState("");
   const [expiry, setExpiry] = useState("");
   const [cvv, setCvv] = useState("");
   const [billingAddress, setBillingAddress] = useState("");
+
+  // Fetch membership data
+  const fetchMembershipData = async () => {
+    try {
+      const user = auth.currentUser;
+      if (!user) return;
+
+      const userRef = doc(db, "user", user.uid);
+      const snap = await getDoc(userRef);
+
+      if (snap.exists()) {
+        const data = snap.data();
+        console.log("ManageMembership - User data:", {
+          planType: data.planType,
+          renewalDate: data.renewalDate,
+          renewalDateType: typeof data.renewalDate,
+          subscriptionCancelled: data.subscriptionCancelled,
+          membership: data.membership
+        });
+        
+        setPlanType(data.planType || "monthly");
+        
+        // Handle renewalDate - could be ISO string, Firestore Timestamp, or null
+        let renewalDateValue = null;
+        if (data.renewalDate) {
+          if (typeof data.renewalDate === 'string') {
+            renewalDateValue = data.renewalDate;
+          } else if (data.renewalDate?.toDate && typeof data.renewalDate.toDate === 'function') {
+            // Firestore Timestamp
+            renewalDateValue = data.renewalDate.toDate().toISOString();
+          } else if (data.renewalDate instanceof Date) {
+            renewalDateValue = data.renewalDate.toISOString();
+          } else {
+            // Try to parse as date
+            try {
+              renewalDateValue = new Date(data.renewalDate).toISOString();
+            } catch (e) {
+              console.error("Error parsing renewalDate:", e);
+            }
+          }
+        } else if (data.premiumActivatedAt && data.planType) {
+          // Fallback: Calculate renewal date from premiumActivatedAt if renewalDate doesn't exist
+          try {
+            let activatedDate;
+            if (typeof data.premiumActivatedAt === 'string') {
+              activatedDate = new Date(data.premiumActivatedAt);
+            } else if (data.premiumActivatedAt?.toDate && typeof data.premiumActivatedAt.toDate === 'function') {
+              activatedDate = data.premiumActivatedAt.toDate();
+            } else {
+              activatedDate = new Date(data.premiumActivatedAt);
+            }
+            
+            const renewal = new Date(activatedDate);
+            if (data.planType === "monthly") {
+              renewal.setMonth(renewal.getMonth() + 1);
+            } else if (data.planType === "yearly") {
+              renewal.setFullYear(renewal.getFullYear() + 1);
+            }
+            renewalDateValue = renewal.toISOString();
+            
+            // Save the calculated renewal date to Firestore for future use
+            const currentUser = auth.currentUser;
+            if (currentUser) {
+              const userRef = doc(db, "user", currentUser.uid);
+              updateDoc(userRef, { renewalDate: renewalDateValue }).catch(err => {
+                console.error("Error saving calculated renewalDate:", err);
+              });
+            }
+          } catch (e) {
+            console.error("Error calculating renewalDate from premiumActivatedAt:", e);
+          }
+        }
+        setRenewalDate(renewalDateValue);
+        setSubscriptionCancelled(data.subscriptionCancelled || false);
+        setSelectedPlan(data.planType || "monthly");
+      }
+    } catch (error) {
+      console.error("Error fetching membership data:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchMembershipData();
+  }, []);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchMembershipData();
+    }, [])
+  );
 
   return (
     <SafeAreaView style={styles.container}>
@@ -53,11 +153,17 @@ export default function ManageMembership() {
                 </View>
               </View>
               <Text style={styles.planDetails}>
-                Monthly Plan · $8.99 / month
+                {planType === "monthly" ? "Monthly Plan · $8.99 / month" : "Yearly Plan · $92.00 / year"}
               </Text>
-              <Text style={styles.planRenewal}>
-                Renews on 20 September 2025
-              </Text>
+              {subscriptionCancelled ? (
+                <Text style={styles.planRenewal}>
+                  {renewalDate ? `Access until ${formatRenewalDate(renewalDate)}` : "Subscription cancelled"}
+                </Text>
+              ) : (
+                <Text style={styles.planRenewal}>
+                  {renewalDate ? `Renews on ${formatRenewalDate(renewalDate)}` : "No renewal date set"}
+                </Text>
+              )}
             </View>
 
             {/* Options */}
@@ -74,7 +180,13 @@ export default function ManageMembership() {
 
               <TouchableOpacity
                 style={styles.optionBox}
-                onPress={() => setShowPaymentModal(true)}
+                onPress={() => {
+                  // Navigate to CheckoutScreen similar to UpgradePremium
+                  navigation.navigate("CheckoutScreen", { 
+                    selectedPlan: planType,
+                    isUpdatingPayment: true 
+                  });
+                }}
               >
                 <Ionicons name="card-outline" size={22} color="#445A86" />
                 <Text style={styles.optionText}>Update Payment Method</Text>
@@ -142,10 +254,21 @@ export default function ManageMembership() {
                     ]}
                     onPress={() => setSelectedPlan("yearly")}
                   >
-                    <Text style={styles.planOptionText}>Yearly - $79.99</Text>
+                    <Text style={styles.planOptionText}>Yearly - $92.00</Text>
                   </TouchableOpacity>
 
-                  <TouchableOpacity style={styles.saveButton}>
+                  <TouchableOpacity 
+                    style={styles.saveButton}
+                    onPress={() => {
+                      if (selectedPlan === planType) {
+                        Alert.alert("Info", "You are already on this plan.");
+                        setShowChangePlan(false);
+                        return;
+                      }
+                      setShowChangePlan(false);
+                      setShowPlanChangeConfirm(true);
+                    }}
+                  >
                     <Text style={styles.saveButtonText}>Confirm Plan</Text>
                   </TouchableOpacity>
 
@@ -160,79 +283,81 @@ export default function ManageMembership() {
             </TouchableWithoutFeedback>
           </Modal>
 
-          {/* Update Payment Method Modal */}
-          <Modal visible={showPaymentModal} animationType="fade" transparent>
+          {/* Plan Change Confirmation Modal */}
+          <Modal visible={showPlanChangeConfirm} animationType="fade" transparent>
             <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
               <View style={styles.modalOverlay}>
                 <View style={styles.modalBox}>
-                  <Text style={styles.modalTitle}>Update Payment Method</Text>
+                  <Text style={styles.modalTitle}>Plan Change Notice</Text>
+                  <Text style={styles.confirmMessage}>
+                    Your plan will only be changed when it's time for the next payment. 
+                    You will continue on your current plan until {renewalDate ? formatRenewalDate(renewalDate) : "the renewal date"}.
+                  </Text>
+                  <Text style={styles.confirmMessage}>
+                    New plan: {selectedPlan === "monthly" ? "Monthly - $8.99/month" : "Yearly - $92.00/year"}
+                  </Text>
+                  
+                  <TouchableOpacity 
+                    style={styles.saveButton}
+                    onPress={async () => {
+                      try {
+                        setIsLoading(true);
+                        const user = auth.currentUser;
+                        if (!user) {
+                          Alert.alert("Error", "User not authenticated");
+                          setIsLoading(false);
+                          return;
+                        }
 
-                  {/* Cardholder Name */}
-                  <TextInput
-                    style={styles.input}
-                    placeholder="Cardholder Name"
-                    placeholderTextColor="#777"
-                    value={cardName}
-                    onChangeText={setCardName}
-                    keyboardAppearance="light"
-                  />
+                        // Calculate new renewal date based on selected plan
+                        const now = new Date();
+                        const newRenewalDate = new Date(now);
+                        if (selectedPlan === "monthly") {
+                          newRenewalDate.setMonth(newRenewalDate.getMonth() + 1);
+                        } else if (selectedPlan === "yearly") {
+                          newRenewalDate.setFullYear(newRenewalDate.getFullYear() + 1);
+                        }
 
-                  {/* Card Number */}
-                  <TextInput
-                    style={styles.input}
-                    placeholder="Card Number"
-                    placeholderTextColor="#777"
-                    value={cardNumber}
-                    onChangeText={setCardNumber}
-                    keyboardType="numeric"
-                    returnKeyType="done"
-                    keyboardAppearance="light"
-                  />
+                        const userRef = doc(db, "user", user.uid);
+                        await updateDoc(userRef, {
+                          pendingPlanType: selectedPlan,
+                          pendingRenewalDate: newRenewalDate.toISOString(),
+                        });
 
-                  {/* Expiry + CVV side by side */}
-                  <View style={styles.row}>
-                    <TextInput
-                      style={[styles.input, styles.halfInput]}
-                      placeholder="MM/YY"
-                      placeholderTextColor="#777"
-                      value={expiry}
-                      onChangeText={setExpiry}
-                      keyboardType="numeric"
-                      keyboardAppearance="light"
-                    />
-                    <TextInput
-                      style={[styles.input, styles.halfInput]}
-                      placeholder="CVV"
-                      placeholderTextColor="#777"
-                      value={cvv}
-                      onChangeText={setCvv}
-                      secureTextEntry
-                      keyboardType="numeric"
-                      returnKeyType="done"
-                      keyboardAppearance="light"
-                    />
-                  </View>
-
-                  {/* Billing Address */}
-                  <TextInput
-                    style={styles.input}
-                    placeholder="Billing Address"
-                    placeholderTextColor="#777"
-                    value={billingAddress}
-                    onChangeText={setBillingAddress}
-                    keyboardAppearance="light"
-                  />
-
-                  {/* Buttons */}
-                  <TouchableOpacity style={styles.saveButton}>
-                    <Text style={styles.saveButtonText}>Save & Continue</Text>
+                        Alert.alert(
+                          "Success",
+                          "Your plan change has been scheduled. It will take effect on your next renewal date.",
+                          [
+                            {
+                              text: "OK",
+                              onPress: () => {
+                                setShowPlanChangeConfirm(false);
+                                fetchMembershipData();
+                              },
+                            },
+                          ]
+                        );
+                      } catch (error) {
+                        console.error("Error updating plan:", error);
+                        Alert.alert("Error", "Failed to update plan. Please try again.");
+                      } finally {
+                        setIsLoading(false);
+                      }
+                    }}
+                    disabled={isLoading}
+                  >
+                    {isLoading ? (
+                      <ActivityIndicator color="#fff" />
+                    ) : (
+                      <Text style={styles.saveButtonText}>Confirm</Text>
+                    )}
                   </TouchableOpacity>
 
                   <TouchableOpacity
                     style={styles.closeButton}
-                    onPress={() => setShowPaymentModal(false)}
+                    onPress={() => setShowPlanChangeConfirm(false)}
                   >
-                    <Text style={styles.closeButtonText}>Close</Text>
+                    <Text style={styles.closeButtonText}>Cancel</Text>
                   </TouchableOpacity>
                 </View>
               </View>
@@ -250,11 +375,78 @@ export default function ManageMembership() {
                 <View style={styles.modalBox}>
                   <Text style={styles.modalTitle}>Cancel Subscription</Text>
                   <Text style={{ marginBottom: 16, color: "#444" }}>
-                    Are you sure you want to cancel your subscription? You’ll
-                    lose access immediately.
+                    {renewalDate
+                      ? (() => {
+                          // Calculate access end date (day before renewal date)
+                          const renewal = new Date(renewalDate);
+                          const accessEnd = new Date(renewal);
+                          accessEnd.setDate(accessEnd.getDate() - 1);
+                          return `Your subscription will be cancelled, but you'll retain premium access until ${formatRenewalDate(accessEnd.toISOString())}. After that date, you'll lose access to premium features.`;
+                        })()
+                      : "Your subscription will be cancelled. You'll lose access to premium features immediately."}
                   </Text>
-                  <TouchableOpacity style={styles.cancelConfirmButton}>
-                    <Text style={styles.cancelConfirmText}>Yes, Cancel</Text>
+                  <TouchableOpacity 
+                    style={styles.cancelConfirmButton}
+                    onPress={async () => {
+                      try {
+                        setIsLoading(true);
+                        const user = auth.currentUser;
+                        if (!user) {
+                          Alert.alert("Error", "User not authenticated");
+                          setIsLoading(false);
+                          return;
+                        }
+
+                        // Calculate access end date (day before renewal date)
+                        let accessEndDate = null;
+                        if (renewalDate) {
+                          const renewal = new Date(renewalDate);
+                          renewal.setDate(renewal.getDate() - 1);
+                          accessEndDate = renewal.toISOString();
+                        }
+
+                        const userRef = doc(db, "user", user.uid);
+                        await updateDoc(userRef, {
+                          subscriptionCancelled: true,
+                          accessEndDate: accessEndDate,
+                        });
+
+                        // Calculate access end date for the alert message
+                        let accessEndMessage = "Your subscription has been cancelled.";
+                        if (renewalDate) {
+                          const renewal = new Date(renewalDate);
+                          const accessEnd = new Date(renewal);
+                          accessEnd.setDate(accessEnd.getDate() - 1);
+                          accessEndMessage = `Your subscription has been cancelled. You'll retain premium access until ${formatRenewalDate(accessEnd.toISOString())}.`;
+                        }
+
+                        Alert.alert(
+                          "Subscription Cancelled",
+                          accessEndMessage,
+                          [
+                            {
+                              text: "OK",
+                              onPress: () => {
+                                setShowCancelModal(false);
+                                fetchMembershipData();
+                              },
+                            },
+                          ]
+                        );
+                      } catch (error) {
+                        console.error("Error cancelling subscription:", error);
+                        Alert.alert("Error", "Failed to cancel subscription. Please try again.");
+                      } finally {
+                        setIsLoading(false);
+                      }
+                    }}
+                    disabled={isLoading}
+                  >
+                    {isLoading ? (
+                      <ActivityIndicator color="#fff" />
+                    ) : (
+                      <Text style={styles.cancelConfirmText}>Yes, Cancel</Text>
+                    )}
                   </TouchableOpacity>
                   <TouchableOpacity
                     style={styles.closeButton}
@@ -413,5 +605,35 @@ halfInput: {
   flex: 1,
   marginHorizontal: 4,
 },
+confirmMessage: {
+  marginBottom: 12,
+  color: "#444",
+  fontSize: 14,
+  lineHeight: 20,
+},
 
 });
+
+// Format renewal date for display
+const formatRenewalDate = (dateString) => {
+  if (!dateString) return "";
+  try {
+    const date = new Date(dateString);
+    // Check if date is valid
+    if (isNaN(date.getTime())) {
+      console.error("Invalid date string:", dateString);
+      return "";
+    }
+    const day = date.getDate();
+    const monthNames = [
+      "January", "February", "March", "April", "May", "June",
+      "July", "August", "September", "October", "November", "December"
+    ];
+    const month = monthNames[date.getMonth()];
+    const year = date.getFullYear();
+    return `${day} ${month} ${year}`;
+  } catch (error) {
+    console.error("Error formatting date:", error, dateString);
+    return "";
+  }
+};

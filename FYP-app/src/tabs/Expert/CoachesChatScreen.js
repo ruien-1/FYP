@@ -497,7 +497,7 @@ export default function CoachesChatScreen() {
       <Modal
         visible={showAppointmentModal}
         transparent={true}
-        animationType="slide"
+        animationType="fade"
         onRequestClose={() => setShowAppointmentModal(false)}
       >
         <View style={styles.modalOverlay}>
@@ -570,7 +570,7 @@ export default function CoachesChatScreen() {
       <Modal
         visible={showWorkoutModal}
         transparent={true}
-        animationType="slide"
+        animationType="fade"
         onRequestClose={() => setShowWorkoutModal(false)}
       >
         <View style={styles.modalOverlay}>

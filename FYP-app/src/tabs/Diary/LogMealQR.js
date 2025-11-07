@@ -11,6 +11,7 @@ import { useRoute, useNavigation } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import { auth } from "../../firebaseConfig";
 import API from "../../api/backend";
+import { cancelMealReminderNotifications } from "../Home/notificationService";
 
 export default function LogMealQR() {
   const route = useRoute();
@@ -147,6 +148,13 @@ export default function LogMealQR() {
       };
 
       await API.post(`/meals_log/${userId}`, meal);
+
+      // Cancel meal reminder if meal is logged for today
+      const loggedDate = meal.date;
+      const today = new Date().toISOString().split("T")[0];
+      if (loggedDate === today) {
+        cancelMealReminderNotifications();
+      }
 
       showSuccess("Meal logged successfully!");
     } catch (error) {

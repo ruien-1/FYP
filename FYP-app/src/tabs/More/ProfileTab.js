@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, Dimensions } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { auth, db } from "../../firebaseConfig";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, onSnapshot } from "firebase/firestore";
 import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 
@@ -18,10 +18,30 @@ const ProfileTab = () => {
   const navigation = useNavigation();
 
   useEffect(() => {
-    fetchUserData();
+    const user = auth.currentUser;
+    if (!user) return;
+
+    const userRef = doc(db, "user", user.uid);
+    
+    // Set up real-time listener for streak updates
+    const unsubscribe = onSnapshot(userRef, (snap) => {
+      if (snap.exists()) {
+        const data = snap.data();
+        setStreak(data.streak || 0);
+        setUserName(data.name || "User");
+        setProfileImage(data.profileImage || null);
+        setWallpaperImage(data.wallpaperImage || null);
+        console.log("ProfileTab: Streak updated to", data.streak || 0);
+      }
+    }, (error) => {
+      console.error("Error listening to user data:", error);
+    });
+
+    // Cleanup listener on unmount
+    return () => unsubscribe();
   }, []);
 
-  // Refresh data when screen is focused (after editing)
+  // Refresh data when screen is focused (in case listener didn't catch updates)
   useFocusEffect(
     React.useCallback(() => {
       fetchUserData();

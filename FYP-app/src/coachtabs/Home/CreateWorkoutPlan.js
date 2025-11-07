@@ -417,7 +417,7 @@ export default function CreateWorkoutPlan() {
     <Modal
       visible={showDatePickerModal}
       transparent={true}
-      animationType="slide"
+      animationType="fade"
       onRequestClose={() => setShowDatePickerModal(false)}
     >
       <View style={styles.modalOverlay}>
@@ -526,7 +526,7 @@ export default function CreateWorkoutPlan() {
       <Modal
         visible={showActivityListModal}
         transparent={true}
-        animationType="slide"
+        animationType="fade"
         onRequestClose={() => setShowActivityListModal(false)}
       >
         <View style={styles.modalOverlay}>
@@ -604,7 +604,7 @@ export default function CreateWorkoutPlan() {
       <Modal
         visible={showActivityDetailsModal}
         transparent={true}
-        animationType="slide"
+        animationType="fade"
         onRequestClose={handleCloseModal}
       >
         <KeyboardAvoidingView
@@ -716,7 +716,7 @@ export default function CreateWorkoutPlan() {
           {/* Header */}
           <View style={styles.header}>
             <TouchableOpacity onPress={() => navigation.goBack()}>
-              <Ionicons name="arrow-back" size={24} color="#007AFF" />
+              <Ionicons name="arrow-back" size={24} color="#000000ff" />
             </TouchableOpacity>
             <Text style={styles.headerTitle}>Create Workout Plan</Text>
           </View>
@@ -1228,7 +1228,7 @@ const styles = StyleSheet.create({
   intensityButtonText: {
     color: "#007AFF",
     fontWeight: "600",
-    fontSize: 14,
+    fontSize: 12,
   },
   intensityButtonTextSelected: {
     color: "#FFFFFF",

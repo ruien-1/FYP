@@ -11,20 +11,14 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth, db } from "../firebaseConfig";
-import { doc, getDoc, updateDoc } from "firebase/firestore";
+import { doc, getDoc } from "firebase/firestore";
+import { initializeMealReminder } from "../tabs/Home/notificationService";
 
 export default function LoginPage({ navigation }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-
-  const differenceInCalendarDays = (date1, date2) => {
-    const d1 = new Date(date1.getFullYear(), date1.getMonth(), date1.getDate());
-    const d2 = new Date(date2.getFullYear(), date2.getMonth(), date2.getDate());
-    const diffTime = d1 - d2;
-    return Math.round(diffTime / (1000 * 60 * 60 * 24));
-  };
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -133,27 +127,9 @@ export default function LoginPage({ navigation }) {
           return;
         }
 
-        const today = new Date();
-        const lastOpened = data.lastOpened ? new Date(data.lastOpened) : null;
-        let newStreak = data.streak || 0;
-
-        if (lastOpened) {
-          const diff = differenceInCalendarDays(today, lastOpened);
-          if (diff === 1) {
-            newStreak += 1; // consecutive day
-          } else if (diff > 1) {
-            newStreak = 0; // missed days
-          }
-        } else {
-          newStreak = 0; // first login
-        }
-
-        await updateDoc(userRef, {
-          streak: newStreak,
-          lastOpened: today.toDateString(),
-        });
-
         console.log("Login successful for user:", data.name);
+        // Initialize meal reminder after successful login
+        initializeMealReminder();
         navigation.navigate("MainTabs");
         setLoading(false);
         return;

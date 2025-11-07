@@ -22,6 +22,7 @@ import CustomFoodModal from "./CustomFoodModal";
 // 🔹 API backend
 import API from "../../api/backend";
 import { auth } from "../../firebaseConfig";
+import { cancelMealReminderNotifications } from "../Home/notificationService";
 
 // 🔹 Default foods
 const defaultFoods = [
@@ -269,6 +270,12 @@ export default function MealLog() {
 
       if (postRes.data?.success) {
         setMessage({ text: `${food.name} added to ${meal}`, type: "success" });
+        // Cancel meal reminder if meal is logged for today
+        const loggedDate = mealLog.date;
+        const today = new Date().toISOString().split("T")[0];
+        if (loggedDate === today) {
+          cancelMealReminderNotifications();
+        }
       } else {
         setMessage({ text: "❌ Failed to log meal. Please try again.", type: "error" });
       }

@@ -12,6 +12,7 @@ import { useRoute, useNavigation } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import API from "../../api/backend";
 import { auth } from "../../firebaseConfig";
+import { cancelMealReminderNotifications } from "../Home/notificationService";
 
 export default function MealPlanDetails() {
   const navigation = useNavigation();
@@ -93,6 +94,9 @@ export default function MealPlanDetails() {
           await API.post(`/meals_log/${uid}`, mealLog);
         }
 
+        // Cancel meal reminder since meals are logged for today
+        cancelMealReminderNotifications();
+        
         Alert.alert("Logged", "Today's meals added to your diary.", [
           { text: "OK", onPress: () => navigation.goBack() },
         ]);
@@ -130,6 +134,9 @@ export default function MealPlanDetails() {
           };
           await API.post(`/meals_log/${uid}`, mealLog);
         }
+
+        // Cancel meal reminder since meals are logged for today
+        cancelMealReminderNotifications();
 
         Alert.alert("Logged", "Meals added to your diary.", [
           { text: "OK", onPress: () => navigation.goBack() },

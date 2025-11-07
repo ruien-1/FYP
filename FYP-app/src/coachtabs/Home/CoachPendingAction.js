@@ -116,7 +116,7 @@ export default function PendingAction() {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={24} color="#007AFF" />
+          <Ionicons name="arrow-back" size={24} color="#000000ff" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Pending Actions</Text>
       </View>
@@ -281,12 +281,13 @@ const styles = StyleSheet.create({
   },
   completeButton: {
     backgroundColor: "#34C759",
+      paddingHorizontal: 8,  // Add this line to give more horizontal padding
   },
-  completeButtonText: {
-    color: "#fff",
-    fontSize: 14,
-    fontWeight: "600",
-  },
+ completeButtonText: {
+  color: "#fff",
+  fontSize: 12,  // Changed from 14 to 13
+  fontWeight: "600",
+},
 });
 
 

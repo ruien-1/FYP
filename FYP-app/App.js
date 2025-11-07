@@ -6,7 +6,10 @@ import { useEffect } from "react";
 import {
   cancelAllNotifications,
   registerForPushNotificationsAsync,
+  initializeMealReminder,
 } from "./src/tabs/Home/notificationService";
+import { auth } from "./src/firebaseConfig";
+import { onAuthStateChanged } from "firebase/auth";
 import * as Notifications from "expo-notifications";
 import Toast from "react-native-toast-message";
 import { LogBox } from "react-native";
@@ -316,16 +319,41 @@ export default function App() {
   useEffect(() => {
     registerForPushNotificationsAsync();
 
-    const sub = Notifications.addNotificationResponseReceivedListener(() => {
-      Toast.show({
-        type: "success",
-        text1: "⏳ Fasting Timer",
-        text2: "Your fasting timer has ended!",
-      });
-      cancelAllNotifications();
+    const sub = Notifications.addNotificationResponseReceivedListener((response) => {
+      const notification = response.notification;
+      const identifier = notification.request.identifier || '';
+      const data = notification.request.content.data || {};
+      
+      // Check if this is a meal reminder notification
+      if (identifier.startsWith('mealReminder_') || data.type === 'mealReminder') {
+        Toast.show({
+          type: "info",
+          text1: "🍽️ Meal Reminder",
+          text2: "Don't forget to log a meal to keep your streak going!",
+        });
+      } else {
+        // This is a fasting timer notification
+        Toast.show({
+          type: "success",
+          text1: "⏳ Fasting Timer",
+          text2: "Your fasting timer has ended!",
+        });
+        cancelAllNotifications();
+      }
     });
 
-    return () => sub.remove();
+    // Initialize meal reminder when auth state changes (user logs in)
+    const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        // User is logged in, initialize meal reminder
+        initializeMealReminder();
+      }
+    });
+
+    return () => {
+      sub.remove();
+      unsubscribeAuth();
+    };
   }, []);
 
   return (

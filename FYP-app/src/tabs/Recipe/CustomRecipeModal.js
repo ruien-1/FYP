@@ -16,6 +16,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import API from "../../api/backend";
 import { auth } from "../../firebaseConfig";
+import { cancelMealReminderNotifications } from "../Home/notificationService";
 import LogMealModal from "./LogMealModal";
 
 export default function CustomRecipeModal({
@@ -92,6 +93,10 @@ export default function CustomRecipeModal({
 
       const postRes = await API.post(`/meals_log/${uid}`, mealLog);
       if (postRes.data.success) {
+        // Cancel meal reminder if meal is logged for today
+        if (today === new Date().toISOString().split("T")[0]) {
+          cancelMealReminderNotifications();
+        }
         showSuccess(`"${recipe.recipename}" logged to diary!`);
         setLogModalVisible(false);
       }

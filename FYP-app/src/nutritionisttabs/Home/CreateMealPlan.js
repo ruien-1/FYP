@@ -461,7 +461,7 @@ export default function CreateMealPlan() {
     <Modal
       visible={showAddMealModal}
       transparent={true}
-      animationType="slide"
+      animationType="fade"
       onRequestClose={() => setShowAddMealModal(false)}
     >
       <View style={styles.modalOverlay}>
@@ -829,7 +829,7 @@ export default function CreateMealPlan() {
       <Modal
         visible={showDatePickerModal}
         transparent={true}
-        animationType="slide"
+        animationType="fade"
         onRequestClose={() => setShowDatePickerModal(false)}
       >
         <View style={styles.modalOverlay}>

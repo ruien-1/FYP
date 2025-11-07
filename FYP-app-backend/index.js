@@ -2090,6 +2090,16 @@ ensureCategoriesAdded();
 
 
 
+// Helper function to calculate difference in calendar days
+function differenceInCalendarDays(date1, date2) {
+  const d1 = new Date(date1);
+  d1.setHours(0, 0, 0, 0);
+  const d2 = new Date(date2);
+  d2.setHours(0, 0, 0, 0);
+  const diffTime = d1.getTime() - d2.getTime();
+  return Math.round(diffTime / (1000 * 60 * 60 * 24));
+}
+
 // Add to meal log to firestore (meals_log collection)
 app.post("/meals_log/:uid", async (req, res) => {
   try {
@@ -2098,6 +2108,116 @@ app.post("/meals_log/:uid", async (req, res) => {
 
     if (!meal.id) meal.id = Date.now().toString(); // unique meal id
 
+    // Get the date from meal.date (could be today or a past/future date)
+    const mealDate = meal.date || new Date().toISOString().split("T")[0];
+    const mealDateObj = new Date(mealDate);
+    mealDateObj.setHours(0, 0, 0, 0);
+    const mealDateStr = mealDateObj.toISOString().split("T")[0];
+
+    // Check if user has already logged a meal for this specific date
+    const mealsSnapshot = await db.collection("meals_log")
+      .doc(uid)
+      .collection("meals")
+      .where("date", "==", mealDateStr)
+      .limit(1)
+      .get();
+
+    const isFirstMealForDate = mealsSnapshot.empty;
+
+    // Only update streak if this is the first meal logged for this date
+    if (isFirstMealForDate) {
+      // Get user document to check streak
+      const userRef = db.collection("user").doc(uid);
+      const userDoc = await userRef.get();
+
+      if (userDoc.exists) {
+        const userData = userDoc.data();
+        const lastMealLoggedStr = userData.lastMealLogged || null;
+        const currentStreak = userData.streak || 0;
+        let newStreak = 0;
+
+        // Use server time to check if lastMealLogged is in the future (date manipulation)
+        const serverToday = new Date();
+        serverToday.setHours(0, 0, 0, 0);
+        const serverTodayStr = serverToday.toISOString().split("T")[0];
+        
+        if (lastMealLoggedStr) {
+          const lastMealLogged = new Date(lastMealLoggedStr);
+          lastMealLogged.setHours(0, 0, 0, 0);
+          
+          // If lastMealLogged is in the future (due to date manipulation), treat as if no last meal
+          if (lastMealLoggedStr > serverTodayStr) {
+            console.log(`⚠️ lastMealLogged (${lastMealLoggedStr}) is in the future, treating as first meal`);
+            newStreak = 1;
+          } else {
+            const diff = differenceInCalendarDays(mealDateObj, lastMealLogged);
+            
+            console.log(`Date comparison: mealDate=${mealDateStr}, lastMealLogged=${lastMealLoggedStr}, serverToday=${serverTodayStr}, diff=${diff}`);
+            
+            if (diff === 0) {
+              // Same day - don't update streak (shouldn't happen since we check for first meal)
+              newStreak = currentStreak;
+            } else if (diff === 1) {
+              // Consecutive day - increment streak
+              newStreak = currentStreak + 1;
+            } else if (diff > 1) {
+              // Missed days - reset streak to 1 (they're logging again after missing days)
+              newStreak = 1;
+            } else if (diff < 0) {
+              // Logging a meal for a past date relative to lastMealLogged
+              // Check if it's also in the past relative to server time
+              const mealDateForCompare = new Date(mealDateStr);
+              const serverTodayForCompare = new Date(serverTodayStr);
+              const daysDiffFromServer = differenceInCalendarDays(mealDateForCompare, serverTodayForCompare);
+              
+              if (daysDiffFromServer < 0) {
+                // Meal is in the past - don't update streak
+                newStreak = currentStreak;
+                console.log(`Meal logged for past date (${daysDiffFromServer} days ago), streak unchanged: ${currentStreak}`);
+              } else {
+                // Meal is today but lastMealLogged was in future - reset streak
+                newStreak = 1;
+                console.log(`Resetting streak: meal is today but lastMealLogged was in future`);
+              }
+            }
+          }
+        } else {
+          // First meal ever logged, start streak at 1
+          newStreak = 1;
+        }
+
+        // Update user document with new streak and lastMealLogged
+        const updateData = {
+          streak: newStreak,
+        };
+        
+        // Only update lastMealLogged if:
+        // 1. Meal date is today or in the future (allows forward logging)
+        // 2. Meal date is not more than 1 day in the past from server time
+        const mealDateForCompare = new Date(mealDateStr);
+        const daysDiffFromServer = differenceInCalendarDays(mealDateForCompare, serverToday);
+        
+        if (daysDiffFromServer >= -1) { // Allow today, future, or 1 day past
+          // If lastMealLogged was in the future, always update it to current meal date
+          if (!lastMealLoggedStr || lastMealLoggedStr > serverTodayStr || mealDateStr > lastMealLoggedStr) {
+            updateData.lastMealLogged = mealDateStr;
+            console.log(`Updating lastMealLogged to: ${mealDateStr}`);
+          }
+        } else {
+          console.log(`Meal date ${mealDateStr} is more than 1 day in the past, not updating lastMealLogged`);
+        }
+
+        await userRef.update(updateData);
+
+        console.log(`✅ Streak updated for user ${uid}: ${currentStreak} -> ${newStreak} days (meal date: ${mealDateStr})`);
+      } else {
+        console.log(`User document not found for ${uid}`);
+      }
+    } else {
+      console.log(`Not first meal for date ${mealDateStr}, streak unchanged`);
+    }
+
+    // Save the meal log
     await db.collection("meals_log")
       .doc(uid)
       .collection("meals")
@@ -2143,6 +2263,90 @@ app.get("/meals_log/:uid", async (req, res) => {
   } catch (error) {
     console.error("Error fetching meals:", error);
     res.status(500).json({ error: error.message });
+  }
+});
+
+// Validate and update streak status (check if user should have streak reset)
+app.post("/streak/validate/:uid", async (req, res) => {
+  try {
+    const { uid } = req.params;
+    
+    // Get server time (today)
+    const serverToday = new Date();
+    serverToday.setHours(0, 0, 0, 0);
+    const serverTodayStr = serverToday.toISOString().split("T")[0];
+
+    // Get user document
+    const userRef = db.collection("user").doc(uid);
+    const userDoc = await userRef.get();
+
+    if (!userDoc.exists) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    const userData = userDoc.data();
+    const lastMealLoggedStr = userData.lastMealLogged || null;
+    const currentStreak = userData.streak || 0;
+
+    // Check if user has logged a meal today
+    const mealsSnapshot = await db.collection("meals_log")
+      .doc(uid)
+      .collection("meals")
+      .where("date", "==", serverTodayStr)
+      .limit(1)
+      .get();
+
+    const hasLoggedMealToday = !mealsSnapshot.empty;
+    let newStreak = currentStreak;
+    let streakUpdated = false;
+
+    if (!hasLoggedMealToday && lastMealLoggedStr) {
+      const lastMealLogged = new Date(lastMealLoggedStr);
+      lastMealLogged.setHours(0, 0, 0, 0);
+      
+      // If lastMealLogged is in the future (date manipulation), reset streak
+      if (lastMealLoggedStr > serverTodayStr) {
+        newStreak = 0;
+        streakUpdated = true;
+        console.log(`⚠️ Streak reset: lastMealLogged (${lastMealLoggedStr}) is in the future`);
+      } else {
+        const diff = differenceInCalendarDays(serverToday, lastMealLogged);
+        
+        // If more than 1 day has passed since last meal, reset streak to 0
+        if (diff > 1) {
+          newStreak = 0;
+          streakUpdated = true;
+          console.log(`⚠️ Streak reset: ${diff} days since last meal logged`);
+        }
+      }
+
+      // Update streak if it changed
+      if (streakUpdated && newStreak !== currentStreak) {
+        await userRef.update({
+          streak: newStreak,
+        });
+        console.log(`✅ Streak validated and updated: ${currentStreak} -> ${newStreak}`);
+      }
+    } else if (!hasLoggedMealToday && !lastMealLoggedStr && currentStreak > 0) {
+      // User has no lastMealLogged but has a streak (shouldn't happen, but reset to be safe)
+      newStreak = 0;
+      await userRef.update({
+        streak: 0,
+      });
+      streakUpdated = true;
+      console.log(`✅ Streak reset: no lastMealLogged but streak was ${currentStreak}`);
+    }
+
+    res.json({
+      success: true,
+      streak: newStreak,
+      hasLoggedMealToday,
+      lastMealLogged: lastMealLoggedStr,
+      streakUpdated,
+    });
+  } catch (error) {
+    console.error("Error validating streak:", error);
+    res.status(500).json({ success: false, error: error.message });
   }
 });
 

@@ -5,7 +5,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 
 // ✅ Use __DEV__ to automatically switch between local & deployed backend
-const DEV_API_URL = "http://192.168.1.15:5000"; // 🧠 replace with your PC IP for local testing
+const DEV_API_URL = "http://192.168.68.107:5000"; // 🧠 replace with your PC IP for local testing
 const PROD_API_URL = "https://fyp-0rqn.onrender.com"; // 🌐 your hosted backend on Render
 const API_URL = __DEV__ ? DEV_API_URL : PROD_API_URL;
 

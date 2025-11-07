@@ -11,6 +11,7 @@ import {
   ActivityIndicator,
   Animated,
   Image,
+  Modal,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import * as FileSystemLegacy from "expo-file-system/legacy";
@@ -27,7 +28,7 @@ import { doc, getDoc } from "firebase/firestore";
 import { cancelMealReminderNotifications } from "../Home/notificationService";
 
 // ✅ Use __DEV__ to automatically switch between local & deployed backend
-const DEV_API_URL = "http://192.168.1.15:5000";
+const DEV_API_URL = "http:/192.168.68.107:5000";
 const PROD_API_URL = "https://fyp-0rqn.onrender.com";
 const API_URL = __DEV__ ? DEV_API_URL : PROD_API_URL;
 
@@ -75,6 +76,9 @@ export default function MealLog() {
   const [selectedImage, setSelectedImage] = useState(null);
   const [processingImage, setProcessingImage] = useState(false);
   const [recognitionResult, setRecognitionResult] = useState(null);
+  const [showImageEditModal, setShowImageEditModal] = useState(false);
+  const [imageRotation, setImageRotation] = useState(0);
+  const [imageFlipped, setImageFlipped] = useState(false);
 
   // ✅ Race condition prevention
   const [searchId, setSearchId] = useState(0);
@@ -153,19 +157,38 @@ export default function MealLog() {
     try {
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        allowsEditing: true,
-        aspect: [4, 3],
+        allowsEditing: false, // Disable native editing - use our custom modal instead
         quality: 0.5,
         base64: false,
       });
       if (!result.canceled && result.assets[0]) {
         const imageUri = result.assets[0].uri;
         setSelectedImage(imageUri);
-        await processImageForRecognition(imageUri);
+        setImageRotation(0);
+        setImageFlipped(false);
+        setRecognitionResult(null);
+        // Show custom edit modal with visible buttons
+        setShowImageEditModal(true);
       }
     } catch (err) {
       console.warn("ImagePicker error:", err);
       Alert.alert("Error", "Failed to select image from gallery");
+    }
+  };
+
+  const handleRotateImage = () => {
+    setImageRotation((prev) => (prev + 90) % 360);
+  };
+
+  const handleFlipImage = () => {
+    setImageFlipped((prev) => !prev);
+  };
+
+  const handleConfirmImage = () => {
+    setShowImageEditModal(false);
+    // Process the image for recognition
+    if (selectedImage) {
+      processImageForRecognition(selectedImage);
     }
   };
 
@@ -197,17 +220,21 @@ export default function MealLog() {
       const recognizedFood = data.food || "Unknown";
       setRecognitionResult(recognizedFood);
 
-      // Show result and allow user to search for the recognized food
+      // Show alert with option to search for the recognized food (same as FoodRecognition.js)
       Alert.alert(
         "Food Recognized",
         `Recognized as: ${recognizedFood}\n\nWould you like to search for this food?`,
         [
-          { text: "Cancel", style: "cancel" },
+          { text: "Stay Here", style: "cancel" },
           {
             text: "Search",
             onPress: () => {
+              // Switch to Search tab and search
+              setActiveTab("Search");
               setQuery(recognizedFood);
-              handleSearchInput(recognizedFood);
+              if (recognizedFood && recognizedFood.length > 1) {
+                searchFood(recognizedFood);
+              }
             },
           },
         ]
@@ -579,7 +606,26 @@ export default function MealLog() {
             >
               <Text style={styles.actionText}>🖼️ Gallery</Text>
             </TouchableOpacity>
-            {selectedImage && !processingImage && (
+            {selectedImage && !processingImage && !recognitionResult && (
+              <>
+                <TouchableOpacity
+                  style={[styles.actionButton, styles.nextButton]}
+                  onPress={() => processImageForRecognition(selectedImage)}
+                >
+                  <Text style={styles.nextButtonText}>Next →</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.actionButton, styles.clearButton]}
+                  onPress={() => {
+                    setSelectedImage(null);
+                    setRecognitionResult(null);
+                  }}
+                >
+                  <Text style={styles.clearButtonText}>Clear Image</Text>
+                </TouchableOpacity>
+              </>
+            )}
+            {selectedImage && !processingImage && recognitionResult && (
               <TouchableOpacity
                 style={[styles.actionButton, styles.clearButton]}
                 onPress={() => {
@@ -613,6 +659,83 @@ export default function MealLog() {
           </View>
         )}
       </View>
+
+      {/* Image Edit Modal */}
+      <Modal
+        visible={showImageEditModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowImageEditModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.imageEditModal}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Edit Image</Text>
+              <TouchableOpacity
+                onPress={() => setShowImageEditModal(false)}
+                style={styles.closeButton}
+              >
+                <Ionicons name="close" size={24} color="#333" />
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.imagePreviewContainer}>
+              {selectedImage && (
+                <Image
+                  source={{ uri: selectedImage }}
+                  style={[
+                    styles.modalImagePreview,
+                    {
+                      transform: [
+                        { rotate: `${imageRotation}deg` },
+                        { scaleX: imageFlipped ? -1 : 1 },
+                      ],
+                    },
+                  ]}
+                  resizeMode="contain"
+                />
+              )}
+            </View>
+
+            <View style={styles.editButtonsContainer}>
+              <TouchableOpacity
+                style={styles.editButton}
+                onPress={handleRotateImage}
+              >
+                <Ionicons name="refresh" size={24} color="#4A90E2" />
+                <Text style={styles.editButtonText}>Rotate</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.editButton}
+                onPress={handleFlipImage}
+              >
+                <Ionicons name="swap-horizontal" size={24} color="#4A90E2" />
+                <Text style={styles.editButtonText}>Flip</Text>
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.modalActionButtons}>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.cancelModalButton]}
+                onPress={() => {
+                  setShowImageEditModal(false);
+                  setSelectedImage(null);
+                }}
+              >
+                <Text style={styles.cancelModalButtonText}>Cancel</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.modalButton, styles.confirmModalButton]}
+                onPress={handleConfirmImage}
+              >
+                <Text style={styles.confirmModalButtonText}>Next →</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
 
       {/* CustomFoodModal */}
       <CustomFoodModal
@@ -921,6 +1044,112 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   clearButtonText: {
+    color: "#fff",
+  },
+  nextButton: {
+    backgroundColor: "#4A90E2",
+    marginTop: 8,
+  },
+  nextButtonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  // Image Edit Modal Styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.7)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  imageEditModal: {
+    backgroundColor: "#fff",
+    borderRadius: 20,
+    width: "90%",
+    maxHeight: "85%",
+    padding: 0,
+    overflow: "hidden",
+  },
+  modalHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: "#E5E5EA",
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: "700",
+    color: "#333",
+  },
+  closeButton: {
+    padding: 4,
+  },
+  imagePreviewContainer: {
+    width: "100%",
+    height: 300,
+    backgroundColor: "#000",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalImagePreview: {
+    width: "100%",
+    height: "100%",
+  },
+  editButtonsContainer: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    paddingVertical: 20,
+    paddingHorizontal: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: "#E5E5EA",
+    gap: 8,
+  },
+  editButton: {
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    backgroundColor: "#F0F8FF",
+    borderRadius: 12,
+    flex: 1,
+    minWidth: 80,
+  },
+  editButtonText: {
+    marginTop: 8,
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#4A90E2",
+  },
+  modalActionButtons: {
+    flexDirection: "row",
+    padding: 20,
+    gap: 12,
+  },
+  modalButton: {
+    flex: 1,
+    paddingVertical: 14,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  cancelModalButton: {
+    backgroundColor: "#F8F9FA",
+    borderWidth: 1,
+    borderColor: "#DCDCDC",
+  },
+  cancelModalButtonText: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#666",
+  },
+  confirmModalButton: {
+    backgroundColor: "#4A90E2",
+  },
+  confirmModalButtonText: {
+    fontSize: 16,
+    fontWeight: "600",
     color: "#fff",
   },
 });

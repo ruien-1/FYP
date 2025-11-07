@@ -947,7 +947,7 @@ export default function CreateMealPlan() {
           {/* Header */}
           <View style={styles.header}>
             <TouchableOpacity onPress={() => navigation.goBack()}>
-              <Ionicons name="arrow-back" size={24} color="#007AFF" />
+              <Ionicons name="arrow-back" size={24} color="#000000ff" />
             </TouchableOpacity>
             <Text style={styles.headerTitle}>Create Meal Plan</Text>
           </View>

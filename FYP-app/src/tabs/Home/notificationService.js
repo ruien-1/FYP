@@ -57,6 +57,11 @@ export async function hasLoggedMealToday(uid) {
     const snapshot = await getDocs(q);
     return !snapshot.empty;
   } catch (error) {
+    // If permission denied or user doesn't exist, return false (no meal logged)
+    if (error.code === "permission-denied" || error.message?.includes("permission")) {
+      console.log("⚠️ No permission to check meal log (user may not be verified yet)");
+      return false;
+    }
     console.error("Error checking meal log:", error);
     return false;
   }
@@ -123,7 +128,10 @@ export async function scheduleMealReminderIfNeeded() {
             userId: user.uid,
           },
         },
-        trigger: reminderTime,
+        trigger: {
+          type: "date",
+          date: reminderTime,
+        },
       });
 
       // Store reminder identifier to track it
@@ -191,26 +199,47 @@ export async function initializeMealReminder() {
     try {
       const response = await API.post(`/streak/validate/${user.uid}`);
       if (response.data?.success) {
+        // Check if user exists in database
+        if (response.data.message && response.data.message.includes("not found")) {
+          // User doesn't exist yet (new signup, not verified), skip notification scheduling
+          console.log("⚠️ User not verified yet, skipping meal reminder setup");
+          return;
+        }
         console.log("✅ Streak validated:", response.data.streak);
       }
     } catch (error) {
       // Silently fail if endpoint doesn't exist yet (backend needs restart)
       if (error.response?.status === 404) {
         console.log("⚠️ Streak validation endpoint not available (backend may need restart)");
+        return; // Don't proceed with notifications if validation fails
       } else {
         console.error("Error validating streak:", error);
+        // If it's a user not found error, don't proceed
+        if (error.response?.status === 404 || error.response?.data?.message?.includes("not found")) {
+          console.log("⚠️ User not found in database, skipping meal reminder setup");
+          return;
+        }
       }
     }
 
-    // Check if user has logged a meal today
-    const hasLogged = await hasLoggedMealToday(user.uid);
-    
-    if (!hasLogged) {
-      // Schedule reminder if no meal logged today
-      await scheduleMealReminderIfNeeded();
-    } else {
-      // Cancel any existing reminders if meal already logged
-      await cancelMealReminderNotifications();
+    // Check if user has logged a meal today (only if user exists in database)
+    try {
+      const hasLogged = await hasLoggedMealToday(user.uid);
+      
+      if (!hasLogged) {
+        // Schedule reminder if no meal logged today
+        await scheduleMealReminderIfNeeded();
+      } else {
+        // Cancel any existing reminders if meal already logged
+        await cancelMealReminderNotifications();
+      }
+    } catch (error) {
+      // If checking meal log fails (e.g., user doesn't exist), don't schedule notifications
+      if (error.message?.includes("permission") || error.code === "permission-denied") {
+        console.log("⚠️ User not verified yet or no permission, skipping meal reminder setup");
+      } else {
+        console.error("Error checking meal log:", error);
+      }
     }
   } catch (error) {
     console.error("Error initializing meal reminder:", error);

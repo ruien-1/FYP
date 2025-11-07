@@ -343,10 +343,18 @@ export default function App() {
     });
 
     // Initialize meal reminder when auth state changes (user logs in)
-    const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
+    const unsubscribeAuth = onAuthStateChanged(auth, async (user) => {
       if (user) {
-        // User is logged in, initialize meal reminder
-        initializeMealReminder();
+        // Only initialize meal reminder if user email is verified
+        // New signups won't have user document until they verify email and complete signup
+        if (user.emailVerified) {
+          // Small delay to ensure user document exists in Firestore after signup completion
+          setTimeout(() => {
+            initializeMealReminder();
+          }, 1000);
+        } else {
+          console.log("⚠️ User email not verified yet, skipping meal reminder setup");
+        }
       }
     });
 

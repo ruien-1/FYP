@@ -2281,7 +2281,16 @@ app.post("/streak/validate/:uid", async (req, res) => {
     const userDoc = await userRef.get();
 
     if (!userDoc.exists) {
-      return res.status(404).json({ success: false, message: "User not found" });
+      // User not found - this can happen for new users who haven't verified email yet
+      // Return success with default values instead of error
+      return res.json({
+        success: true,
+        streak: 0,
+        hasLoggedMealToday: false,
+        lastMealLogged: null,
+        streakUpdated: false,
+        message: "User not found in database (may not be verified yet)",
+      });
     }
 
     const userData = userDoc.data();

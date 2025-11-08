@@ -416,7 +416,7 @@ export default function MealLog() {
   };
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <SafeAreaView style={styles.safe} edges={['top']}>
       <View style={styles.container}>
         {/* Back Button */}
         <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
@@ -847,7 +847,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 18,
     paddingTop: 16,
   },
-  backButton: { position: "absolute", top: 20, left: 10, zIndex: 50, padding: 8 },
+  backButton: { position: "absolute", top: 10, left: 10, zIndex: 50, padding: 8 },
   mealBox: { alignItems: "center", marginBottom: 20, zIndex: 20 },
   mealButton: {
     backgroundColor: "#fff",

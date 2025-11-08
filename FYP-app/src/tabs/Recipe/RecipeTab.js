@@ -34,7 +34,7 @@ export default function RecipeTab() {
 
   if (loading) {
     return (
-      <SafeAreaView style={styles.center}>
+      <SafeAreaView style={styles.center} edges={['top']}>
         <ActivityIndicator size="large" color="#000" />
       </SafeAreaView>
     );
@@ -67,7 +67,7 @@ export default function RecipeTab() {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={styles.safeArea} edges={['top']}>
       <ScrollView contentContainerStyle={styles.container}>
         <Text style={styles.pageTitle}>Recipes</Text>
 

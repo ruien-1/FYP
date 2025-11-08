@@ -158,7 +158,7 @@ export default function IFTimer() {
   };
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.title}>IF Timer</Text>
@@ -225,7 +225,7 @@ export default function IFTimer() {
 
       {/* Add Custom Plan Modal */}
       <Modal visible={modalVisible} animationType="fade">
-        <SafeAreaView style={styles.modalContainer}>
+        <SafeAreaView style={styles.modalContainer} edges={['top', 'bottom']}>
           {/* Modal Header */}
           <View style={styles.modalHeader}>
             <TouchableOpacity
@@ -297,7 +297,7 @@ export default function IFTimer() {
           </View>
         </SafeAreaView>
       </Modal>
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -308,7 +308,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     marginBottom: 20,
     alignItems: "center",
-    paddingTop: Platform.OS === "ios" ? 30 : 10,
+    paddingTop: 10,
   },
   title: { fontSize: 24, fontWeight: "bold", color: "#154360" },
   addBtn: { padding: 8, marginRight: 5 },
@@ -339,7 +339,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 20,
     paddingHorizontal: 5,
-    paddingTop: Platform.OS === "ios" ? 40 : 20,
+    paddingTop: 10,
   },
   modalTitle: { fontSize: 20, fontWeight: "bold", color: "#154360" },
   headerBtn: { padding: 5 },

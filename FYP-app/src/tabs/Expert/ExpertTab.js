@@ -366,7 +366,7 @@ const setupUnreadListener = () => {
   // Premium unlock page for free users
   if (membership !== "premium") {
     return (
-      <SafeAreaView style={styles.safe}>
+      <SafeAreaView style={styles.safe} edges={['top']}>
         <View style={styles.premiumUnlockContainer}>
           <View style={styles.premiumUnlockContent}>
             <View style={styles.lockIconContainer}>
@@ -392,7 +392,7 @@ const setupUnreadListener = () => {
   }
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <SafeAreaView style={styles.safe} edges={['top']}>
       <ScrollView
         style={styles.container}
         showsVerticalScrollIndicator={false}

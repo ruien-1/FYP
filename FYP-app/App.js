@@ -41,6 +41,7 @@ import EditProfile from "./src/tabs/More/EditProfile";
 import BMICalculator from "./src/tabs/More/BMICalculator";
 import ManageMembership from "./src/tabs/More/ManageMembership";
 import SubmitReview from "./src/tabs/More/SubmitReview";
+import ViewAllAchievements from "./src/tabs/More/ViewAllAchievements";
 
 // Diary tab
 import DiaryTab from "./src/tabs/Diary/DiaryTab";
@@ -199,6 +200,7 @@ function MoreStack() {
       <MoreStackNav.Screen name="BMICalculator" component={BMICalculator} />
       <MoreStackNav.Screen name="ManageMembership" component={ManageMembership} />
       <MoreStackNav.Screen name="SubmitReview" component={SubmitReview} />
+      <MoreStackNav.Screen name="ViewAllAchievements" component={ViewAllAchievements} />
     </MoreStackNav.Navigator>
   );
 }

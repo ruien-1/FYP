@@ -2,9 +2,15 @@ import React, { useEffect, useState } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, Dimensions } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { auth, db } from "../../firebaseConfig";
-import { doc, getDoc, onSnapshot } from "firebase/firestore";
+import { doc, getDoc, onSnapshot, collection, getDocs } from "firebase/firestore";
 import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
+import {
+  checkAndUnlockAchievements,
+  checkAndUnlockCaloriesAchievements,
+  getUnlockedAchievementsSorted,
+  ACHIEVEMENTS,
+} from "./achievementUtils";
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 const WALLPAPER_HEIGHT = SCREEN_HEIGHT * 0.5; // Top half of screen
@@ -14,11 +20,31 @@ const ProfileTab = () => {
   const [userName, setUserName] = useState("User");
   const [profileImage, setProfileImage] = useState(null);
   const [wallpaperImage, setWallpaperImage] = useState(null);
-  const [achievements, setAchievements] = useState(1);
+  const [unlockedAchievements, setUnlockedAchievements] = useState([]);
+  const [achievementBadgeImages, setAchievementBadgeImages] = useState({});
+  const [totalCaloriesBurned, setTotalCaloriesBurned] = useState(0);
   const [membership, setMembership] = useState("free");
   const [planType, setPlanType] = useState(null);
   const [renewalDate, setRenewalDate] = useState(null);
   const navigation = useNavigation();
+
+  // Fetch achievement badge images from shared collection
+  const fetchAchievementBadges = async () => {
+    try {
+      const badgesCollection = collection(db, "achievementBadges");
+      const badgesSnapshot = await getDocs(badgesCollection);
+      const badgesMap = {};
+      
+      badgesSnapshot.forEach((doc) => {
+        const data = doc.data();
+        badgesMap[data.achievementId] = data.imageUrl;
+      });
+      
+      setAchievementBadgeImages(badgesMap);
+    } catch (error) {
+      console.error("Error fetching achievement badges:", error);
+    }
+  };
 
   useEffect(() => {
     const user = auth.currentUser;
@@ -27,21 +53,41 @@ const ProfileTab = () => {
     const userRef = doc(db, "user", user.uid);
     
     // Set up real-time listener for streak updates
-    const unsubscribe = onSnapshot(userRef, (snap) => {
+    const unsubscribe = onSnapshot(userRef, async (snap) => {
       if (snap.exists()) {
         const data = snap.data();
-        setStreak(data.streak || 0);
+        const newStreak = data.streak || 0;
+        const newUnlockedAchievements = data.unlockedAchievements || [];
+        
+        setStreak(newStreak);
         setUserName(data.name || "User");
         setProfileImage(data.profileImage || null);
         setWallpaperImage(data.wallpaperImage || null);
         setMembership(data.membership || "free");
         setPlanType(data.planType || null);
         setRenewalDate(data.renewalDate || null);
-        console.log("ProfileTab: Streak updated to", data.streak || 0);
+        setUnlockedAchievements(newUnlockedAchievements);
+        const newTotalCalories = data.totalCaloriesBurned || 0;
+        setTotalCaloriesBurned(newTotalCalories);
+        
+        // Check and unlock achievements when streak changes
+        if (newStreak > 0) {
+          await checkAndUnlockAchievements(newStreak);
+        }
+        
+        // Check and unlock calories achievements
+        if (newTotalCalories > 0) {
+          await checkAndUnlockCaloriesAchievements(newTotalCalories);
+        }
+        
+        console.log("ProfileTab: Streak updated to", newStreak, "Total calories:", newTotalCalories);
       }
     }, (error) => {
       console.error("Error listening to user data:", error);
     });
+
+    // Fetch achievement badges from shared collection
+    fetchAchievementBadges();
 
     // Cleanup listener on unmount
     return () => unsubscribe();
@@ -64,15 +110,31 @@ const ProfileTab = () => {
 
       if (snap.exists()) {
         const data = snap.data();
-        setStreak(data.streak || 0);
+        const currentStreak = data.streak || 0;
+        setStreak(currentStreak);
         setUserName(data.name || "User");
         setProfileImage(data.profileImage || null);
         setWallpaperImage(data.wallpaperImage || null);
         setMembership(data.membership || "free");
         setPlanType(data.planType || null);
         setRenewalDate(data.renewalDate || null);
-        // You can add achievements count from data if available
+        setUnlockedAchievements(data.unlockedAchievements || []);
+        const currentTotalCalories = data.totalCaloriesBurned || 0;
+        setTotalCaloriesBurned(currentTotalCalories);
+        
+        // Check and unlock achievements
+        if (currentStreak > 0) {
+          await checkAndUnlockAchievements(currentStreak);
+        }
+        
+        // Check and unlock calories achievements
+        if (currentTotalCalories > 0) {
+          await checkAndUnlockCaloriesAchievements(currentTotalCalories);
+        }
       }
+      
+      // Fetch achievement badges from shared collection
+      await fetchAchievementBadges();
     } catch (error) {
       console.error("Error fetching user data:", error);
     }
@@ -93,7 +155,7 @@ const ProfileTab = () => {
   };
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <View style={styles.container}>
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         {/* Wallpaper Section - Top Half */}
         <View style={styles.wallpaperContainer}>
@@ -108,22 +170,6 @@ const ProfileTab = () => {
           
           {/* Overlay for better text visibility */}
           <View style={styles.wallpaperOverlay} />
-
-          {/* Back Button - Top Left */}
-          <TouchableOpacity
-            style={styles.backButton}
-            onPress={() => navigation.goBack()}
-          >
-            <Ionicons name="chevron-back" size={28} color="#fff" />
-          </TouchableOpacity>
-
-          {/* Edit Icon - Top Right */}
-          <TouchableOpacity
-            style={styles.editIconButton}
-            onPress={() => navigation.navigate("EditProfile")}
-          >
-            <Ionicons name="create-outline" size={24} color="#fff" />
-          </TouchableOpacity>
 
           {/* Profile Picture - Positioned at 2/5 from top */}
           <View style={styles.profilePictureContainer}>
@@ -154,7 +200,7 @@ const ProfileTab = () => {
             </View>
             <View style={styles.statDivider} />
             <View style={styles.statBox}>
-              <Text style={styles.statNumber}>{achievements}</Text>
+              <Text style={styles.statNumber}>{unlockedAchievements.length}</Text>
               <Text style={styles.statLabel}>Achievements</Text>
             </View>
           </View>
@@ -166,10 +212,56 @@ const ProfileTab = () => {
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <Text style={styles.sectionTitle}>Achievements</Text>
-              <Text style={styles.viewAll}>View all</Text>
+              <TouchableOpacity onPress={() => navigation.navigate("ViewAllAchievements")}>
+                <Text style={styles.viewAll}>View all</Text>
+              </TouchableOpacity>
             </View>
             <View style={styles.achievementBox}>
-              <Text style={styles.achievementIcon}>🏆</Text>
+              {unlockedAchievements.length > 0 ? (
+                <View style={styles.achievementsRow}>
+                  {getUnlockedAchievementsSorted(unlockedAchievements)
+                    .slice(0, 3)
+                    .map((achievement) => {
+                      // Get badge image from shared collection
+                      const badgeImageUrl = achievementBadgeImages[achievement.id];
+                      
+                      if (badgeImageUrl) {
+                        return (
+                          <View key={achievement.id} style={styles.achievementBadgeItem}>
+                            <Image
+                              source={{ uri: badgeImageUrl }}
+                              style={{
+                                width: 70,
+                                height: 70,
+                              }}
+                              resizeMode="contain"
+                            />
+                          </View>
+                        );
+                      }
+                      
+                      // Placeholder if no image available
+                      return (
+                        <View key={achievement.id} style={styles.achievementBadgeItem}>
+                          <View style={{
+                            width: 70,
+                            height: 70,
+                            backgroundColor: "#f0f0f0",
+                            borderRadius: 35,
+                            justifyContent: "center",
+                            alignItems: "center",
+                          }}>
+                            <Ionicons name="trophy-outline" size={35} color="#999" />
+                          </View>
+                        </View>
+                      );
+                    })}
+                </View>
+              ) : (
+                <Text style={styles.noAchievementsText}>
+                  No achievements yet. Keep logging meals to unlock achievements!
+                </Text>
+              )}
             </View>
           </View>
 
@@ -199,7 +291,26 @@ const ProfileTab = () => {
           )}
         </View>
       </ScrollView>
-    </SafeAreaView>
+
+      {/* Fixed Header Buttons - Outside ScrollView */}
+      <View style={styles.headerButtonsContainer}>
+        <SafeAreaView edges={['top']} style={styles.safeAreaButtons}>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => navigation.goBack()}
+          >
+            <Ionicons name="chevron-back" size={28} color="#fff" />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.editIconButton}
+            onPress={() => navigation.navigate("EditProfile")}
+          >
+            <Ionicons name="create-outline" size={24} color="#fff" />
+          </TouchableOpacity>
+        </SafeAreaView>
+      </View>
+    </View>
   );
 };
 
@@ -210,12 +321,15 @@ const styles = StyleSheet.create({
   },
   scrollView: {
     flex: 1,
+    backgroundColor: "transparent",
   },
   // Wallpaper Section
   wallpaperContainer: {
     height: WALLPAPER_HEIGHT,
     width: "100%",
     position: "relative",
+    marginTop: 0,
+    paddingTop: 0,
   },
   wallpaperImage: {
     width: "100%",
@@ -229,25 +343,32 @@ const styles = StyleSheet.create({
     bottom: 0,
     backgroundColor: "rgba(0, 0, 0, 0.3)", // Dark overlay for better text visibility
   },
-  backButton: {
+  // Fixed Header Buttons Container
+  headerButtonsContainer: {
     position: "absolute",
-    top: 10,
-    left: 10,
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 1000,
+  },
+  safeAreaButtons: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    paddingHorizontal: 10,
+    paddingTop: 10,
+    paddingBottom: 10,
+  },
+  backButton: {
     width: 44,
     height: 44,
     justifyContent: "center",
     alignItems: "center",
-    zIndex: 10,
   },
   editIconButton: {
-    position: "absolute",
-    top: 10,
-    right: 20,
     width: 44,
     height: 44,
     justifyContent: "center",
     alignItems: "center",
-    zIndex: 10,
   },
   profilePictureContainer: {
     position: "absolute",
@@ -367,12 +488,25 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     padding: 20,
     borderRadius: 14,
-    alignItems: "center",
     borderWidth: 1,
     borderColor: "#e5e5e5",
+    minHeight: 100,
   },
-  achievementIcon: {
-    fontSize: 38,
+  achievementsRow: {
+    flexDirection: "row",
+    justifyContent: "flex-start",
+    alignItems: "center",
+    flexWrap: "wrap",
+    gap: 12,
+  },
+  achievementBadgeItem: {
+    marginRight: 8,
+  },
+  noAchievementsText: {
+    fontSize: 14,
+    color: "#999",
+    textAlign: "center",
+    fontStyle: "italic",
   },
   membershipBox: {
     backgroundColor: "#fff",

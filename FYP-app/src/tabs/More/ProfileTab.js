@@ -93,7 +93,7 @@ const ProfileTab = () => {
   };
 
   return (
-    <SafeAreaView style={styles.container} edges={[]}>
+    <SafeAreaView style={styles.container} edges={['top']}>
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         {/* Wallpaper Section - Top Half */}
         <View style={styles.wallpaperContainer}>
@@ -231,7 +231,7 @@ const styles = StyleSheet.create({
   },
   backButton: {
     position: "absolute",
-    top: 40,
+    top: 10,
     left: 10,
     width: 44,
     height: 44,
@@ -241,7 +241,7 @@ const styles = StyleSheet.create({
   },
   editIconButton: {
     position: "absolute",
-    top: 40,
+    top: 10,
     right: 20,
     width: 44,
     height: 44,

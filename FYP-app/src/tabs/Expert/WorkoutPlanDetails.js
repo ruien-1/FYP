@@ -93,7 +93,7 @@ export default function WorkoutPlanDetails() {
   };
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <SafeAreaView style={styles.safe} edges={['top']}>
       <View style={styles.header}>
         <TouchableOpacity
           style={styles.backButton}
@@ -260,7 +260,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingTop: 10,
+    paddingBottom: 12,
   },
   backButton: { padding: 6 },
   title: { fontSize: 20, fontWeight: "700", color: "#000" },

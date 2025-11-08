@@ -54,7 +54,7 @@ export default function BMICalculator() {
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={styles.container} edges={['top']}>
         {/* Header */}
         <View style={styles.headerRow}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
@@ -156,7 +156,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#E9F0FA",
     paddingHorizontal: 24,
-    paddingTop: 20,
+    paddingTop: 10,
   },
   backButton: {
     marginBottom: 10,
@@ -166,6 +166,7 @@ headerRow: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
+    marginTop: 10,
     marginBottom: 30,
     },
 header: {

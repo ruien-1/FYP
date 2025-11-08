@@ -260,29 +260,27 @@ export default function CoachChatScreen() {
   );
 
   return (
-    <View style={styles.safeArea}>
-      <SafeAreaView style={styles.headerSafeArea} edges={['top']}>
-        <View style={styles.header}>
-          <TouchableOpacity 
-            style={styles.backButton}
-            onPress={() => navigation.goBack()}
-            activeOpacity={0.7}
-          >
-            <Ionicons name="chevron-back" size={28} color="#000" />
-          </TouchableOpacity>
-         
-          <View style={styles.headerCenter}>
-            <View style={styles.avatarContainer}>
-              <Ionicons name="fitness" size={24} color="#5B9FED" />
-            </View>
-            <View style={styles.headerTextContainer}>
-              <Text style={styles.headerName}>{userName || 'User'}</Text>
-            </View>
+    <SafeAreaView style={styles.safeArea} edges={['top']}>
+      <View style={styles.header}>
+        <TouchableOpacity 
+          style={styles.backButton}
+          onPress={() => navigation.goBack()}
+          activeOpacity={0.7}
+        >
+          <Ionicons name="chevron-back" size={28} color="#000" />
+        </TouchableOpacity>
+       
+        <View style={styles.headerCenter}>
+          <View style={styles.avatarContainer}>
+            <Ionicons name="fitness" size={24} color="#5B9FED" />
           </View>
-         
-          <View style={styles.headerRight} />
+          <View style={styles.headerTextContainer}>
+            <Text style={styles.headerName}>{userName || 'User'}</Text>
+          </View>
         </View>
-      </SafeAreaView>
+       
+        <View style={styles.headerRight} />
+      </View>
 
       <KeyboardAvoidingView 
         style={styles.chatContainer}
@@ -304,16 +302,15 @@ export default function CoachChatScreen() {
           {renderCustomInputToolbar()}
         </View>
       </KeyboardAvoidingView>
-    </View>
+
+      {Platform.OS === "android" && <KeyboardAvoidingView behavior="padding" />}
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#E8F0FF',
-  },
-  headerSafeArea: {
     backgroundColor: '#E8F0FF',
   },
   container: { 
@@ -328,7 +325,8 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     backgroundColor: '#E8F0FF',
     paddingHorizontal: 12,
-    paddingVertical: 12,
+    paddingTop: 10,
+    paddingBottom: 12,
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(0, 0, 0, 0.05)',
   },
@@ -438,8 +436,7 @@ const styles = StyleSheet.create({
     borderTopWidth: 0,
     paddingVertical: 8,
     paddingHorizontal: 12,
-    paddingBottom: 0,
-    marginBottom: 0,
+    paddingBottom: 8,
   },
   inputRow: {
     flexDirection: 'row',

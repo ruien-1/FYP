@@ -409,30 +409,28 @@ export default function CoachesChatScreen() {
   );
 
   return (
-    <View style={styles.safeArea}>
-      <SafeAreaView style={styles.headerSafeArea} edges={['top']}>
-        <View style={styles.header}>
-          <TouchableOpacity 
-            style={styles.backButton}
-            onPress={() => navigation.goBack()}
-            activeOpacity={0.7}
-          >
-            <Ionicons name="chevron-back" size={28} color="#000" />
-          </TouchableOpacity>
-         
-          <TouchableOpacity style={styles.headerCenter} activeOpacity={0.7} onPress={() => navigation.navigate("CoachProfile", { coachId, coachName })}>
-            <View style={styles.avatarContainer}>
-              <Ionicons name="fitness" size={24} color="#5B9FED" />
-            </View>
-            <View style={styles.headerTextContainer}>
-              <Text style={styles.headerName}>{coachName || 'Coach'}</Text>
-              <Text style={styles.headerRole}>Fitness Coach</Text>
-            </View>
-          </TouchableOpacity>
-         
-          <View style={styles.headerRight} />
-        </View>
-      </SafeAreaView>
+    <SafeAreaView style={styles.safeArea} edges={['top']}>
+      <View style={styles.header}>
+        <TouchableOpacity 
+          style={styles.backButton}
+          onPress={() => navigation.goBack()}
+          activeOpacity={0.7}
+        >
+          <Ionicons name="chevron-back" size={28} color="#000" />
+        </TouchableOpacity>
+       
+        <TouchableOpacity style={styles.headerCenter} activeOpacity={0.7} onPress={() => navigation.navigate("CoachProfile", { coachId, coachName })}>
+          <View style={styles.avatarContainer}>
+            <Ionicons name="fitness" size={24} color="#5B9FED" />
+          </View>
+          <View style={styles.headerTextContainer}>
+            <Text style={styles.headerName}>{coachName || 'Coach'}</Text>
+            <Text style={styles.headerRole}>Fitness Coach</Text>
+          </View>
+        </TouchableOpacity>
+       
+        <View style={styles.headerRight} />
+      </View>
 
       <KeyboardAvoidingView 
         style={styles.chatContainer}
@@ -606,16 +604,13 @@ export default function CoachesChatScreen() {
       </Modal>
 
       {Platform.OS === "android" && <KeyboardAvoidingView behavior="padding" />}
-    </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#E8F0FF',
-  },
-  headerSafeArea: {
     backgroundColor: '#E8F0FF',
   },
   container: { 
@@ -630,7 +625,8 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     backgroundColor: '#E8F0FF',
     paddingHorizontal: 12,
-    paddingVertical: 12,
+    paddingTop: 10,
+    paddingBottom: 12,
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(0, 0, 0, 0.05)',
   },
@@ -753,8 +749,7 @@ const styles = StyleSheet.create({
     borderTopWidth: 0,
     paddingVertical: 8,
     paddingHorizontal: 12,
-    paddingBottom: 0,
-    marginBottom: 0,
+    paddingBottom: 8,
   },
   inputRow: {
     flexDirection: 'row',

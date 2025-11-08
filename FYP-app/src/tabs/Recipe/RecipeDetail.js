@@ -39,17 +39,17 @@ export default function RecipeDetail() {
 
   if (loading) {
     return (
-      <View style={styles.center}>
+      <SafeAreaView style={styles.center} edges={['top']}>
         <ActivityIndicator size="large" color="#007AFF" />
-      </View>
+      </SafeAreaView>
     );
   }
 
   if (!recipe) {
     return (
-      <View style={styles.center}>
+      <SafeAreaView style={styles.center} edges={['top']}>
         <Text>Recipe not found</Text>
-      </View>
+      </SafeAreaView>
     );
   }
 
@@ -82,7 +82,7 @@ export default function RecipeDetail() {
 
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#E8F0FF" }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: "#E8F0FF" }} edges={['top']}>
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
@@ -145,7 +145,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: 20,
-    paddingVertical: 20,
+    paddingTop: 10,
+    paddingBottom: 10,
   },
   headerTitle: {
     fontSize: 25,

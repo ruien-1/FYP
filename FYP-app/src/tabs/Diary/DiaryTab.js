@@ -291,7 +291,7 @@ export default function DiaryTab({ navigation }) {
   const remaining = diaryData.calories.target - netCalories;
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={styles.safeArea} edges={['top']}>
       <TouchableWithoutFeedback
         onPress={() => {
           if (showPicker) setShowPicker(false);

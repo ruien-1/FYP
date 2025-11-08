@@ -19,6 +19,8 @@ import {
 } from "../coachauth";
 import API from "../api/backend";
 import * as FileSystemLegacy from "expo-file-system/legacy";
+import { SafeAreaView } from 'react-native-safe-area-context';
+
 
 const CoachSignup = ({ navigation, onBack }) => {
   const [step, setStep] = useState(1);
@@ -334,27 +336,28 @@ const CoachSignup = ({ navigation, onBack }) => {
   };
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-      style={{ flex: 1 }}
-    >
-      <ScrollView 
-        style={styles.container}
-        contentContainerStyle={{ flexGrow: 1 }}
-        keyboardShouldPersistTaps="handled"
+    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={{ flex: 1 }}
       >
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => {
-            if (step === 1) {
-              onBack();
-            } else {
-              setStep(step - 1);
-            }
-          }}
+        <ScrollView 
+          style={{ flex: 1 }}
+          contentContainerStyle={{ flexGrow: 1 }}
+          keyboardShouldPersistTaps="handled"
         >
-          <Ionicons name="chevron-back" size={28} color="white" />
-        </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => {
+              if (step === 1) {
+                onBack();
+              } else {
+                setStep(step - 1);
+              }
+            }}
+          >
+            <Ionicons name="chevron-back" size={28} color="white" />
+          </TouchableOpacity>
 
         {/* Time Picker Modal */}
         <Modal
@@ -987,8 +990,9 @@ const CoachSignup = ({ navigation, onBack }) => {
   </View>
 )}
 
-      </ScrollView>
-    </KeyboardAvoidingView>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 };
 
@@ -998,8 +1002,9 @@ const styles = StyleSheet.create({
     backgroundColor: "#2c3e50" 
   },
   backButton: { 
-    marginTop: 50, 
-    marginLeft: 20 
+    marginTop: 10, 
+    marginLeft: 20,
+    paddingVertical: 10
   },
   inner: { 
     alignItems: "center", 

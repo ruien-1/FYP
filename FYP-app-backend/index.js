@@ -2719,6 +2719,7 @@ app.post("/activity_log/:uid", async (req, res) => {
     const activityEntry = req.body;
     
     const formattedDate = activityEntry.date || new Date().toISOString().split("T")[0];
+    const calories = Number(activityEntry.calories) || 0;
     
     // Create a new activity log entry with auto-generated ID
     const activityRef = await db.collection("activity_log")
@@ -2727,11 +2728,28 @@ app.post("/activity_log/:uid", async (req, res) => {
       .add({
         name: activityEntry.name,
         duration: activityEntry.duration,
-        calories: activityEntry.calories,
+        calories: calories,
         uid,
         date: formattedDate,
         createdAt: admin.firestore.FieldValue.serverTimestamp(),
       });
+
+    // Update total calories burned in user document
+    const userRef = db.collection("user").doc(uid);
+    const userDoc = await userRef.get();
+    
+    if (userDoc.exists) {
+      const currentTotal = userDoc.data().totalCaloriesBurned || 0;
+      await userRef.update({
+        totalCaloriesBurned: currentTotal + calories,
+      });
+      console.log(`✅ Updated total calories burned for user ${uid}: ${currentTotal} -> ${currentTotal + calories}`);
+    } else {
+      // Initialize totalCaloriesBurned if user document doesn't exist
+      await userRef.set({
+        totalCaloriesBurned: calories,
+      }, { merge: true });
+    }
 
     res.status(200).json({
       success: true,
@@ -2739,7 +2757,7 @@ app.post("/activity_log/:uid", async (req, res) => {
         id: activityRef.id,
         name: activityEntry.name,
         duration: activityEntry.duration,
-        calories: activityEntry.calories,
+        calories: calories,
         date: formattedDate,
       },
     });
@@ -2788,11 +2806,36 @@ app.delete("/activity_log/:uid/:entryId", async (req, res) => {
   try {
     const { uid, entryId } = req.params;
 
-    await db.collection("activity_log")
+    // Get the activity entry before deleting to get calories
+    const activityRef = db.collection("activity_log")
       .doc(uid)
       .collection("entries")
-      .doc(entryId)
-      .delete();
+      .doc(entryId);
+    
+    const activityDoc = await activityRef.get();
+    
+    if (activityDoc.exists) {
+      const calories = Number(activityDoc.data().calories) || 0;
+      
+      // Delete the activity entry
+      await activityRef.delete();
+      
+      // Update total calories burned in user document (subtract deleted calories)
+      const userRef = db.collection("user").doc(uid);
+      const userDoc = await userRef.get();
+      
+      if (userDoc.exists) {
+        const currentTotal = userDoc.data().totalCaloriesBurned || 0;
+        const newTotal = Math.max(0, currentTotal - calories); // Ensure it doesn't go negative
+        await userRef.update({
+          totalCaloriesBurned: newTotal,
+        });
+        console.log(`✅ Updated total calories burned for user ${uid}: ${currentTotal} -> ${newTotal} (deleted ${calories} calories)`);
+      }
+    } else {
+      // If activity doesn't exist, just return success
+      return res.status(200).json({ success: true, message: "Activity not found" });
+    }
 
     res.status(200).json({ success: true, message: "Activity deleted successfully" });
   } catch (error) {
@@ -2803,6 +2846,8 @@ app.delete("/activity_log/:uid/:entryId", async (req, res) => {
 
 
 // POST - Add new custom activity
+// Note: CustomActivity is for activity templates, not actual logged activities
+// Actual activities are logged via /activity_log endpoint which tracks calories
 app.post("/CustomActivity/:uid", async (req, res) => {
   try {
     const { uid } = req.params;
@@ -3145,6 +3190,42 @@ app.get("/goals/:uid", async (req, res) => {
     res.json(formattedGoals);
   } catch (error) {
     console.error("❌ Error fetching user goals:", error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// POST - Recalculate total calories burned from all activity logs
+// This is useful for existing users who had activities before totalCaloriesBurned was tracked
+app.post("/recalculate-calories/:uid", async (req, res) => {
+  try {
+    const { uid } = req.params;
+    
+    // Get all activity logs for the user
+    const activitiesSnapshot = await db.collection("activity_log")
+      .doc(uid)
+      .collection("entries")
+      .get();
+    
+    let totalCalories = 0;
+    activitiesSnapshot.forEach((doc) => {
+      const data = doc.data();
+      totalCalories += Number(data.calories) || 0;
+    });
+    
+    // Update user document
+    const userRef = db.collection("user").doc(uid);
+    await userRef.update({
+      totalCaloriesBurned: totalCalories,
+    });
+    
+    console.log(`✅ Recalculated total calories for user ${uid}: ${totalCalories}`);
+    
+    res.json({
+      success: true,
+      totalCaloriesBurned: totalCalories,
+    });
+  } catch (error) {
+    console.error("❌ Error recalculating calories:", error);
     res.status(500).json({ error: error.message });
   }
 });

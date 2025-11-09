@@ -61,6 +61,8 @@ export default function ManualAddFoodQR() {
     { label: "serving", value: "serving", icon: "restaurant-outline" },
   ];
   const [dropdownVisible, setDropdownVisible] = useState(false);
+  const [mealType, setMealType] = useState("Lunch");
+  const [showMealDropdown, setShowMealDropdown] = useState(false);
 
   const [loading, setLoading] = useState(false);
   const [successModalVisible, setSuccessModalVisible] = useState(false);
@@ -91,7 +93,7 @@ export default function ManualAddFoodQR() {
       const meal = {
         id: mealId,
         userId: uid,
-        mealType: "Snack",
+        mealType: mealType,
         date: route.params?.selectedDate || new Date().toISOString().split("T")[0],
         food: foodName,
         servingSize: `${servingAmount} ${servingUnit}`,
@@ -206,6 +208,60 @@ export default function ManualAddFoodQR() {
           />
         </View>
 
+        {/* Meal Type Selection */}
+        <View style={styles.inputCard}>
+          <View style={styles.inputHeader}>
+            <Ionicons name="time-outline" size={22} color="#2196F3" />
+            <Text style={styles.inputCardTitle}>Meal Type</Text>
+          </View>
+          <TouchableOpacity
+            style={styles.mealDropdown}
+            onPress={() => {
+              setDropdownVisible(false);
+              setShowMealDropdown((prev) => !prev);
+            }}
+          >
+            <Text style={styles.mealDropdownText}>
+              {mealType === "Breakfast"
+                ? "🍳 Breakfast"
+                : mealType === "Lunch"
+                ? "🍽️ Lunch"
+                : mealType === "Dinner"
+                ? "🌙 Dinner"
+                : "🍕 Snack"}
+            </Text>
+            <Ionicons name={showMealDropdown ? "chevron-up" : "chevron-down"} size={20} color="#666" />
+          </TouchableOpacity>
+
+          {showMealDropdown && (
+            <View style={styles.mealDropdownMenu}>
+              {["Breakfast", "Lunch", "Dinner", "Snack"].map((meal) => (
+                <TouchableOpacity
+                  key={meal}
+                  style={styles.mealDropdownItem}
+                  onPress={() => {
+                    setMealType(meal);
+                    setShowMealDropdown(false);
+                  }}
+                >
+                  <Text style={styles.mealDropdownItemText}>
+                    {meal === "Breakfast"
+                      ? "🍳 Breakfast"
+                      : meal === "Lunch"
+                      ? "🍽️ Lunch"
+                      : meal === "Dinner"
+                      ? "🌙 Dinner"
+                      : "🍕 Snack"}
+                  </Text>
+                  {mealType === meal && (
+                    <Ionicons name="checkmark" size={20} color="#2196F3" />
+                  )}
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
+        </View>
+
         {/* Serving Size Card */}
         <View style={styles.inputCard}>
           <View style={styles.inputHeader}>
@@ -228,7 +284,10 @@ export default function ManualAddFoodQR() {
             </View>
             <TouchableOpacity
               style={styles.dropdownButton}
-              onPress={() => setDropdownVisible(true)}
+              onPress={() => {
+                setShowMealDropdown(false);
+                setDropdownVisible(true);
+              }}
             >
               <View style={styles.dropdownContent}>
                 <Ionicons
@@ -336,14 +395,6 @@ export default function ManualAddFoodQR() {
               </View>
             ))}
           </View>
-        </View>
-
-        {/* Info Box */}
-        <View style={styles.infoBox}>
-          <Ionicons name="information-circle-outline" size={20} color="#2196F3" />
-          <Text style={styles.infoText}>
-            Enter values exactly as shown on the nutrition label. Your submission will be verified by our nutrition team.
-          </Text>
         </View>
 
         {/* Submit Button */}
@@ -676,6 +727,51 @@ headerTitle: {
   },
   dropdownText: { 
     fontSize: 15, 
+    color: "#1a1a1a",
+    fontWeight: "500",
+  },
+  
+  // Meal Type Dropdown
+  mealDropdown: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    backgroundColor: "#fafafa",
+    borderRadius: 12,
+    borderWidth: 1.5,
+    borderColor: "#e0e0e0",
+    paddingHorizontal: 14,
+    paddingVertical: 14,
+    minHeight: 52,
+  },
+  mealDropdownText: {
+    fontSize: 15,
+    color: "#1a1a1a",
+    fontWeight: "500",
+  },
+  mealDropdownMenu: {
+    marginTop: 8,
+    backgroundColor: "#fff",
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#e0e0e0",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  mealDropdownItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: "#f5f5f5",
+  },
+  mealDropdownItemText: {
+    fontSize: 15,
     color: "#1a1a1a",
     fontWeight: "500",
   },

@@ -31,6 +31,7 @@ export default function IFTimer() {
   const [newHours, setNewHours] = useState(16);
 
   const [isTimePickerVisible, setTimePickerVisible] = useState(false); // 👈 modal time picker
+  const [forceUpdate, setForceUpdate] = useState(0); // Force re-render when activePlan changes
 
   // 🔄 Load custom plans from Firestore on mount
   useEffect(() => {
@@ -56,20 +57,30 @@ export default function IFTimer() {
     fetchPlans();
   }, []);
 
+  // Force re-render when activePlan changes to ensure toggle updates
+  useEffect(() => {
+    setForceUpdate(prev => prev + 1);
+  }, [activePlan]);
+
   const handleToggle = (plan) => {
-    const isSamePlan =
-      activePlan &&
-      activePlan.fasting === plan.fasting &&
-      (plan.isCustom ? activePlan.id === plan.id : !activePlan.isCustom);
+    // Check if this plan is currently active
+    // For custom plans, check by id. For fixed plans, check by fasting hours and isCustom flag
+    const isSamePlan = activePlan && (
+      plan.isCustom 
+        ? (activePlan.isCustom && activePlan.id === plan.id)
+        : (!activePlan.isCustom && activePlan.fasting === plan.fasting)
+    );
 
     if (isSamePlan) {
+      // Timer is active for this plan, so stop it
       stopFasting();
-      setActivePlan(null);
     } else {
       if (!plan.isCustom) {
-        scheduleFasting(new Date(), plan.fasting, false);
-        setActivePlan(plan);
+        // Fixed plan - start immediately
+        // Pass the plan data so activePlan can be properly set with all properties
+        scheduleFasting(new Date(), plan.fasting, false, { ...plan, isCustom: false });
       } else {
+        // Custom plan - check if start time has passed
         const now = new Date();
         if (now >= plan.start) {
           Alert.alert(
@@ -82,23 +93,24 @@ export default function IFTimer() {
               {
                 text: "From Planned Time",
                 onPress: () => {
-                  scheduleFasting(plan.start, plan.fasting, true);
-                  setActivePlan(plan);
+                  // Schedule with planned time and pass plan data to preserve id
+                  scheduleFasting(plan.start, plan.fasting, true, { ...plan, isCustom: true });
                 },
               },
               {
                 text: "From Now",
                 onPress: () => {
-                  scheduleFasting(now, plan.fasting, true);
-                  setActivePlan({ ...plan, start: now });
+                  // Schedule with current time but keep plan id and other properties
+                  // Important: preserve the plan.id so toggle can recognize it
+                  scheduleFasting(now, plan.fasting, true, { ...plan, start: now, isCustom: true });
                 },
               },
               { text: "Cancel", style: "cancel" },
             ]
           );
         } else {
-          scheduleFasting(plan.start, plan.fasting, true);
-          setActivePlan(plan);
+          // Start time hasn't arrived yet, use planned time
+          scheduleFasting(plan.start, plan.fasting, true, { ...plan, isCustom: true });
         }
       }
     }
@@ -180,9 +192,7 @@ export default function IFTimer() {
           </Text>
           <Switch
             value={
-              activePlan &&
-              !activePlan.isCustom &&
-              activePlan.fasting === plan.fasting
+              !!(activePlan && !activePlan.isCustom && activePlan.fasting === plan.fasting)
             }
             onValueChange={() => handleToggle(plan)}
           />
@@ -209,7 +219,7 @@ export default function IFTimer() {
           <View style={{ flexDirection: "row", alignItems: "center" }}>
             <Switch
               value={
-                activePlan && activePlan.isCustom && activePlan.id === plan.id
+                !!(activePlan && activePlan.isCustom && activePlan.id !== undefined && plan.id !== undefined && String(activePlan.id) === String(plan.id))
               }
               onValueChange={() => handleToggle(plan)}
             />

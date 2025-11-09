@@ -430,9 +430,9 @@ const SignUpPage = ({ navigation }) => {
     <View style={styles.inputContainer}>
       <Text style={styles.label}>Email</Text>
       <TextInput
-        style={[styles.input, { color: "black" }]}
+        style={[styles.input, styles.accountInput]}
         placeholder="Email"
-        placeholderTextColor="#7f8c8d"
+        placeholderTextColor="rgba(255, 255, 255, 0.7)"
         value={email}
         onChangeText={setEmail}
         keyboardType="email-address"
@@ -443,11 +443,11 @@ const SignUpPage = ({ navigation }) => {
     {/* Password Field */}
     <View style={styles.inputContainer}>
       <Text style={styles.label}>Password</Text>
-      <View style={styles.passwordContainer}>
+      <View style={[styles.passwordContainer, styles.accountPasswordContainer]}>
         <TextInput
-          style={[styles.passwordInput, { color: "black" }]}
+          style={[styles.passwordInput, styles.accountPasswordInput]}
           placeholder="Password"
-          placeholderTextColor="#7f8c8d"
+          placeholderTextColor="rgba(255, 255, 255, 0.7)"
           secureTextEntry={!showPassword}
           value={password}
           onChangeText={setPassword}
@@ -460,7 +460,7 @@ const SignUpPage = ({ navigation }) => {
           <Ionicons
             name={showPassword ? "eye-off" : "eye"}
             size={24}
-            color="#7f8c8d"
+            color="rgba(255, 255, 255, 0.8)"
           />
         </TouchableOpacity>
       </View>
@@ -500,7 +500,7 @@ const styles = StyleSheet.create({
   passwordContainer: {
   flexDirection: "row",
   alignItems: "center",
-  backgroundColor: "white",
+  backgroundColor: "#34495e",
   borderRadius: 8,
   paddingRight: 10,
 },
@@ -512,7 +512,16 @@ passwordInput: {
 eyeIcon: {
   paddingHorizontal: 5,
 },
-
+accountInput: {
+  backgroundColor: "#7699b1ff",
+  color: "white",
+},
+accountPasswordContainer: {
+  backgroundColor: "#7699b1ff",
+},
+accountPasswordInput: {
+  color: "white",
+},
 });
 
 export default SignUpPage;

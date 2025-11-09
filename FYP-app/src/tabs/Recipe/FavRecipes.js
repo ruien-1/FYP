@@ -128,7 +128,7 @@ export default function FavRecipes() {
           </View>
           <View style={styles.metaItem}>
             <Ionicons name="time-outline" size={14} color="#4A90E2" />
-            <Text style={styles.metaText}>{item.time || 0} min</Text>
+            <Text style={styles.metaText}>{item.readyInMinutes || 0} min</Text>
           </View>
         </View>
 

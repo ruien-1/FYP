@@ -13,7 +13,8 @@ import { auth } from "./src/firebaseConfig";
 import { onAuthStateChanged } from "firebase/auth";
 import * as Notifications from "expo-notifications";
 import Toast from "react-native-toast-message";
-import { LogBox } from "react-native";
+import { LogBox, ActivityIndicator, View, StyleSheet } from "react-native";
+import { doc, getDoc } from "firebase/firestore";
 
 // Home + other tabs
 import HomeTab from "./src/tabs/Home/HomeTab";
@@ -386,6 +387,76 @@ function NutritionistTabs() {
 // 🚀 App Root
 // ======================
 export default function App() {
+  const navigationRef = React.useRef(null);
+  const [isAuthReady, setIsAuthReady] = React.useState(false);
+  const [initialRouteName, setInitialRouteName] = React.useState("Welcome");
+
+  // Check authentication state on app startup
+  React.useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user && user.emailVerified) {
+        // User is logged in and email is verified - check their account type
+        try {
+          const nutritionistRef = doc(db, "nutritionist", user.uid);
+          const coachRef = doc(db, "coach", user.uid);
+          const userRef = doc(db, "user", user.uid);
+
+          const [nutritionistSnap, coachSnap, userSnap] = await Promise.all([
+            getDoc(nutritionistRef),
+            getDoc(coachRef),
+            getDoc(userRef)
+          ]);
+
+          // Determine user type and set initial route
+          if (nutritionistSnap.exists()) {
+            const nutritionistData = nutritionistSnap.data();
+            if (nutritionistData.accountstatus === "approved") {
+              setInitialRouteName("NutritionistTabs");
+            } else {
+              setInitialRouteName("Welcome");
+            }
+          } else if (coachSnap.exists()) {
+            const coachData = coachSnap.data();
+            if (coachData.accountstatus === "approved") {
+              setInitialRouteName("CoachTabs");
+            } else {
+              setInitialRouteName("Welcome");
+            }
+          } else if (userSnap.exists()) {
+            const userData = userSnap.data();
+            if (userData.accountstatus === "active") {
+              setInitialRouteName("MainTabs");
+            } else {
+              setInitialRouteName("Welcome");
+            }
+          } else {
+            setInitialRouteName("Welcome");
+          }
+        } catch (error) {
+          console.error("Error checking user type:", error);
+          setInitialRouteName("Welcome");
+        }
+      } else {
+        // No user logged in or email not verified
+        setInitialRouteName("Welcome");
+      }
+      
+      setIsAuthReady(true);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  // Navigate when route changes
+  React.useEffect(() => {
+    if (isAuthReady && navigationRef.current && initialRouteName !== "Welcome") {
+      navigationRef.current.reset({
+        index: 0,
+        routes: [{ name: initialRouteName }],
+      });
+    }
+  }, [isAuthReady, initialRouteName]);
+
   useEffect(() => {
     registerForPushNotificationsAsync();
 
@@ -434,10 +505,33 @@ export default function App() {
     };
   }, []);
 
+  // Show loading screen while checking auth
+  if (!isAuthReady) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#4A90E2" />
+      </View>
+    );
+  }
+
   return (
     <TimerProvider>
-      <NavigationContainer>
-        <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <NavigationContainer 
+        ref={navigationRef}
+        onReady={() => {
+          // Navigate to initial route after navigation is ready
+          if (initialRouteName !== "Welcome") {
+            navigationRef.current?.reset({
+              index: 0,
+              routes: [{ name: initialRouteName }],
+            });
+          }
+        }}
+      >
+        <Stack.Navigator 
+          screenOptions={{ headerShown: false }}
+          initialRouteName={initialRouteName}
+        >
           {/* Auth flow */}
           <Stack.Screen
             name="Welcome"
@@ -467,3 +561,12 @@ export default function App() {
     </TimerProvider>
   );
 }
+
+const styles = StyleSheet.create({
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#E8F0FF",
+  },
+});

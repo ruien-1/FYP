@@ -36,27 +36,18 @@ export default function NutritionistMessageTab() {
   const [lastOpenedChatId, setLastOpenedChatId] = useState(null);
   const unsubscribersRef = useRef([]);
 
-  // --- Handle focus: fetch conversations and force clear unread for last opened chat ---
   useFocusEffect(
     React.useCallback(() => {
-      console.log("📱 Screen focused - fetching conversations");
       const refreshConversations = async () => {
-        // ✅ Get current user ID at the time of fetching
         const currentNutritionistId = auth.currentUser?.uid;
         
-        console.log("🔍 DEBUG: Current user object:", auth.currentUser);
-        console.log("🔍 DEBUG: Current nutritionist UID:", currentNutritionistId);
-        console.log("🔍 DEBUG: Is user authenticated?", auth.currentUser ? "YES ✅" : "NO ❌");
-        
         if (!currentNutritionistId) {
-          console.log("❌ No authenticated nutritionist found");
           setLoading(false);
           return;
         }
 
         await fetchConversations(currentNutritionistId);
 
-        // ✅ Force mark last opened chat as read
         if (lastOpenedChatId) {
           try {
             const messagesRef = collection(db, "chats", lastOpenedChatId, "messages");
@@ -71,17 +62,12 @@ export default function NutritionistMessageTab() {
             );
             await Promise.all(updates);
 
-            console.log(
-              `✅ Force-marked ${updates.length} messages as read for ${lastOpenedChatId}`
-            );
 
-            // Immediately clear unread in state
             setUnreadCounts((prev) => ({
               ...prev,
               [lastOpenedChatId]: 0,
             }));
           } catch (error) {
-            console.error("❌ Error force-marking messages as read:", error);
           }
         }
       };
@@ -89,14 +75,12 @@ export default function NutritionistMessageTab() {
       refreshConversations();
 
       return () => {
-        console.log("🧹 Cleaning up listeners");
         unsubscribersRef.current.forEach((unsub) => unsub());
         unsubscribersRef.current = [];
       };
     }, [lastOpenedChatId])
   );
 
-  // --- Real-time unread and latest message listeners ---
   const setupUnreadListeners = async (conversationList, currentNutritionistId) => {
     try {
       unsubscribersRef.current.forEach((unsub) => unsub());
@@ -163,84 +147,47 @@ export default function NutritionistMessageTab() {
               }
             }
 
-            console.log(
-              `📬 Updated ${conv.clientName}: ${unreadCount} unread, latest: "${latestMessage?.text?.substring(
-                0,
-                30
-              )}..."`
-            );
           },
-          (error) => console.error(`❌ Snapshot error for ${conv.chatId}:`, error)
         );
 
         unsubscribersRef.current.push(unsubscribe);
       });
 
-      console.log(`✅ Setup ${unsubscribersRef.current.length} real-time listeners`);
     } catch (error) {
-      console.error("❌ Error setting up listeners:", error);
     }
   };
 
-  // --- Fetch all conversations (Option 3: show all chats that include this nutritionist) ---
   const fetchConversations = async (currentNutritionistId) => {
-    console.log("═══════════════════════════════════════");
-    console.log("🚀 STARTING FETCH CONVERSATIONS");
-    console.log("═══════════════════════════════════════");
-    console.log("📥 Nutritionist UID:", currentNutritionistId);
-    console.log("🔐 Auth state:", auth.currentUser ? "Authenticated ✅" : "Not authenticated ❌");
-    console.log("📧 User email:", auth.currentUser?.email);
-    
     try {
       if (!refreshing) setLoading(true);
 
-      console.log("📂 Attempting to access 'chats' collection...");
       const chatsRef = collection(db, "chats");
-      console.log("✅ Collection reference created");
       
-      console.log("🔍 Executing getDocs() on chats collection...");
       const chatSnapshot = await getDocs(chatsRef);
-      console.log("✅ SUCCESS! getDocs() completed");
-      console.log("📊 Total chat documents found:", chatSnapshot.size);
-      console.log("📋 Chat document IDs:", chatSnapshot.docs.map(d => d.id));
       
       const conversationList = [];
 
-      console.log("🔄 Processing chat documents...");
       for (const chatDoc of chatSnapshot.docs) {
         const chatId = chatDoc.id;
-        console.log(`  📝 Processing chat: ${chatId}`);
 
-        // Only include chats where nutritionist is one of the participants
         if (chatId.includes(currentNutritionistId)) {
-          console.log(`  ✅ Chat includes nutritionist UID`);
           
           const [id1, id2] = chatId.split("_");
           const clientId = id1 === currentNutritionistId ? id2 : id1;
-          console.log(`  👤 Client ID: ${clientId}`);
 
-          // Fetch user info from "user" collection
-          console.log(`  🔍 Fetching user document for: ${clientId}`);
           const userDocRef = doc(db, "user", clientId);
           const userSnap = await getDoc(userDocRef);
           
           if (!userSnap.exists()) {
-            console.log(`  ⚠️ User document not found for: ${clientId}`);
             continue;
           }
-          console.log(`  ✅ User document found`);
 
           const clientData = userSnap.data();
-          console.log(`  👤 Client name: ${clientData.name}`);
 
-          // Get messages
-          console.log(`  📬 Fetching messages for chat: ${chatId}`);
           const messagesRef = collection(db, "chats", chatId, "messages");
           const messagesSnapshot = await getDocs(messagesRef);
-          console.log(`  📊 Messages found: ${messagesSnapshot.docs.length}`);
           
           if (messagesSnapshot.docs.length === 0) {
-            console.log(`  ⚠️ No messages in this chat, skipping`);
             continue;
           }
 
@@ -261,8 +208,6 @@ export default function NutritionistMessageTab() {
             (msg) => msg.user?._id !== currentNutritionistId && msg.read === false
           ).length;
 
-          console.log(`  📩 Latest message: "${latestMessage.text?.substring(0, 30)}..."`);
-          console.log(`  🔔 Unread count: ${unreadCount}`);
 
           conversationList.push({
             clientId,
@@ -273,37 +218,18 @@ export default function NutritionistMessageTab() {
             unreadCount,
           });
           
-          console.log(`  ✅ Conversation added to list`);
         } else {
-          console.log(`  ⏭️ Skipping chat (doesn't include nutritionist): ${chatId}`);
         }
       }
 
-      console.log("═══════════════════════════════════════");
-      console.log("📊 FETCH COMPLETE");
-      console.log(`✅ Total conversations found: ${conversationList.length}`);
-      console.log("═══════════════════════════════════════");
 
       conversationList.sort((a, b) => b.timestamp - a.timestamp);
       setConversations(conversationList);
       setFilteredConversations(conversationList);
 
-      // Real-time updates for unread/latest message
       setTimeout(() => setupUnreadListeners(conversationList, currentNutritionistId), 400);
     } catch (error) {
-      console.log("═══════════════════════════════════════");
-      console.error("❌ ERROR FETCHING CHATS");
-      console.error("Error type:", error.constructor.name);
-      console.error("Error code:", error.code);
-      console.error("Error message:", error.message);
-      console.error("Full error:", error);
-      console.log("═══════════════════════════════════════");
-      
-      // Additional debugging
-      console.log("🔍 Checking auth state again:");
-      console.log("  - Current user:", auth.currentUser);
-      console.log("  - UID:", auth.currentUser?.uid);
-      console.log("  - Email:", auth.currentUser?.email);
+
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -323,7 +249,6 @@ export default function NutritionistMessageTab() {
   };
 
   const handleChatPress = (clientId, clientName, chatId) => {
-    console.log("💬 Opening chat with client:", clientName);
     setLastOpenedChatId(chatId);
     navigation.navigate("NutritionistChatScreen", {
       userId: clientId,
@@ -333,13 +258,11 @@ export default function NutritionistMessageTab() {
   };
 
   const handleRefresh = () => {
-    console.log("🔄 Manual refresh triggered");
     setRefreshing(true);
     const currentNutritionistId = auth.currentUser?.uid;
     if (currentNutritionistId) {
       fetchConversations(currentNutritionistId);
     } else {
-      console.log("❌ Cannot refresh: No authenticated user");
       setRefreshing(false);
     }
   };

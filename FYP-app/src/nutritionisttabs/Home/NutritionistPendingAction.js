@@ -1,4 +1,3 @@
-// NutritionistPendingAction.js - For accepted meal plan requests that need further action
 import React, { useEffect, useState } from "react";
 import {
   View,
@@ -36,7 +35,6 @@ export default function NutritionistPendingAction() {
       const mealPlanData = response.data?.data || [];
       setMealPlans(mealPlanData);
     } catch (error) {
-      console.error("Error fetching accepted meal plans:", error);
     } finally {
       setLoading(false);
     }
@@ -62,14 +60,11 @@ export default function NutritionistPendingAction() {
         read: false,
       });
 
-      console.log('✅ Chat message sent successfully');
     } catch (error) {
-      console.error('❌ Error sending chat message:', error);
     }
   };
 
   const handleCreateMealPlan = (mealPlan) => {
-    // Navigate to CreateMealPlan screen with meal plan data
     navigation.navigate("CreateMealPlan", {
       mealPlan: mealPlan
     });
@@ -82,7 +77,6 @@ export default function NutritionistPendingAction() {
         ? `${currentUser.uid}_${userId}`
         : `${userId}_${currentUser.uid}`;
 
-      // Navigate to the Messages tab first, then to the specific chat
       navigation.navigate("Messages", {
         screen: "NutritionistChatScreen",
         params: {
@@ -92,7 +86,6 @@ export default function NutritionistPendingAction() {
         }
       });
     } catch (error) {
-      console.error("Error navigating to chat:", error);
     }
   };
 

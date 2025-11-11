@@ -11,7 +11,6 @@ import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRoute, useNavigation } from "@react-navigation/native";
 
-// 🔹 Backend API
 import API from "../../api/backend";
 
 export default function DeleteFoods() {
@@ -47,7 +46,6 @@ export default function DeleteFoods() {
       setFoodsList(filtered);
       setLoading(false);
     } catch (err) {
-      console.error("Error fetching foods:", err);
       setMessage({ text: "❌ Could not fetch foods.", type: "error" });
       setLoading(false);
     }
@@ -74,7 +72,6 @@ export default function DeleteFoods() {
       setMessage({ text: "✅ Food has been deleted.", type: "success" });
       fetchFoods();
     } catch (err) {
-      console.error("Error deleting food:", err);
       setMessage({ text: "❌ Could not delete food.", type: "error" });
     }
   };
@@ -99,7 +96,6 @@ export default function DeleteFoods() {
       setSelectedFoods([]);
       fetchFoods();
     } catch (err) {
-      console.error("Error deleting foods:", err);
       setMessage({ text: "❌ Could not delete foods.", type: "error" });
     }
   };
@@ -249,10 +245,9 @@ const styles = StyleSheet.create({
   },
   deleteFoodsText: { color: "#fff", fontSize: 16, fontWeight: "600" },
 
-  // ✅ Fixed message banner so it shows below notch
   messageBox: {
     position: "absolute",
-    top: 50, // push down so it's not hidden by notch
+    top: 50, 
     left: 20,
     right: 20,
     zIndex: 100,

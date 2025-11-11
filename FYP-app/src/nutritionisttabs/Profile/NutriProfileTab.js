@@ -15,7 +15,6 @@ const NutriProfileTab = () => {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   
-  // Edit modals state
   const [editProfileModal, setEditProfileModal] = useState(false);
   const [editServicesModal, setEditServicesModal] = useState(false);
   const [editAvailabilityModal, setEditAvailabilityModal] = useState(false);
@@ -25,7 +24,6 @@ const NutriProfileTab = () => {
   const [editClinicModal, setEditClinicModal] = useState(false);
   const [saving, setSaving] = useState(false);
   
-  // Edit form states
   const [editedProfile, setEditedProfile] = useState({});
   const [editedServices, setEditedServices] = useState([]);
   const [newService, setNewService] = useState('');
@@ -58,13 +56,11 @@ const NutriProfileTab = () => {
       
       const currentUser = auth.currentUser;
       if (!currentUser) {
-        console.error('No authenticated user');
         setNutritionistData(null);
         return;
       }
 
       const uid = currentUser.uid;
-      console.log("Fetching nutritionist data for UID:", uid);
       
       const nutritionistResponse = await API.get(`/nutritionist-info/${uid}`);
       
@@ -80,7 +76,6 @@ const NutriProfileTab = () => {
           setServicesData(servicesResponse.data.services);
         }
       } catch (servicesError) {
-        console.log('No services found or error fetching services:', servicesError.response?.data);
         setServicesData(null);
       }
 
@@ -90,13 +85,10 @@ const NutriProfileTab = () => {
           setAvailabilityData(availabilityResponse.data.availability);
         }
       } catch (availabilityError) {
-        console.log('No availability found or error fetching availability:', availabilityError.response?.data);
         setAvailabilityData(null);
       }
 
     } catch (error) {
-      console.error('Error fetching nutritionist:', error);
-      console.error('Error details:', error.response?.data);
       setNutritionistData(null);
     } finally {
       setLoading(false);
@@ -109,7 +101,6 @@ const NutriProfileTab = () => {
     fetchNutritionistData();
   };
 
-  // Edit Profile Functions
   const openEditProfile = () => {
     setEditedProfile({
       name: nutritionistData?.name || '',
@@ -140,14 +131,12 @@ const NutriProfileTab = () => {
         fetchNutritionistData();
       }
     } catch (error) {
-      console.error('Error updating profile:', error);
       setMessage({ text: 'Failed to update profile', type: 'error' });
     } finally {
       setSaving(false);
     }
   };
 
-  // Edit Services Functions
   const openEditServices = () => {
     const servicesSource = servicesData?.servicesOffered || nutritionistData?.servicesOffered || [];
     const servicesArray = Array.isArray(servicesSource) ? servicesSource : [servicesSource];
@@ -181,14 +170,12 @@ const NutriProfileTab = () => {
         fetchNutritionistData();
       }
     } catch (error) {
-      console.error('Error updating services:', error);
       setMessage({ text: 'Failed to update services', type: 'error' });
     } finally {
       setSaving(false);
     }
   };
 
-  // Edit Specializations Functions
   const openEditSpecializations = () => {
     const specializationsSource = nutritionistData?.specializations || [];
     let specializationsArray = [];
@@ -229,14 +216,12 @@ const NutriProfileTab = () => {
         fetchNutritionistData();
       }
     } catch (error) {
-      console.error('Error updating specializations:', error);
       setMessage({ text: 'Failed to update specializations', type: 'error' });
     } finally {
       setSaving(false);
     }
   };
 
-  // Edit Languages Functions
   const openEditLanguages = () => {
     const languagesSource = nutritionistData?.languages || [];
     let languagesArray = [];
@@ -271,11 +256,9 @@ const NutriProfileTab = () => {
         languages: editedLanguages
       };
       
-      console.log('Updating languages with payload:', JSON.stringify(payload, null, 2));
       
       const response = await API.put(`/nutritionist-info/${uid}`, payload);
       
-      console.log('Update response:', JSON.stringify(response.data, null, 2));
       
       if (response.data.success) {
         setMessage({ text: 'Languages updated successfully', type: 'success' });
@@ -283,15 +266,12 @@ const NutriProfileTab = () => {
         fetchNutritionistData();
       }
     } catch (error) {
-      console.error('Error updating languages:', error);
-      console.error('Error details:', error.response?.data);
       setMessage({ text: 'Failed to update languages', type: 'error' });
     } finally {
       setSaving(false);
     }
   };
 
-  // Edit Bio Functions
   const openEditBio = () => {
     setEditedBio(nutritionistData?.bio || '');
     setEditBioModal(true);
@@ -312,14 +292,12 @@ const NutriProfileTab = () => {
         fetchNutritionistData();
       }
     } catch (error) {
-      console.error('Error updating bio:', error);
       setMessage({ text: 'Failed to update bio', type: 'error' });
     } finally {
       setSaving(false);
     }
   };
 
-  // Edit Clinic Name Functions
   const openEditClinicName = () => {
     setEditedClinicName(nutritionistData?.clinicName || '');
     setEditClinicModal(true);
@@ -340,14 +318,12 @@ const NutriProfileTab = () => {
         fetchNutritionistData();
       }
     } catch (error) {
-      console.error('Error updating clinic name:', error);
       setMessage({ text: 'Failed to update clinic name', type: 'error' });
     } finally {
       setSaving(false);
     }
   };
 
-  // Edit Availability Functions
   const openEditAvailability = () => {
     const defaultAvailability = {
       Monday: { available: false, startTime: '09:00', endTime: '17:00' },
@@ -398,7 +374,6 @@ const NutriProfileTab = () => {
         fetchNutritionistData();
       }
     } catch (error) {
-      console.error('Error updating availability:', error);
       setMessage({ text: 'Failed to update availability', type: 'error' });
     } finally {
       setSaving(false);
@@ -470,7 +445,6 @@ const handleLogout = async () => {
       routes: [{ name: 'Welcome' }],
     });
   } catch (error) {
-    console.error('Error signing out:', error);
     setMessage({ text: 'Failed to logout', type: 'error' });
   }
 };
@@ -1634,7 +1608,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   
-  // Services
   serviceGrid: {
     gap: 10,
   },
@@ -1664,7 +1637,6 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   
-  // Languages
   languagesContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -1685,7 +1657,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   
-  // Availability
   availabilityCard: {
     backgroundColor: '#FFFFFF',
     borderRadius: 20,
@@ -1933,7 +1904,6 @@ const styles = StyleSheet.create({
     color: '#007AFF',
   },
   
-  // Save Button
   saveButton: {
     flexDirection: 'row',
     backgroundColor: '#007AFF',
@@ -1959,7 +1929,6 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   
-  // Service Input
   addServiceContainer: {
     flexDirection: 'row',
     gap: 12,
@@ -2033,7 +2002,6 @@ const styles = StyleSheet.create({
     padding: 4,
   },
   
-  // Day Container (Availability Modal)
   dayContainer: {
     marginBottom: 16,
     backgroundColor: '#F8FAFC',

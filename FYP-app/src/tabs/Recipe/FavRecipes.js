@@ -1,4 +1,3 @@
-// screens/FavRecipes.js
 import React, { useState, useEffect } from "react";
 import {
   View,
@@ -25,7 +24,6 @@ export default function FavRecipes() {
   const [selectedRecipe, setSelectedRecipe] = useState(null);
   const [successMessage, setSuccessMessage] = useState("");
 
-  // fetch favorites from firestore
   useEffect(() => {
     const fetchFavorites = async () => {
       try {
@@ -35,14 +33,12 @@ export default function FavRecipes() {
         const res = await API.get(`/favorites/${user.uid}`);
         setFavorites(res.data);
       } catch (error) {
-        console.error("Error fetching favorites:", error);
       }
     };
 
     fetchFavorites();
   }, []);
 
-  // add or remove from user's favorite
   const handleToggleFavorite = async (recipe) => {
     try {
       const user = auth.currentUser;
@@ -58,11 +54,9 @@ export default function FavRecipes() {
         setFavorites([...favorites, recipe]);
       }
     } catch (error) {
-      console.error("Error toggling favorite:", error);
     }
   };
 
-  // log recipe to diary
   const LogToDiary = async (recipe, mealType, servings = 1) => {
     try {
       const uid = auth.currentUser?.uid;
@@ -85,12 +79,10 @@ export default function FavRecipes() {
       };
       const postRes = await API.post(`/meals_log/${uid}`, mealLog);
       if (postRes.data.success) {
-        console.log("✅ Meal logged:", postRes.data.meal);
         setSuccessMessage(`"${fullRecipe.title}" logged successfully!`);
         setTimeout(() => setSuccessMessage(""), 3000);
       }
     } catch (err) {
-      console.error("Error logging meal:", err);
       setSuccessMessage("Failed to log meal. Please try again.");
       setTimeout(() => setSuccessMessage(""), 3000);
     }
@@ -246,7 +238,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   
-  // Header
   header: {
     flexDirection: "row",
     alignItems: "center",
@@ -269,7 +260,6 @@ const styles = StyleSheet.create({
     width: 42,
   },
   
-  // Search Bar
   searchBar: {
     flexDirection: "row",
     alignItems: "center",
@@ -308,7 +298,6 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   
-  // Recipe Cards
   card: {
     width: "48%",
     backgroundColor: "#fff",
@@ -342,7 +331,6 @@ const styles = StyleSheet.create({
     fontSize: 40,
   },
   
-  // Card Content
   cardContent: {
     padding: 12,
   },
@@ -370,7 +358,6 @@ const styles = StyleSheet.create({
     fontWeight: "500",
   },
   
-  // Card Actions
   cardActions: {
     flexDirection: "row",
     alignItems: "center",
@@ -402,7 +389,6 @@ const styles = StyleSheet.create({
     color: "#FFD700",
   },
   
-  // Empty State
   emptyContainer: {
     flex: 1,
     justifyContent: "center",
@@ -422,7 +408,6 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
 
-  // Toast Message
   toastMessageBox: {
     position: "absolute",
     top: 16,

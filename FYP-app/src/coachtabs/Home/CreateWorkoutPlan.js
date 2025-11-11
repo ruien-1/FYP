@@ -1,4 +1,3 @@
-// CreateWorkoutPlan.js - Form for coach to create detailed workout plans
 import React, { useState, useEffect } from "react";
 import {
   View,
@@ -29,9 +28,6 @@ export default function CreateWorkoutPlan() {
   const { workoutPlan } = route.params || {};
   const currentUser = auth.currentUser;
 
-  // Debug logging
-  console.log("CreateWorkoutPlan - Received workoutPlan:", workoutPlan);
-  console.log("CreateWorkoutPlan - Current user:", currentUser?.uid);
 
   // Form state
   const [title, setTitle] = useState(workoutPlan?.duration ? `${workoutPlan.duration} Workout Plan` : "");
@@ -151,7 +147,6 @@ export default function CreateWorkoutPlan() {
       setActivities(formatted);
       setAllActivities(formatted);
     } catch (err) {
-      console.error("❌ Error loading activities:", err);
     }
   };
 
@@ -161,7 +156,6 @@ export default function CreateWorkoutPlan() {
       const res = await API.get(`/user_info/${uid}`);
       setUserInfo(res.data);
     } catch (err) {
-      console.error("❌ Error fetching user info:", err);
     }
   };
 
@@ -362,11 +356,8 @@ export default function CreateWorkoutPlan() {
           workoutPlanDetails: workoutPlanData
         });
       } catch (apiError) {
-        console.log("Workout plan API endpoint may not exist yet, skipping backend update:", apiError);
-        // Continue with chat message even if API fails
       }
 
-      // Send message to user with structured metadata for CTA rendering
       const message = `💪 Your ${workoutPlan.duration} Workout Plan is Ready!`;
 
       try {
@@ -383,7 +374,6 @@ export default function CreateWorkoutPlan() {
             _id: currentUser.uid,
             name: currentUser.displayName || "Coach",
           },
-          // Metadata for client CTA
           messageType: 'workoutPlan',
           workoutPlanId: workoutPlan.id,
           workoutPlanDetails: workoutPlanData,
@@ -391,7 +381,6 @@ export default function CreateWorkoutPlan() {
           read: false,
         });
       } catch (e) {
-        console.error('❌ Error sending structured workout plan message:', e);
       }
 
       Alert.alert(
@@ -406,7 +395,6 @@ export default function CreateWorkoutPlan() {
       );
 
     } catch (error) {
-      console.error("Error saving workout plan:", error);
       Alert.alert("Error", "Failed to save workout plan. Please try again.");
     } finally {
       setLoading(false);
@@ -996,7 +984,6 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   dayInputsContainer: {
-    // Stack Activity and Calories vertically
   },
   actionButtons: {
     flexDirection: "row",
@@ -1094,7 +1081,6 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: "#fff",
   },
-  // Day header with Activities List button
   dayHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -1117,7 +1103,6 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     marginLeft: 4,
   },
-  // Saved activities display
   savedActivitiesContainer: {
     marginBottom: 12,
   },
@@ -1148,7 +1133,6 @@ const styles = StyleSheet.create({
   removeActivityButton: {
     padding: 4,
   },
-  // Activity List Modal styles
   activityListModal: {
     backgroundColor: "#fff",
     borderRadius: 16,
@@ -1198,7 +1182,6 @@ const styles = StyleSheet.create({
     color: "#666",
     fontSize: 14,
   },
-  // Activity Details Modal styles
   activityDetailsModal: {
     backgroundColor: "#fff",
     borderRadius: 16,

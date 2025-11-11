@@ -1,4 +1,3 @@
-// FindNutritionist.js
 import React, { useState, useEffect, useCallback } from "react";
 import {
   View,
@@ -54,7 +53,6 @@ export default function FindNutritionist() {
     fetchNutritionists();
   }, []);
 
-  // Refresh data when screen comes into focus
   useFocusEffect(
     useCallback(() => {
       fetchNutritionists();
@@ -64,13 +62,10 @@ export default function FindNutritionist() {
   const fetchNutritionists = async () => {
     try {
       const res = await API.get("/nutritionists");
-      console.log("Fetched nutritionists:", res.data);
       setNutritionists(res.data);
       
-      // Reapply current filters to the new data
       applyFilters(searchQuery, selectedSpecializations, selectedServices, selectedExperience, res.data);
     } catch (err) {
-      console.error("Error fetching nutritionists:", err);
     } finally {
       setLoading(false);
     }

@@ -34,7 +34,6 @@ export default function ExpertTab() {
   const [unreadCount, setUnreadCount] = useState(0);
   const [membership, setMembership] = useState("free");
 
-  // Fetch membership status
   useEffect(() => {
     const fetchMembership = async () => {
       try {
@@ -47,7 +46,6 @@ export default function ExpertTab() {
           setMembership(userData.membership || "free");
         }
       } catch (error) {
-        console.error("Error fetching membership:", error);
       }
     };
     fetchMembership();
@@ -57,7 +55,6 @@ export default function ExpertTab() {
     React.useCallback(() => {
       fetchUpcomingAppointments();
       setupUnreadListener();
-      // Refresh membership on focus
       const fetchMembership = async () => {
         try {
           const user = auth.currentUser;
@@ -69,7 +66,6 @@ export default function ExpertTab() {
             setMembership(userData.membership || "free");
           }
         } catch (error) {
-          console.error("Error fetching membership:", error);
         }
       };
       fetchMembership();
@@ -81,7 +77,6 @@ export default function ExpertTab() {
     setupUnreadListener();
   }, []);
 
-  // Listen for unread messages in real-time
 const setupUnreadListener = () => {
   try {
     const chatsRef = collection(db, 'chats');
@@ -117,7 +112,6 @@ const setupUnreadListener = () => {
 
     return unsubscribe;
   } catch (error) {
-    console.log('Error setting up unread listener:', error);
   }
 };
 
@@ -128,7 +122,6 @@ const setupUnreadListener = () => {
 
       const appointmentsData = response?.data?.data || response?.data || [];
 
-      console.log("📋 All appointments fetched:", appointmentsData);
 
       const now = new Date();
       const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000);
@@ -139,7 +132,7 @@ const setupUnreadListener = () => {
           const isConfirmed = apt.status === "confirmed";
           const isRecentOrFuture = aptDate > oneHourAgo;
 
-          console.log("Filtering appointment:", {
+          ("Filtering appointment:", {
             date: apt.appointmentDate,
             status: apt.status,
             isConfirmed,
@@ -152,10 +145,8 @@ const setupUnreadListener = () => {
         .sort((a, b) => new Date(a.appointmentDate) - new Date(b.appointmentDate))
         .slice(0, 5);
 
-      console.log("✅ Filtered upcoming appointments:", upcoming);
       setUpcomingAppointments(upcoming);
     } catch (error) {
-      console.error("Error fetching appointments:", error);
     } finally {
       setRefreshing(false);
       setLoading(false);
@@ -213,13 +204,12 @@ const setupUnreadListener = () => {
                 },
                 appointmentId: appointment.id,
                 isCancellation: true,
-                read: false, // ADD THIS LINE
+                read: false, 
               });
 
               Alert.alert("Success", "Appointment cancelled successfully");
               fetchUpcomingAppointments();
             } catch (error) {
-              console.error("Error cancelling appointment:", error);
               Alert.alert(
                 "Error",
                 "Failed to cancel appointment. Please try again."
@@ -291,14 +281,13 @@ const setupUnreadListener = () => {
         },
         appointmentId: selectedAppointment.id,
         isReschedule: true,
-        read: false, // ADD THIS LINE
+        read: false, 
       });
 
       setRescheduleModal(false);
       Alert.alert("Success", "Appointment rescheduled successfully");
       fetchUpcomingAppointments();
     } catch (error) {
-      console.error("Error rescheduling appointment:", error);
       Alert.alert("Error", "Failed to reschedule appointment. Please try again.");
     }
   };
@@ -363,7 +352,6 @@ const setupUnreadListener = () => {
     );
   };
 
-  // Premium unlock page for free users
   if (membership !== "premium") {
     return (
       <SafeAreaView style={styles.safe} edges={['top']}>
@@ -699,11 +687,11 @@ const styles = StyleSheet.create({
   },
 findButton: {
   backgroundColor: "#7BA3FF",
-  paddingHorizontal: 16,  // Changed from 20 to 16
+  paddingHorizontal: 16,  
   paddingVertical: 10,
   borderRadius: 20,
   marginTop: 12,
-  minWidth: 120,  // Add this line to ensure minimum width
+  minWidth: 120,  
 },
   findButtonText: {
     color: "#FFF",

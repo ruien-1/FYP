@@ -22,7 +22,6 @@ const MoreTab = () => {
         return;
       }
 
-      // Fetch directly from Firestore
       const userRef = doc(db, "user", user.uid);
       const userSnap = await getDoc(userRef);
 
@@ -32,14 +31,11 @@ const MoreTab = () => {
         setUserName(userData.name || "User");
         setProfileImage(userData.profileImage || null);
       } else {
-        // Default to free if user document doesn't exist
         setMembership("free");
         setUserName("User");
         setProfileImage(null);
       }
     } catch (error) {
-      console.error("Error fetching membership:", error);
-      // Default to free on error
       setMembership("free");
       setUserName("User");
       setProfileImage(null);
@@ -48,7 +44,6 @@ const MoreTab = () => {
     }
   };
 
-  // Fetch membership when screen is focused
   useFocusEffect(
     React.useCallback(() => {
       fetchUserMembership();
@@ -66,7 +61,6 @@ const MoreTab = () => {
         })
       );
     } catch (error) {
-      console.log("Logout error:", error);
     }
   };
 

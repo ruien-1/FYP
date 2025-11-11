@@ -1,4 +1,3 @@
-// NutritionistPendingRequest.js - Updated with Chat Messages and Read Status
 import React, { useEffect, useState } from "react";
 import {
   View,
@@ -53,7 +52,6 @@ export default function NutritionistPendingRequest() {
       setRescheduleCount(rescheduleData.length);
       setMealPlanCount(mealPlanData.length);
     } catch (error) {
-      console.error("Error fetching counts:", error);
     }
   };
 
@@ -85,7 +83,6 @@ export default function NutritionistPendingRequest() {
         );
       }
     } catch (error) {
-      console.error("Error fetching requests:", error);
     } finally {
       setLoading(false);
     }
@@ -109,12 +106,10 @@ export default function NutritionistPendingRequest() {
         appointmentId: appointment.id,
         isAppointmentResponse: true,
         isAccepted: isAccepted,
-        read: false, // ✅ Mark as unread initially
+        read: false, 
       });
 
-      console.log('✅ Chat message sent successfully');
     } catch (error) {
-      console.error('❌ Error sending chat message:', error);
     }
   };
 
@@ -179,7 +174,6 @@ export default function NutritionistPendingRequest() {
 
       fetchRequests();
     } catch (error) {
-      console.error("Error approving request:", error);
       Alert.alert("Error", "Failed to approve request.");
     }
   };
@@ -187,7 +181,6 @@ export default function NutritionistPendingRequest() {
   const handleReject = async (request) => {
     try {
       if (selectedType === "mealplan") {
-        // Handle meal plan rejection
         await API.put(`/meal-plans/nutritionist/${request.id}`, { 
           status: "rejected",
           isRejected: true,
@@ -234,7 +227,6 @@ export default function NutritionistPendingRequest() {
 
       fetchRequests();
     } catch (error) {
-      console.error("Error rejecting request:", error);
       Alert.alert("Error", "Failed to reject request.");
     }
   };
@@ -451,7 +443,7 @@ tabContainer: {
   backgroundColor: "#CFE3FF",
   borderRadius: 16,
   paddingVertical: 10,
-  paddingHorizontal: 4,  // Add this line
+  paddingHorizontal: 4,  
   marginBottom: 20,
 },
 tab: {
@@ -460,7 +452,7 @@ tab: {
   paddingVertical: 8,
   flexDirection: "row",
   justifyContent: "center",
-  marginHorizontal: 2,  // Changed from 4 to 3
+  marginHorizontal: 2,  
   borderRadius: 12,
   paddingHorizontal: 4,
 },

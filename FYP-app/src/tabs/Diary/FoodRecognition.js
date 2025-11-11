@@ -4,9 +4,8 @@ import { CameraView, useCameraPermissions } from "expo-camera";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 
-// ✅ Use __DEV__ to automatically switch between local & deployed backend
-const DEV_API_URL = "http://192.168.68.107:5000"; // 🧠 replace with your PC IP for local testing
-const PROD_API_URL = "https://fyp-0rqn.onrender.com"; // 🌐 your hosted backend on Render
+const DEV_API_URL = "http://192.168.68.107:5000"; 
+const PROD_API_URL = "https://fyp-0rqn.onrender.com";
 const API_URL = __DEV__ ? DEV_API_URL : PROD_API_URL;
 
 export default function FoodRecognition() {
@@ -33,7 +32,6 @@ export default function FoodRecognition() {
         setPhoto(pic.uri);
         await sendToBackend(pic.base64);
       } catch (error) {
-        console.error("Error taking photo:", error);
         Alert.alert("Error", "Failed to take photo. Please try again.");
       }
     }
@@ -42,7 +40,6 @@ export default function FoodRecognition() {
   const sendToBackend = async (base64Image) => {
     try {
       setLoading(true);
-      console.log("📤 Sending image to backend:", `${API_URL}/recognize-food`);
 
       const response = await fetch(`${API_URL}/recognize-food`, {
         method: "POST",
@@ -55,11 +52,9 @@ export default function FoodRecognition() {
       }
 
       const data = await response.json();
-      console.log("✅ Response from backend:", data);
       const recognizedFood = data.food || "Unknown";
       setResult(recognizedFood);
       
-      // Show alert with option to search for the recognized food
       Alert.alert(
         "Food Recognized",
         `Recognized as: ${recognizedFood}\n\nWould you like to go back and search for this food?`,
@@ -77,7 +72,6 @@ export default function FoodRecognition() {
         ]
       );
     } catch (error) {
-      console.error("❌ Error recognizing food:", error);
       setResult("Error recognizing food");
       Alert.alert("Error", "Failed to recognize food. Please try again.");
     } finally {

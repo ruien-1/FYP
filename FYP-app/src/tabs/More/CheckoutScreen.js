@@ -1,4 +1,3 @@
-// CheckoutScreen.js
 import React, { useState, useEffect, useRef } from "react";
 import {
   View,
@@ -71,10 +70,8 @@ export default function CheckoutScreen() {
           }
         }
       } catch (error) {
-        // Silently handle - no card saved is not an error
-        // Only log if it's not a permissions error
+
         if (error.code !== 'permission-denied') {
-          console.error("Error loading saved card:", error);
         }
       }
     };
@@ -149,16 +146,13 @@ export default function CheckoutScreen() {
       );
       return hash;
     } catch (error) {
-      console.error("Error hashing data:", error);
-      // Fallback: create a simple hash if crypto fails
-      // This is not as secure but better than storing plain text
       const user = auth.currentUser;
       let hash = 0;
       const str = data + (user?.uid || "");
       for (let i = 0; i < str.length; i++) {
         const char = str.charCodeAt(i);
         hash = ((hash << 5) - hash) + char;
-        hash = hash & hash; // Convert to 32bit integer
+        hash = hash & hash; 
       }
       return Math.abs(hash).toString(16).padStart(64, '0');
     }
@@ -241,7 +235,6 @@ export default function CheckoutScreen() {
       setCardSaved(true);
       setShowCardModal(false);
       
-      // Clear sensitive fields from memory after saving
       setCardNumber("");
       setCvv("");
       setExpiry("");
@@ -328,7 +321,6 @@ export default function CheckoutScreen() {
         ]
       );
     } catch (error) {
-      console.error("Error updating membership:", error);
       Alert.alert("Error", "Failed to update membership. Please try again.");
     } finally {
       setIsLoading(false);

@@ -30,7 +30,6 @@ export default function WeightPage({ route, navigation }) {
       Alert.alert("Success", "Weight logged successfully!");
       navigation.goBack();
     } catch (err) {
-      console.error("Error logging weight:", err);
       Alert.alert("Error", "Failed to log weight.");
     }
   };

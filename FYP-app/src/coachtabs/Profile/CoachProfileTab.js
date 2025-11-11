@@ -16,7 +16,6 @@ const CoachProfileTab = () => {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   
-  // Edit modals state
   const [editProfileModal, setEditProfileModal] = useState(false);
   const [editServicesModal, setEditServicesModal] = useState(false);
   const [editAvailabilityModal, setEditAvailabilityModal] = useState(false);
@@ -26,7 +25,6 @@ const CoachProfileTab = () => {
   const [editGymModal, setEditGymModal] = useState(false);
   const [saving, setSaving] = useState(false);
   
-  // Edit form states
   const [editedProfile, setEditedProfile] = useState({});
   const [editedServices, setEditedServices] = useState([]);
   const [newService, setNewService] = useState('');
@@ -58,13 +56,11 @@ const CoachProfileTab = () => {
       
       const currentUser = auth.currentUser;
       if (!currentUser) {
-        console.error('No authenticated user');
         setCoachData(null);
         return;
       }
 
       const uid = currentUser.uid;
-      console.log("Fetching coach data for UID:", uid);
       
       const coachResponse = await API.get(`/coach-info/${uid}`);
       
@@ -80,7 +76,6 @@ const CoachProfileTab = () => {
           setServicesData(servicesResponse.data.services);
         }
       } catch (servicesError) {
-        console.log('No services found or error fetching services:', servicesError.response?.data);
         setServicesData(null);
       }
 
@@ -90,13 +85,10 @@ const CoachProfileTab = () => {
           setAvailabilityData(availabilityResponse.data.availability);
         }
       } catch (availabilityError) {
-        console.log('No availability found or error fetching availability:', availabilityError.response?.data);
         setAvailabilityData(null);
       }
 
     } catch (error) {
-      console.error('Error fetching coach:', error);
-      console.error('Error details:', error.response?.data);
       setCoachData(null);
     } finally {
       setLoading(false);
@@ -109,7 +101,6 @@ const CoachProfileTab = () => {
     fetchCoachData();
   };
 
-  // Edit Profile Functions
   const openEditProfile = () => {
     setEditedProfile({
       name: coachData?.name || '',
@@ -140,14 +131,12 @@ const CoachProfileTab = () => {
         fetchCoachData();
       }
     } catch (error) {
-      console.error('Error updating profile:', error);
       setMessage({ text: 'Failed to update profile', type: 'error' });
     } finally {
       setSaving(false);
     }
   };
 
-  // Edit Services Functions
   const openEditServices = () => {
     const servicesSource = servicesData?.servicesOffered || coachData?.servicesOffered || [];
     const servicesArray = Array.isArray(servicesSource) ? servicesSource : [servicesSource];
@@ -181,14 +170,12 @@ const CoachProfileTab = () => {
         fetchCoachData();
       }
     } catch (error) {
-      console.error('Error updating services:', error);
       setMessage({ text: 'Failed to update services', type: 'error' });
     } finally {
       setSaving(false);
     }
   };
 
-  // Edit Specializations Functions
   const openEditSpecializations = () => {
     const specializationsSource = coachData?.specializations || [];
     let specializationsArray = [];
@@ -229,14 +216,12 @@ const CoachProfileTab = () => {
         fetchCoachData();
       }
     } catch (error) {
-      console.error('Error updating specializations:', error);
       setMessage({ text: 'Failed to update specializations', type: 'error' });
     } finally {
       setSaving(false);
     }
   };
 
-  // Edit Languages Functions
   const openEditLanguages = () => {
     const languagesSource = coachData?.languages || [];
     let languagesArray = [];
@@ -277,14 +262,12 @@ const CoachProfileTab = () => {
         fetchCoachData();
       }
     } catch (error) {
-      console.error('Error updating languages:', error);
       setMessage({ text: 'Failed to update languages', type: 'error' });
     } finally {
       setSaving(false);
     }
   };
 
-  // Edit Bio Functions
   const openEditBio = () => {
     setEditedBio(coachData?.bio || '');
     setEditBioModal(true);
@@ -305,14 +288,12 @@ const CoachProfileTab = () => {
         fetchCoachData();
       }
     } catch (error) {
-      console.error('Error updating bio:', error);
       setMessage({ text: 'Failed to update bio', type: 'error' });
     } finally {
       setSaving(false);
     }
   };
 
-  // Edit Gym Name Functions
   const openEditGymName = () => {
     setEditedGymName(coachData?.gymName || '');
     setEditGymModal(true);
@@ -333,14 +314,12 @@ const CoachProfileTab = () => {
         fetchCoachData();
       }
     } catch (error) {
-      console.error('Error updating gym name:', error);
       setMessage({ text: 'Failed to update gym name', type: 'error' });
     } finally {
       setSaving(false);
     }
   };
 
-  // Edit Availability Functions
   const openEditAvailability = () => {
     const defaultAvailability = {
       Monday: { available: false, startTime: '09:00', endTime: '17:00' },
@@ -391,7 +370,6 @@ const CoachProfileTab = () => {
         fetchCoachData();
       }
     } catch (error) {
-      console.error('Error updating availability:', error);
       setMessage({ text: 'Failed to update availability', type: 'error' });
     } finally {
       setSaving(false);
@@ -463,7 +441,6 @@ const CoachProfileTab = () => {
       routes: [{ name: 'Welcome' }],
     });
   } catch (error) {
-    console.error('Error signing out:', error);
     setMessage({ text: 'Failed to logout', type: 'error' });
   }
 };

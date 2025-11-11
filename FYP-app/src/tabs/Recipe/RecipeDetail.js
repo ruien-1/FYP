@@ -28,7 +28,6 @@ export default function RecipeDetail() {
         const res = await API.get(`/recipeDetails/${id}`);
         setRecipe(res.data);
       } catch (err) {
-        console.error("Error fetching recipe detail:", err);
       } finally {
         setLoading(false);
       }
@@ -53,7 +52,6 @@ export default function RecipeDetail() {
     );
   }
 
-    // for instructions display
     let steps = [];
     if (recipe.instructions) {
       let cleaned = recipe.instructions.replace(/<[^>]+>/g, "").trim();

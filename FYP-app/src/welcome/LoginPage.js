@@ -63,7 +63,6 @@ export default function LoginPage({ navigation }) {
             "Unfortunately, your nutritionist account application was not approved. Please contact support."
           );
         } else if (accountStatus === "approved") {
-          console.log("Login successful for nutritionist:", nutritionistData.name);
           navigation.navigate("NutritionistTabs");
         } else {
           Alert.alert(
@@ -91,7 +90,6 @@ export default function LoginPage({ navigation }) {
             "Unfortunately, your coach account application was not approved. Please contact support."
           );
         } else if (accountStatus === "approved") {
-          console.log("Login successful for coach:", coachData.name);
           navigation.navigate("CoachTabs");
         } else {
           Alert.alert(
@@ -108,7 +106,6 @@ export default function LoginPage({ navigation }) {
         const data = userSnap.data();
         const accountStatus = data.accountstatus;
 
-        // 🔹 Check if user account is active
         if (accountStatus === "inactive" || accountStatus === "suspended" || accountStatus === "banned") {
           Alert.alert(
             "Account Inactive",
@@ -127,8 +124,6 @@ export default function LoginPage({ navigation }) {
           return;
         }
 
-        console.log("Login successful for user:", data.name);
-        // Initialize meal reminder after successful login
         initializeMealReminder();
         navigation.navigate("MainTabs");
         setLoading(false);

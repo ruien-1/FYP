@@ -1,4 +1,3 @@
-// CreateMealPlan.js - Form for nutritionist to create detailed meal plans
 import React, { useEffect, useMemo, useState } from "react";
 import {
   View,
@@ -26,36 +25,29 @@ export default function CreateMealPlan() {
   const { mealPlan } = route.params || {};
   const currentUser = auth.currentUser;
 
-  // Debug logging
-  console.log("CreateMealPlan - Received mealPlan:", mealPlan);
-  console.log("CreateMealPlan - Current user:", currentUser?.uid);
 
-  // Check if this is a 1 week plan
+
   const isOneWeekPlan = mealPlan?.duration === "1 week" || mealPlan?.duration === "1 Week";
 
-  // Form state
   const [title, setTitle] = useState(mealPlan?.duration ? `${mealPlan.duration} Meal Plan` : "");
   const [description, setDescription] = useState("");
   const [notes, setNotes] = useState("");
-  const [meals, setMeals] = useState([]); // For 1 day plan
-  const [days, setDays] = useState([]); // For 1 week plan - array of day objects
+  const [meals, setMeals] = useState([]); 
+  const [days, setDays] = useState([]); 
   const [loading, setLoading] = useState(false);
 
-  // Date selection state (for 1 week plans)
   const [showDatePickerModal, setShowDatePickerModal] = useState(false);
   const [showStartDatePicker, setShowStartDatePicker] = useState(false);
   const [showEndDatePicker, setShowEndDatePicker] = useState(false);
   const [startDate, setStartDate] = useState(new Date());
   const [endDate, setEndDate] = useState(new Date());
-  // Per-meal macro inputs
   const [mealCalories, setMealCalories] = useState("");
   const [mealProtein, setMealProtein] = useState("");
   const [mealCarbs, setMealCarbs] = useState("");
   const [mealFats, setMealFats] = useState("");
 
-  // Add meal modal state
   const [showAddMealModal, setShowAddMealModal] = useState(false);
-  const [selectedDayId, setSelectedDayId] = useState(null); // For 1 week plans - tracks which day meal is being added to
+  const [selectedDayId, setSelectedDayId] = useState(null);
   const [mealTime, setMealTime] = useState("Breakfast");
   const [food, setFood] = useState("");
   const [servings, setServings] = useState("");
@@ -66,10 +58,9 @@ export default function CreateMealPlan() {
   const [viewMealModalVisible, setViewMealModalVisible] = useState(false);
   const [viewedMeal, setViewedMeal] = useState(null);
 
-  // New ingredient/instruction input states
   const [currentIngredient, setCurrentIngredient] = useState("");
   const [currentInstruction, setCurrentInstruction] = useState("");
-  const [editSection, setEditSection] = useState("ingredients"); // 'ingredients' | 'instructions'
+  const [editSection, setEditSection] = useState("ingredients"); 
 
   const mealTimeOptions = ["Breakfast", "Lunch", "Dinner", "Snack"];
 
@@ -137,7 +128,6 @@ export default function CreateMealPlan() {
     Alert.alert("Success", `Generated ${generatedDays.length} days for the meal plan.`);
   };
   
-  // When returning from NutritionistRecipeBrowser with an assigned recipe, auto-add as a meal
   useEffect(() => {
     const assigned = route.params?.assignedRecipe;
     if (assigned) {
@@ -147,7 +137,6 @@ export default function CreateMealPlan() {
       const merged = { ...assigned, id: uniqueId, mealTime: mealTimeToUse };
 
       if (isOneWeekPlan) {
-        // For 1 week plans, add to the selected day if available
         if (selectedDayId !== null) {
           setDays(days.map(day => 
             day.id === selectedDayId 
@@ -156,12 +145,10 @@ export default function CreateMealPlan() {
           ));
         }
       } else {
-        // For 1 day plans, add to meals array
         if (!meals.some((m) => m.id === assigned.id)) {
           setMeals((prev) => [...prev, merged]);
         }
       }
-      // Clear the assignedRecipe so it won't re-add on re-render
       navigation.setParams({ assignedRecipe: undefined, selectedMealTime: undefined });
     }
   }, [route.params?.assignedRecipe, isOneWeekPlan, selectedDayId]);
@@ -214,7 +201,6 @@ export default function CreateMealPlan() {
     };
 
     if (isOneWeekPlan && selectedDayId !== null) {
-      // For 1 week plans, add meal to the selected day
       if (editingMealId) {
         setDays(days.map(day => 
           day.id === selectedDayId
@@ -229,7 +215,6 @@ export default function CreateMealPlan() {
         ));
       }
     } else {
-      // For 1 day plans, use the original logic
       if (editingMealId) {
         setMeals((prev) => prev.map((m) => (m.id === editingMealId ? newMeal : m)));
       } else {
@@ -257,7 +242,6 @@ export default function CreateMealPlan() {
 
   const handleRemoveMeal = (mealId, dayId = null) => {
     if (isOneWeekPlan && dayId !== null) {
-      // For 1 week plans, remove meal from specific day
       setDays(days.map(day =>
         day.id === dayId
           ? { ...day, meals: (day.meals || []).filter(m => m.id !== mealId) }
@@ -307,15 +291,12 @@ export default function CreateMealPlan() {
         read: false,
       });
 
-      console.log('✅ Chat message sent successfully');
     } catch (error) {
-      console.error('❌ Error sending chat message:', error);
     }
   };
 
   const totalMacros = useMemo(() => {
     if (isOneWeekPlan) {
-      // Calculate totals from all days
       const allMeals = days.flatMap(day => day.meals || []);
       return allMeals.reduce(
         (acc, m) => ({
@@ -327,7 +308,6 @@ export default function CreateMealPlan() {
         { calories: 0, protein: 0, carbs: 0, fats: 0 }
       );
     } else {
-      // Calculate totals from meals array (1 day plan)
       return meals.reduce(
         (acc, m) => ({
           calories: acc.calories + (Number(m.calories) || 0),
@@ -348,7 +328,6 @@ export default function CreateMealPlan() {
     }
 
     if (isOneWeekPlan) {
-      // For 1 week plans, check if days are generated and have meals
       if (days.length === 0) {
         Alert.alert("No Dates Selected", "Please select a date range to generate days for the meal plan.");
         return;
@@ -359,7 +338,6 @@ export default function CreateMealPlan() {
         return;
       }
     } else {
-      // For 1 day plans
       if (meals.length === 0) {
         Alert.alert("No Meals Added", "Please add at least one meal to the plan.");
         return;
@@ -369,7 +347,6 @@ export default function CreateMealPlan() {
     try {
       setLoading(true);
 
-      // Format dates using local components to avoid timezone issues (for 1 week plans)
       const formatDateLocal = (date) => {
         const year = date.getFullYear();
         const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -387,8 +364,8 @@ export default function CreateMealPlan() {
           fats: totalMacros.fats,
         },
         caloriesTotal: totalMacros.calories,
-        meals: isOneWeekPlan ? null : meals, // For 1 day plans
-        days: isOneWeekPlan ? days : null, // For 1 week plans
+        meals: isOneWeekPlan ? null : meals, 
+        days: isOneWeekPlan ? days : null, 
         notes: notes.trim(),
         nutritionistId: currentUser.uid,
         nutritionistName: currentUser.displayName || "Nutritionist",
@@ -400,15 +377,13 @@ export default function CreateMealPlan() {
         createdAt: new Date().toISOString(),
       };
 
-      // Save to database (you might want to create a new collection for detailed meal plans)
-      // For now, we'll update the existing meal plan record
+
       await API.put(`/meal-plans/nutritionist/${mealPlan.id}`, {
         status: "completed",
         completedAt: new Date().toISOString(),
         mealPlanDetails: mealPlanData
       });
 
-      // Send message to user with structured metadata for CTA rendering
       const message = `🎉 Your ${mealPlan.duration} Meal Plan is Ready!`;
 
       try {
@@ -425,7 +400,6 @@ export default function CreateMealPlan() {
             _id: currentUser.uid,
             name: currentUser.displayName || "Nutritionist",
           },
-          // Metadata for client CTA
           messageType: 'mealPlan',
           mealPlanId: mealPlan.id,
           mealPlanDetails: mealPlanData,
@@ -433,8 +407,6 @@ export default function CreateMealPlan() {
           read: false,
         });
       } catch (e) {
-        console.error('❌ Error sending structured meal plan message:', e);
-        // Fallback to plain message
         await sendChatMessage(message);
       }
 
@@ -450,7 +422,6 @@ export default function CreateMealPlan() {
       );
 
     } catch (error) {
-      console.error("Error saving meal plan:", error);
       Alert.alert("Error", "Failed to save meal plan. Please try again.");
     } finally {
       setLoading(false);
@@ -493,7 +464,7 @@ export default function CreateMealPlan() {
                     mealPlan, 
                     selectedMealTime: mealTime, 
                     returnToKey: route.key,
-                    selectedDayId: selectedDayId // Pass selected day ID for 1 week plans
+                    selectedDayId: selectedDayId 
                   });
                 }}
               >
@@ -1008,7 +979,6 @@ export default function CreateMealPlan() {
             </View>
 
             {isOneWeekPlan ? (
-              // 1 Week Plan - Show days with meals
               days.length === 0 ? (
                 <Text style={styles.emptyMealsText}>
                   No dates selected yet. Tap "Select Dates" to choose a date range and get started.
@@ -1089,7 +1059,6 @@ export default function CreateMealPlan() {
                 ))
               )
             ) : (
-              // 1 Day Plan - Show meals list
               meals.length === 0 ? (
                 <Text style={styles.emptyMealsText}>No meals added yet. Tap "Add Meal" to get started.</Text>
               ) : (
@@ -1481,7 +1450,6 @@ const styles = StyleSheet.create({
     color: "#666",
     fontWeight: "500",
   },
-  // Breakdown pills (totals)
   breakdownRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -1500,7 +1468,6 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     fontSize: 12,
   },
-  // New styles for ingredients/instructions
   listContainer: {
     backgroundColor: "#F8F9FA",
     borderRadius: 12,
@@ -1578,7 +1545,6 @@ const styles = StyleSheet.create({
   addItemButton: {
     padding: 4,
   },
-  // Segmented editor styles
   segmentedControl: {
     flexDirection: 'row',
     backgroundColor: '#F0F4FA',
@@ -1660,7 +1626,6 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: "#fff",
   },
-  // View meal modal styles
   viewMealModal: {
     backgroundColor: "#fff",
     borderRadius: 16,
@@ -1787,7 +1752,6 @@ const styles = StyleSheet.create({
     color: "#333",
     lineHeight: 20,
   },
-  // Day container styles (for 1 week plans)
   dayContainer: {
     backgroundColor: "#F8F9FA",
     padding: 12,
@@ -1815,7 +1779,6 @@ const styles = StyleSheet.create({
     textAlign: "center",
     paddingVertical: 8,
   },
-  // Date picker modal styles
   datePickerModal: {
     backgroundColor: "#fff",
     borderRadius: 16,

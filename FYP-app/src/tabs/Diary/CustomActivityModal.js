@@ -17,7 +17,6 @@ import { Ionicons } from "@expo/vector-icons";
 import API from "../../api/backend";
 import { auth } from "../../firebaseConfig";
 
-// MET values for activity categories
 const ACTIVITY_CATEGORIES = {
   sedentary: { label: "Sedentary", met: 1.5 },
   light: { label: "Light", met: 3.0 },
@@ -51,14 +50,12 @@ export default function CustomActivityModal({
   const [userInfo, setUserInfo] = useState(null);
   const [estimatedCalories, setEstimatedCalories] = useState(null);
 
-  // Fetch user info when modal opens
   useEffect(() => {
     if (visible && uid) {
       fetchUserInfo(uid);
     }
   }, [visible, uid]);
 
-  // Fetch activities when modal opens in list mode
   useEffect(() => {
     const fetchActivities = async () => {
       if (visible && modalType === "list" && uid) {
@@ -66,7 +63,6 @@ export default function CustomActivityModal({
           const res = await API.get(`/CustomActivity/${uid}`);
           setMyActivities(res.data || []);
         } catch (err) {
-          console.error("❌ Error fetching activities:", err);
           setMyActivities([]);
           showError("Failed to fetch activities.");
         }
@@ -75,7 +71,6 @@ export default function CustomActivityModal({
     fetchActivities();
   }, [visible, modalType, uid]);
 
-  // Calculate estimated calories when form changes
   useEffect(() => {
     if (modalType === "add" || modalType === "edit") {
       calculateEstimatedCalories();
@@ -84,12 +79,9 @@ export default function CustomActivityModal({
 
   const fetchUserInfo = async (uid) => {
     try {
-      console.log("🔍 Fetching user info for UID:", uid);
       const res = await API.get(`/user_info/${uid}`);
-      console.log("✅ User info fetched successfully:", res.data);
       setUserInfo(res.data);
     } catch (err) {
-      console.error("❌ Error fetching user info:", err);
     }
   };
 
@@ -107,7 +99,6 @@ export default function CustomActivityModal({
 
     const { weight, height, age, gender } = userInfo;
     
-    // Calculate BMR
     let bmr = gender.toLowerCase() === "male"
       ? 10 * weight + 6.25 * height - 5 * age + 5
       : 10 * weight + 6.25 * height - 5 * age - 161;
@@ -133,7 +124,7 @@ export default function CustomActivityModal({
     setForm((prev) => ({ ...prev, [key]: value }));
   };
 
-  // Add
+   
 const handleSave = async () => {
   if (!form.name.trim()) return showError("Activity name is required.");
   if (!form.duration.trim()) return showError("Duration is required.");
@@ -152,12 +143,10 @@ const handleSave = async () => {
     showSuccess("Activity added successfully!");
     resetForm();
   } catch (err) {
-    console.error("Add activity error:", err);
     showError("Failed to add activity.");
   }
 };
 
-// Update
 const handleUpdate = async () => {
   if (!form.name.trim()) return showError("Activity name is required.");
 
@@ -179,25 +168,21 @@ const handleUpdate = async () => {
     showSuccess("Activity updated successfully!");
     setModalType("list");
   } catch (err) {
-    console.error("Update activity error:", err);
     showError("Failed to update activity.");
   }
 };
 
 
-  // Delete
   const handleDelete = async (entryId) => {
     try {
       await API.delete(`/CustomActivity/${uid}/${entryId}`);
       setMyActivities((prev) => prev.filter((a) => a.id !== entryId));
       showSuccess("Activity deleted successfully!");
     } catch (err) {
-      console.error("Delete activity error:", err);
       showError("Failed to delete activity.");
     }
   };
 
-  // Log
   const LogToDiary = async (activity) => {
     try {
       const uid = auth.currentUser?.uid;
@@ -217,7 +202,6 @@ const handleUpdate = async () => {
         showSuccess(`"${activity.name}" logged to activity log!`);
       }
     } catch (err) {
-      console.error("Error logging activity:", err);
       showError("Failed to log activity.");
     }
   };
@@ -599,7 +583,6 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     marginRight: 6,
   },
-  // Fixed message styles - now with absolute positioning
   messageOverlay: {
     position: "absolute",
     top: 60,

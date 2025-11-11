@@ -28,7 +28,6 @@ export default function UpgradePremium() {
         setProfileImage(data.profileImage || null);
       }
     } catch (error) {
-      console.error("Error fetching user data:", error);
     }
   };
 

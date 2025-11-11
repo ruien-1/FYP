@@ -24,28 +24,23 @@ export default function ActivityPage({ route, navigation }) {
   const [savingId, setSavingId] = useState(null);
   
 
-  // Modal states
   const [addActivityModalVisible, setAddActivityModalVisible] = useState(false);
   const [customActivityModalVisible, setCustomActivityModalVisible] = useState(false);
-  const [modalType, setModalType] = useState("add"); // "add" | "list" | "edit"
+  const [modalType, setModalType] = useState("add"); 
   const [editingActivity, setEditingActivity] = useState(null);
 
-  // Custom activities state
   const [myActivities, setMyActivities] = useState([]);
   
-  // Membership status
   const [membership, setMembership] = useState("free");
 
   const selectedDate =
     route.params?.selectedDate || new Date().toISOString().split("T")[0];
 
-  // Load default + custom activities
   useEffect(() => {
     loadDefaultActivities();
     loadMyActivities();
   }, []);
 
-  // Fetch membership status
   useEffect(() => {
     const fetchMembership = async () => {
       try {
@@ -58,7 +53,6 @@ export default function ActivityPage({ route, navigation }) {
           setMembership(userData.membership || "free");
         }
       } catch (error) {
-        console.error("Error fetching membership:", error);
       }
     };
     fetchMembership();
@@ -66,7 +60,7 @@ export default function ActivityPage({ route, navigation }) {
 
   const loadDefaultActivities = async () => {
     try {
-      const res = await API.get("/activities"); // fetch from backend
+      const res = await API.get("/activities"); 
       const formatted = res.data.map((a) => ({
         id: a.id,
         name: a.name,
@@ -75,7 +69,6 @@ export default function ActivityPage({ route, navigation }) {
       setActivities(formatted);
       setAllActivities(formatted);
     } catch (err) {
-      console.error("❌ Error loading default activities:", err);
     }
   };
 
@@ -86,12 +79,10 @@ export default function ActivityPage({ route, navigation }) {
         const res = await API.get(`/CustomActivity/${uid}`);
         setMyActivities(res.data || []);
       } catch (err) {
-        console.error("❌ Error loading custom activities:", err);
       }
     }
   };
 
-  // Search filter
   const searchExercise = (text) => {
     setQuery(text);
     if (text.length > 0) {
@@ -115,7 +106,6 @@ export default function ActivityPage({ route, navigation }) {
       </View>
 
       <View style={styles.resultsBox}>
-        {/* 🔍 Search bar */}
         <View style={styles.searchContainer}>
           <Ionicons name="search" size={20} color="#888" />
           <TextInput
@@ -136,7 +126,6 @@ export default function ActivityPage({ route, navigation }) {
           )}
         </View>
 
-        {/* Activity list */}
         <FlatList
           data={activities}
           keyExtractor={(item) => item.id.toString()}
@@ -149,7 +138,7 @@ export default function ActivityPage({ route, navigation }) {
                 style={styles.addButton}
                 onPress={() => {
                   setEditingActivity(item);
-                  setAddActivityModalVisible(true); // Open AddActivityModal
+                  setAddActivityModalVisible(true); 
                 }}
                 disabled={savingId === item.id}
               >
@@ -169,7 +158,6 @@ export default function ActivityPage({ route, navigation }) {
           style={styles.scrollBox}
         />
 
-        {/* Bottom buttons */}
         <View style={styles.bottomButtons}>
           <TouchableOpacity
             style={[styles.bottomButton, membership !== "premium" && styles.bottomButtonLocked]}
@@ -190,7 +178,7 @@ export default function ActivityPage({ route, navigation }) {
               }
               setModalType("add");
               setEditingActivity(null);
-              setCustomActivityModalVisible(true); // Open CustomActivityModal
+              setCustomActivityModalVisible(true); 
             }}
           >
             <View style={{ position: "relative" }}>
@@ -225,7 +213,7 @@ export default function ActivityPage({ route, navigation }) {
               }
               setModalType("list");
               setEditingActivity(null);
-              setCustomActivityModalVisible(true); // Open CustomActivityModal for list
+              setCustomActivityModalVisible(true); 
             }}
           >
             <View style={{ position: "relative" }}>
@@ -243,7 +231,6 @@ export default function ActivityPage({ route, navigation }) {
         </View>
       </View>
 
-      {/* AddActivityModal */}
       <AddActivityModal
         visible={addActivityModalVisible}
         onClose={() => setAddActivityModalVisible(false)}
@@ -251,7 +238,6 @@ export default function ActivityPage({ route, navigation }) {
         selectedDate={selectedDate}
       />
 
-      {/* Custom Activity Modal */}
       <CustomActivityModal
         visible={customActivityModalVisible}
         onClose={() => setCustomActivityModalVisible(false)}

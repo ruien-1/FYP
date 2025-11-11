@@ -23,7 +23,6 @@ export default function RecipeTab() {
         const res = await API.get("/categories");
         setCategories(res.data);
       } catch (error) {
-        console.error("Error fetching categories:", error.message);
       } finally {
         setLoading(false);
       }

@@ -27,13 +27,11 @@ export default function NutritionistProfile() {
   const [error, setError] = useState(null);
   const [assigningNutritionist, setAssigningNutritionist] = useState(false);
   
-  // Rating modal states
   const [showRatingModal, setShowRatingModal] = useState(false);
   const [selectedRating, setSelectedRating] = useState(0);
   const [ratingComment, setRatingComment] = useState("");
   const [submittingRating, setSubmittingRating] = useState(false);
 
-  // Get current user ID
   const currentUserId = auth.currentUser?.uid;
 
   const fetchNutritionistProfile = useCallback(async () => {
@@ -44,13 +42,11 @@ export default function NutritionistProfile() {
       setError(null);
     } catch (err) {
       setError(err.message);
-      console.error("Error fetching nutritionist profile:", err);
     } finally {
       setLoading(false);
     }
   }, [nutritionistId]);
 
-  // Use useFocusEffect to refresh profile when screen comes into focus
   useFocusEffect(
     useCallback(() => {
       fetchNutritionistProfile();
@@ -66,17 +62,13 @@ export default function NutritionistProfile() {
     setAssigningNutritionist(true);
 
     try {
-      console.log("Assigning nutritionist to user...");
       
-      // Call backend to assign nutritionist
       const response = await API.post(`/user/${currentUserId}/assign-nutritionist`, {
         nutritionistId: nutritionistId,
       });
 
       if (response.data.success) {
-        console.log("Nutritionist assigned successfully");
         
-        // Navigate to chat screen (you'll need to create NutritionistChatScreen)
         navigation.navigate("NutChatScreen", { 
           nutritionistId: nutritionistId, 
           nutritionistName: nutritionist.name 
@@ -85,9 +77,7 @@ export default function NutritionistProfile() {
         Alert.alert("Error", response.data.error || "Failed to assign nutritionist");
       }
     } catch (err) {
-      console.error("Error assigning nutritionist:", err);
       
-      // Check if already assigned (this is okay, just navigate to chat)
       if (err.response?.status === 200) {
         navigation.navigate("ChatScreen", { 
           nutritionistId: nutritionistId, 
@@ -150,10 +140,8 @@ export default function NutritionistProfile() {
 
       Alert.alert("Success", "Thank you for your rating!");
       handleCloseRatingModal();
-      // Refresh nutritionist profile to get updated rating
       fetchNutritionistProfile();
     } catch (err) {
-      console.error("Error submitting rating:", err);
       Alert.alert("Error", err.response?.data?.error || "Failed to submit rating. Please try again.");
     } finally {
       setSubmittingRating(false);
@@ -178,7 +166,6 @@ export default function NutritionistProfile() {
     ));
   };
 
-  // Format availability object to readable string
   const formatAvailability = (availability) => {
     if (!availability) return "Contact for details";
     
@@ -186,16 +173,12 @@ export default function NutritionistProfile() {
       return availability;
     }
     
-    // If it's an object with days
     if (typeof availability === "object") {
       const availableDays = Object.entries(availability)
         .filter(([day, dayData]) => {
-          // Only include days that are available AND have working hours
           if (typeof dayData === "object" && dayData.available === true) {
-            // Check if it has both startTime and endTime to be truly available
             return dayData.startTime && dayData.endTime;
           }
-          // Handle old format (boolean) - but this is less reliable
           if (typeof dayData === "boolean") return dayData;
           return false;
         })
@@ -211,7 +194,6 @@ export default function NutritionistProfile() {
     return "Contact for details";
   };
 
-  // Get all available days with their working hours
   const getAvailableDaysWithHours = (availability) => {
     if (!availability || typeof availability !== "object") {
       return [];
@@ -233,10 +215,8 @@ export default function NutritionistProfile() {
     return daysWithHours;
   };
 
-  // Check if nutritionist has reviews
   const hasReviews = nutritionist?.totalRatings > 0;
 
-  // Get all available days with hours
   const availableDaysWithHours = nutritionist ? getAvailableDaysWithHours(nutritionist.availability) : [];
 
   if (loading) {

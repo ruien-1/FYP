@@ -29,10 +29,8 @@ export default function FilterModal({
     const fetchFilterOptions = async () => {
       try {
         const res = await API.get("/filteroptions");
-        console.log("filterOptions:", res.data);
         setFilterOptions(res.data || { popular: [], diets: [], intolerances: [] });
       } catch (err) {
-        console.error("Error fetching filter options:", err);
       }
     };
     fetchFilterOptions();
@@ -101,7 +99,6 @@ export default function FilterModal({
         setFilteredResults({ Filtered: data });
       }
     } catch (err) {
-      console.error("Error fetching filtered recipes:", err);
       setFilteredResults({});
     } finally {
       onClose();

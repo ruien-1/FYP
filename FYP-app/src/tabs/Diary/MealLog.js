@@ -21,18 +21,15 @@ import { useNavigation, useRoute, useFocusEffect } from "@react-navigation/nativ
 import { searchFoods, fetchNutrition } from "../../api/nutritionix";
 import CustomFoodModal from "./CustomFoodModal";
 
-// 🔹 API backend
 import API from "../../api/backend";
 import { auth, db } from "../../firebaseConfig";
 import { doc, getDoc } from "firebase/firestore";
 import { cancelMealReminderNotifications } from "../Home/notificationService";
 
-// ✅ Use __DEV__ to automatically switch between local & deployed backend
 const DEV_API_URL = "http:/192.168.68.107:5000";
 const PROD_API_URL = "https://fyp-0rqn.onrender.com";
 const API_URL = __DEV__ ? DEV_API_URL : PROD_API_URL;
 
-// 🔹 Default foods
 const defaultFoods = [
   { name: "Toast", calories: 100, protein: 3, carbs: 19, fats: 1, servingSize: "1 slice", servings: 1, info: "Default Food", id: "default_toast" },
   { name: "Boiled Egg", calories: 78, protein: 6, carbs: 1, fats: 5, servingSize: "1 egg", servings: 1, info: "Default Food", id: "default_egg" },
@@ -62,17 +59,14 @@ export default function MealLog() {
   const navigation = useNavigation();
   const route = useRoute();
 
-  // 🔹 Custom foods modal state
   const [modalVisible, setModalVisible] = useState(false);
   const [modalType, setModalType] = useState("list");
   const [myFoods, setMyFoods] = useState([]);
   const [selectedFood, setSelectedFood] = useState(null);
   const [message, setMessage] = useState(null);
 
-  // ✅ SINGLE SOURCE OF TRUTH: All nutrition data stored here
   const [nutritionCache, setNutritionCache] = useState({});
 
-  // image picker state
   const [selectedImage, setSelectedImage] = useState(null);
   const [processingImage, setProcessingImage] = useState(false);
   const [recognitionResult, setRecognitionResult] = useState(null);
@@ -80,14 +74,11 @@ export default function MealLog() {
   const [imageRotation, setImageRotation] = useState(0);
   const [imageFlipped, setImageFlipped] = useState(false);
 
-  // ✅ Race condition prevention
   const [searchId, setSearchId] = useState(0);
   const [debounceTimer, setDebounceTimer] = useState(null);
   
-  // Membership status
   const [membership, setMembership] = useState("free");
 
-  // ✅ Get meal type and selectedDate from navigation
   useEffect(() => {
     if (route.params?.mealType) {
       const cap = route.params.mealType.charAt(0).toUpperCase() + route.params.mealType.slice(1);
@@ -95,23 +86,19 @@ export default function MealLog() {
     }
   }, [route.params?.mealType]);
 
-  // Handle recognized food from FoodRecognition when screen is focused
   useFocusEffect(
     React.useCallback(() => {
       if (route.params?.recognizedFood || route.params?.searchQuery) {
         const foodName = route.params.recognizedFood || route.params.searchQuery;
         setQuery(foodName);
-        // Trigger search directly
         if (foodName && foodName.length > 1) {
           searchFood(foodName);
         }
-        // Clear params to prevent re-triggering
         navigation.setParams({ recognizedFood: undefined, searchQuery: undefined });
       }
     }, [route.params?.recognizedFood, route.params?.searchQuery])
   );
 
-  // Fetch membership status
   useEffect(() => {
     const fetchMembership = async () => {
       try {
@@ -124,13 +111,11 @@ export default function MealLog() {
           setMembership(userData.membership || "free");
         }
       } catch (error) {
-        console.error("Error fetching membership:", error);
       }
     };
     fetchMembership();
   }, []);
 
-  // ✅ Load default foods on mount
   useEffect(() => {
     setFoods(defaultFoods);
   }, []);
@@ -144,7 +129,6 @@ export default function MealLog() {
     }
   }, [message]);
 
-  // Cleanup debounce timer on unmount
   useEffect(() => {
     return () => {
       if (debounceTimer) {
@@ -157,7 +141,7 @@ export default function MealLog() {
     try {
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        allowsEditing: false, // Disable native editing - use our custom modal instead
+        allowsEditing: false, 
         quality: 0.5,
         base64: false,
       });
@@ -167,11 +151,9 @@ export default function MealLog() {
         setImageRotation(0);
         setImageFlipped(false);
         setRecognitionResult(null);
-        // Show custom edit modal with visible buttons
         setShowImageEditModal(true);
       }
     } catch (err) {
-      console.warn("ImagePicker error:", err);
       Alert.alert("Error", "Failed to select image from gallery");
     }
   };
@@ -186,25 +168,20 @@ export default function MealLog() {
 
   const handleConfirmImage = () => {
     setShowImageEditModal(false);
-    // Process the image for recognition
     if (selectedImage) {
       processImageForRecognition(selectedImage);
     }
   };
 
-  // Process image for food recognition (used for both camera and gallery)
   const processImageForRecognition = async (imageUri) => {
     try {
       setProcessingImage(true);
       setRecognitionResult(null);
 
-      // Convert image to base64
       const base64Image = await FileSystemLegacy.readAsStringAsync(imageUri, {
         encoding: FileSystemLegacy.EncodingType.Base64,
       });
 
-      // Send to backend for recognition
-      console.log("📤 Sending image to backend:", `${API_URL}/recognize-food`);
       const response = await fetch(`${API_URL}/recognize-food`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -216,11 +193,9 @@ export default function MealLog() {
       }
 
       const data = await response.json();
-      console.log("✅ Response from backend:", data);
       const recognizedFood = data.food || "Unknown";
       setRecognitionResult(recognizedFood);
 
-      // Show alert with option to search for the recognized food (same as FoodRecognition.js)
       Alert.alert(
         "Food Recognized",
         `Recognized as: ${recognizedFood}\n\nWould you like to search for this food?`,
@@ -229,7 +204,6 @@ export default function MealLog() {
           {
             text: "Search",
             onPress: () => {
-              // Switch to Search tab and search
               setActiveTab("Search");
               setQuery(recognizedFood);
               if (recognizedFood && recognizedFood.length > 1) {
@@ -240,7 +214,6 @@ export default function MealLog() {
         ]
       );
     } catch (error) {
-      console.error("❌ Error recognizing food:", error);
       Alert.alert("Error", "Failed to recognize food. Please try again.");
       setRecognitionResult(null);
     } finally {
@@ -256,32 +229,26 @@ export default function MealLog() {
   ];
   const currentMeal = mealOptions.find((m) => m.label === meal);
 
-  // ✅ FIXED: Search with race condition prevention
   const searchFood = async (text) => {
     if (text.length > 1) {
       try {
         setLoading(true);
 
-        // Create unique ID for this search
         const currentSearchId = Date.now();
         setSearchId(currentSearchId);
 
         const { generic = [], branded = [] } = await searchFoods(text);
 
-        // Check if this is still the latest search
         if (currentSearchId < searchId) {
-          console.log("⏭️ Ignoring outdated search results");
           setLoading(false);
           return;
         }
 
         let initialResults = [...generic.slice(0, 8), ...branded.slice(0, 12)];
 
-        // 🔹 Fetch and cache nutrition data for all results
         const searchTimestamp = Date.now();
         const refinedResults = await Promise.all(
           initialResults.map(async (f, i) => {
-            // ✅ ALWAYS use unique ID - API IDs can be duplicates!
             const id = `${searchTimestamp}_${i}_${Math.random().toString(36).substr(2, 9)}`;
 
             if (nutritionCache[id]) {
@@ -314,7 +281,6 @@ export default function MealLog() {
                 return refined;
               }
             } catch (err) {
-              console.log("⚠️ Error fetching nutrition for:", f.food_name, err);
             }
 
             const fallback = {
@@ -336,16 +302,13 @@ export default function MealLog() {
           })
         );
 
-        // Final check before updating UI
         if (currentSearchId < searchId) {
-          console.log("⏭️ Ignoring outdated nutrition results");
           setLoading(false);
           return;
         }
 
         setFoods(refinedResults);
       } catch (err) {
-        console.error("❌ Error searching food:", err);
         Alert.alert("Search Error", "Could not fetch food data. Please try again.");
       } finally {
         setLoading(false);
@@ -356,7 +319,6 @@ export default function MealLog() {
     }
   };
 
-  // ✅ Debounced search handler
   const handleSearchInput = (text) => {
     setQuery(text);
 
@@ -367,7 +329,7 @@ export default function MealLog() {
     if (text.length > 1) {
       const timer = setTimeout(() => {
         searchFood(text);
-      }, 300); // Wait 300ms after user stops typing
+      }, 300); 
       setDebounceTimer(timer);
     } else {
       setFoods(defaultFoods);
@@ -375,7 +337,6 @@ export default function MealLog() {
     }
   };
 
-  // ✅ Save meal - food already has full nutrition from cache
   const saveMeal = async (food) => {
     try {
       const uid = auth.currentUser?.uid;
@@ -400,7 +361,6 @@ export default function MealLog() {
 
       if (postRes.data?.success) {
         setMessage({ text: `${food.name} added to ${meal}`, type: "success" });
-        // Cancel meal reminder if meal is logged for today
         const loggedDate = mealLog.date;
         const today = new Date().toISOString().split("T")[0];
         if (loggedDate === today) {
@@ -410,7 +370,6 @@ export default function MealLog() {
         setMessage({ text: "❌ Failed to log meal. Please try again.", type: "error" });
       }
     } catch (err) {
-      console.error("❌ Error saving meal:", err);
       Alert.alert("Error", "Could not save meal.");
     }
   };
@@ -775,7 +734,6 @@ export default function MealLog() {
   );
 }
 
-// 🔹 Expandable FAB
 function ExpandableFAB({ onMyFoodPress, onAddFoodPress }) {
   const [open, setOpen] = useState(false);
   const slideAnim = useState(new Animated.Value(0))[0];
@@ -1055,7 +1013,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
   },
-  // Image Edit Modal Styles
   modalOverlay: {
     flex: 1,
     backgroundColor: "rgba(0, 0, 0, 0.7)",

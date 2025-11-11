@@ -8,7 +8,7 @@ import CoachSignup from "./CoachSignup";
 
 const SignUpPage = ({ navigation }) => {
   const [question, setQuestion] = useState(1);
-  const [userType, setUserType] = useState(""); // "user", "nutritionist", or "coach"
+  const [userType, setUserType] = useState(""); 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -69,7 +69,6 @@ const SignUpPage = ({ navigation }) => {
         [{ text: "Continue", onPress: handleContinueAfterVerification }]
       );
     } catch (error) {
-      console.error("Signup error:", error);
       Alert.alert("Signup Error", error.message);
     }
   };
@@ -111,7 +110,6 @@ const SignUpPage = ({ navigation }) => {
         { text: "Continue", onPress: () => navigation.navigate("Login") },
       ]);
     } catch (error) {
-      console.error("Verification flow error:", error);
       Alert.alert("Error", error.message);
     }
   };

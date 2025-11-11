@@ -21,14 +21,11 @@ export default function FindCoach() {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [showFilterModal, setShowFilterModal] = useState(false);
-  const [expandedCards, setExpandedCards] = useState({}); // Track which cards are expanded
-
-  // Filter states - now arrays for multiple selection
+  const [expandedCards, setExpandedCards] = useState({}); 
   const [selectedSpecializations, setSelectedSpecializations] = useState([]);
   const [selectedServices, setSelectedServices] = useState([]);
   const [selectedExperience, setSelectedExperience] = useState("");
 
-  // Predefined lists from your signup pages
   const SPECIALIZATIONS = [
     "Weight Loss",
     "Muscle Building",
@@ -56,7 +53,6 @@ export default function FindCoach() {
     fetchCoaches();
   }, []);
 
-  // Refresh data when screen comes into focus
   useFocusEffect(
     useCallback(() => {
       fetchCoaches();
@@ -66,13 +62,10 @@ export default function FindCoach() {
   const fetchCoaches = async () => {
     try {
       const res = await API.get("/coaches");
-      console.log("Fetched coaches:", res.data);
       setCoaches(res.data);
       
-      // Reapply current filters to the new data
       applyFilters(searchQuery, selectedSpecializations, selectedServices, selectedExperience, res.data);
     } catch (err) {
-      console.error("Error fetching coaches:", err);
     } finally {
       setLoading(false);
     }
@@ -107,7 +100,6 @@ export default function FindCoach() {
   const applyFilters = (search, specializations, services, experience, dataSource = null) => {
     let filtered = [...(dataSource || coaches)];
 
-    // Search filter
     if (search.trim() !== "") {
       filtered = filtered.filter(
         (coach) =>
@@ -121,7 +113,6 @@ export default function FindCoach() {
       );
     }
 
-    // Specialization filter - match ANY selected specialization
     if (specializations.length > 0) {
       filtered = filtered.filter((coach) =>
         specializations.some(spec => 
@@ -130,7 +121,6 @@ export default function FindCoach() {
       );
     }
 
-    // Service filter - match ANY selected service
     if (services.length > 0) {
       filtered = filtered.filter((coach) =>
         services.some(service => 
@@ -139,7 +129,6 @@ export default function FindCoach() {
       );
     }
 
-    // Experience filter
     if (experience) {
       const expYears = parseInt(experience);
       filtered = filtered.filter(
@@ -653,7 +642,6 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     fontSize: 13,
   },
-  // Modal Styles
   modalOverlay: {
     flex: 1,
     backgroundColor: "rgba(0, 0, 0, 0.5)",

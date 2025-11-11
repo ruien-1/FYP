@@ -41,7 +41,6 @@ export default function ViewMoreRecipes() {
       });
       setFavorites(favsObj);
     } catch (error) {
-      console.error("Error fetching favorites:", error.message);
     }
   };
 
@@ -64,7 +63,6 @@ export default function ViewMoreRecipes() {
       }
       await fetchFavorites(); 
     } catch (error) {
-      console.error("Error toggling favorite:", error.message);
     }
   };
 
@@ -99,7 +97,6 @@ export default function ViewMoreRecipes() {
         setTimeout(() => setSuccessMessage(""), 3000);
       }
     } catch (err) {
-      console.error("Error logging meal:", err);
       setSuccessMessage("Failed to log meal. Please try again.");
       setTimeout(() => setSuccessMessage(""), 3000);
     }

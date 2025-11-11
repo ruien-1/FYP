@@ -32,11 +32,8 @@ export default function WorkoutPlanDetails() {
     try {
       setLoggingDayId(day.id);
 
-      // Use the date from the day object, which is already in YYYY-MM-DD format
-      // This ensures we log to the correct date that matches the day.label
       const dayDate = day.date || new Date().toISOString().split("T")[0];
 
-      // Log activities from the selected activities array
       if (day.activities && day.activities.length > 0) {
         for (const activity of day.activities) {
           const activityLog = {
@@ -51,12 +48,10 @@ export default function WorkoutPlanDetails() {
         }
       }
 
-      // Also log manual activity if present
       if (day.activity && day.activity.trim() && day.calories) {
-        // For manual entries, we'll create a simple activity log
         const manualActivityLog = {
           name: day.activity.trim(),
-          duration: 0, // Manual entries might not have duration
+          duration: 0, 
           calories: Number(day.calories) || 0,
           intensity: "moderate",
           date: dayDate,
@@ -70,7 +65,6 @@ export default function WorkoutPlanDetails() {
         [{ text: "OK" }]
       );
     } catch (err) {
-      console.error("Error logging activities:", err);
       Alert.alert("Error", "Failed to log activities. Please try again.");
     } finally {
       setLoggingDayId(null);

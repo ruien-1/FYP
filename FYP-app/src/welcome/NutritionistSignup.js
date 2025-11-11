@@ -68,20 +68,16 @@ const NutritionistSignup = ({ navigation, onBack }) => {
 
   // CLOUDINARY CONFIGURATION
   const CLOUDINARY_CLOUD_NAME = 'djmgxrebz';
-  const CLOUDINARY_UPLOAD_PRESET = 'nutritionist_docs'; // You'll need to create this - see instructions below
+  const CLOUDINARY_UPLOAD_PRESET = 'nutritionist_docs'; 
 
   // Upload file to Cloudinary
   const uploadFileToCloudinary = async (fileUri, userId) => {
     try {
-      console.log("Starting file upload to Cloudinary for user:", userId);
-      console.log("File URI:", fileUri);
 
-      // Read file as base64
       const fileContent = await FileSystemLegacy.readAsStringAsync(fileUri, {
         encoding: 'base64',
       });
 
-      // Determine file type
       const fileExtension = fileUri.toLowerCase().split('.').pop();
       let resourceType = 'auto';
       let mimeType = 'application/octet-stream';
@@ -103,7 +99,6 @@ const NutritionistSignup = ({ navigation, onBack }) => {
       formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
       formData.append('folder', `credentials/${userId}`);
 
-      console.log("Uploading to Cloudinary...");
 
       // Upload to Cloudinary
       const response = await fetch(
@@ -120,7 +115,6 @@ const NutritionistSignup = ({ navigation, onBack }) => {
         throw new Error(data.error?.message || 'Upload failed');
       }
 
-      console.log("Upload successful! URL:", data.secure_url);
 
       return {
         success: true,
@@ -129,7 +123,6 @@ const NutritionistSignup = ({ navigation, onBack }) => {
         publicId: data.public_id,
       };
     } catch (error) {
-      console.error("Upload error:", error);
       return {
         success: false,
         error: error.message,
@@ -182,7 +175,6 @@ const NutritionistSignup = ({ navigation, onBack }) => {
         [{ text: "Continue", onPress: handleContinueAfterVerification }]
       );
     } catch (error) {
-      console.error("Signup error:", error);
       Alert.alert("Signup Error", error.message);
     }
   };
@@ -217,7 +209,6 @@ const NutritionistSignup = ({ navigation, onBack }) => {
       // Upload file to Cloudinary if document exists
       let uploadedFileData = null;
       if (profile.proofDocument && profile.proofDocument.uri) {
-        console.log("Uploading document to Cloudinary...");
 
         const uploadResult = await uploadFileToCloudinary(
           profile.proofDocument.uri,
@@ -238,19 +229,15 @@ const NutritionistSignup = ({ navigation, onBack }) => {
           uploadedAt: new Date().toISOString(),
         };
 
-        console.log("Document uploaded successfully!");
       }
 
-      // ✅ Convert numeric values before sending to backend
       const convertedProfile = {
         ...profile,
         age: Number(profile.age),
         yearsOfExperience: Number(profile.yearsOfExperience),
-        proofDocument: uploadedFileData, // Replace local URI with Cloudinary URL
+        proofDocument: uploadedFileData, 
       };
 
-      // Save profile to backend
-      console.log("Saving profile to backend...");
       const response = await API.post("/complete-nutritionist-signup", {
         uid: user.uid,
         email,
@@ -270,7 +257,6 @@ const NutritionistSignup = ({ navigation, onBack }) => {
       );
     } catch (error) {
       setIsUploading(false);
-      console.error("Verification flow error:", error);
       Alert.alert("Error", error.message);
     }
   };
@@ -653,7 +639,6 @@ const NutritionistSignup = ({ navigation, onBack }) => {
                     });
                   }
                 } catch (error) {
-                  console.log('Document picker error:', error);
                   Alert.alert("Error", "Failed to pick document. Please try again.");
                 }
               }}

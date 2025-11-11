@@ -19,7 +19,6 @@ const QRScanner = () => {
   const [productInfo, setProductInfo] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  // Modal states
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [showManualAddModal, setShowManualAddModal] = useState(false);
   const [showIncompleteModal, setShowIncompleteModal] = useState(false);
@@ -29,7 +28,6 @@ const QRScanner = () => {
   const [lastScannedBarcode, setLastScannedBarcode] = useState(null);
   const navigation = useNavigation();
 
-  // Reset when screen gains/loses focus
   useFocusEffect(
     useCallback(() => {
       setScanned(false);
@@ -66,20 +64,16 @@ const QRScanner = () => {
     );
   }
 
-  // ✅ STEP 1: Check our QRFood database
   const checkProductInDatabase = async (barcodeData) => {
     try {
-      console.log(`🔍 Checking database for barcode: ${barcodeData}`);
       const response = await API.get(`/QRFood/barcode/${barcodeData}`, {
         validateStatus: (status) => status === 200 || status === 404,
       });
 
-      // ✅ If found in DB (HTTP 200)
       if (response.status === 200 && response.data) {
         const product = response.data;
 
         if (product.status === "approved") {
-          console.log("✅ Product found with approved status");
           return {
             found: true,
             data: {
@@ -100,59 +94,46 @@ const QRScanner = () => {
           product.status === "pending" ||
           product.status === "pending_verification"
         ) {
-          console.log("⚠️ Product found with pending status:", product.status);
           return { found: true, pending: true, productName: product.productName };
         }
       }
 
-      // ✅ If 404, just continue to OpenFoodFacts (not an error)
       if (response.status === 404) {
-        console.log("ℹ️ Product not in database (404) — moving to OpenFoodFacts.");
         return { found: false };
       }
 
-      console.log("❌ Product not found in database (unexpected response)");
       return { found: false };
     } catch (error) {
-      console.error("🔥 Unexpected error checking database:", error.message);
       return { found: false, error: error.message };
     }
   };
 
-  // ✅ STEP 2: Handle scanning logic
   const handleScan = async ({ data }) => {
     if (scanned || data === lastScannedBarcode) {
-      console.log("Duplicate scan prevented:", data);
       return;
     }
 
-    console.log("📸 New barcode scanned:", data);
     setScanned(true);
     setLastScannedBarcode(data);
     setBarcode(data);
     setLoading(true);
 
     try {
-      // 1️⃣ Check in QRFood DB
       const dbCheck = await checkProductInDatabase(data);
 
       if (dbCheck.found && dbCheck.pending) {
-        console.log("🕓 Showing pending verification modal");
         setShowPendingModal(true);
         setLoading(false);
         return;
       }
 
       if (dbCheck.found && dbCheck.data) {
-        console.log("✅ Showing confirmation modal with product data");
         setProductInfo(dbCheck.data);
         setShowConfirmModal(true);
         setLoading(false);
         return;
       }
 
-      // 2️⃣ If not in DB → check OpenFoodFacts
-      console.log("🌍 Checking OpenFoodFacts API...");
       const response = await fetch(
         `https://world.openfoodfacts.org/api/v0/product/${data}.json`
       );
@@ -194,18 +175,14 @@ const QRScanner = () => {
         setProductInfo(productData);
 
         if (isIncomplete) {
-          console.log("⚠️ Showing incomplete modal");
           setShowIncompleteModal(true);
         } else {
-          console.log("✅ Showing confirmation modal");
           setShowConfirmModal(true);
         }
       } else {
-        console.log("❌ Product not found anywhere, showing manual add modal");
         setShowManualAddModal(true);
       }
     } catch (error) {
-      console.error("🔥 Error in handleScan:", error.message);
       setScanned(false);
       setLastScannedBarcode(null);
     } finally {
@@ -220,7 +197,6 @@ const QRScanner = () => {
     setBarcode(null);
   };
 
-  // ✅ CAMERA VIEW + UI
   return (
     <View style={styles.container}>
       <CameraView
@@ -248,8 +224,7 @@ const QRScanner = () => {
         </View>
       )}
 
-      {/* === MODALS === */}
-      {/* ✅ Complete Product Modal */}
+
       <Modal visible={showConfirmModal} transparent animationType="slide">
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
@@ -292,7 +267,6 @@ const QRScanner = () => {
         </View>
       </Modal>
 
-      {/* ⚠️ Incomplete Product Modal */}
       <Modal visible={showIncompleteModal} transparent animationType="slide">
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
@@ -371,7 +345,6 @@ const QRScanner = () => {
         </View>
       </Modal>
 
-      {/* 🕓 Pending Verification Modal */}
       <Modal visible={showPendingModal} transparent animationType="fade">
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
@@ -393,7 +366,6 @@ const QRScanner = () => {
         </View>
       </Modal>
 
-      {/* ➕ Manual Add Modal */}
       <Modal visible={showManualAddModal} transparent animationType="fade">
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
@@ -440,7 +412,6 @@ const QRScanner = () => {
   );
 };
 
-// === STYLES ===
 const styles = StyleSheet.create({
   container: { flex: 1 },
   camera: { flex: 1 },

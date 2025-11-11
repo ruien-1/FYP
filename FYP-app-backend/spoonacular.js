@@ -42,7 +42,6 @@ export async function searchByNutrients({
   Object.assign(params, buildIntoleranceParams({ intolerances }));
 
   const url = buildUrl(`${BASE_URL}/findByNutrients`, params);
-  console.log("NutrientSearch:", url);
 
   const res = await fetch(url);
   if (!res.ok) throw new Error(`Failed nutrient search: ${res.status}`);
@@ -121,7 +120,6 @@ export async function searchComplex({
         if (diet) paramsCopy.diet = diet;
 
         const url = buildUrl(`${BASE_URL}/complexSearch`, paramsCopy);
-        console.log("🔎 ComplexSearch (multi):", url);
 
         return fetch(url).then((res) => res.json());
       })
@@ -139,7 +137,6 @@ export async function searchComplex({
     if (diet) params.diet = diet;
 
     const url = buildUrl(`${BASE_URL}/complexSearch`, params);
-    console.log("🔎 ComplexSearch:", url);
 
     const res = await fetch(url);
     if (!res.ok) throw new Error(`Failed complex search: ${res.status}`);

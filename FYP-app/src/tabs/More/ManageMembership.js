@@ -51,7 +51,7 @@ export default function ManageMembership() {
 
       if (snap.exists()) {
         const data = snap.data();
-        console.log("ManageMembership - User data:", {
+        ("ManageMembership - User data:", {
           planType: data.planType,
           renewalDate: data.renewalDate,
           renewalDateType: typeof data.renewalDate,
@@ -67,20 +67,16 @@ export default function ManageMembership() {
           if (typeof data.renewalDate === 'string') {
             renewalDateValue = data.renewalDate;
           } else if (data.renewalDate?.toDate && typeof data.renewalDate.toDate === 'function') {
-            // Firestore Timestamp
             renewalDateValue = data.renewalDate.toDate().toISOString();
           } else if (data.renewalDate instanceof Date) {
             renewalDateValue = data.renewalDate.toISOString();
           } else {
-            // Try to parse as date
             try {
               renewalDateValue = new Date(data.renewalDate).toISOString();
             } catch (e) {
-              console.error("Error parsing renewalDate:", e);
             }
           }
         } else if (data.premiumActivatedAt && data.planType) {
-          // Fallback: Calculate renewal date from premiumActivatedAt if renewalDate doesn't exist
           try {
             let activatedDate;
             if (typeof data.premiumActivatedAt === 'string') {
@@ -99,16 +95,13 @@ export default function ManageMembership() {
             }
             renewalDateValue = renewal.toISOString();
             
-            // Save the calculated renewal date to Firestore for future use
             const currentUser = auth.currentUser;
             if (currentUser) {
               const userRef = doc(db, "user", currentUser.uid);
               updateDoc(userRef, { renewalDate: renewalDateValue }).catch(err => {
-                console.error("Error saving calculated renewalDate:", err);
               });
             }
           } catch (e) {
-            console.error("Error calculating renewalDate from premiumActivatedAt:", e);
           }
         }
         setRenewalDate(renewalDateValue);
@@ -116,7 +109,6 @@ export default function ManageMembership() {
         setSelectedPlan(data.planType || "monthly");
       }
     } catch (error) {
-      console.error("Error fetching membership data:", error);
     }
   };
 
@@ -309,7 +301,6 @@ export default function ManageMembership() {
                           return;
                         }
 
-                        // Calculate new renewal date based on selected plan
                         const now = new Date();
                         const newRenewalDate = new Date(now);
                         if (selectedPlan === "monthly") {
@@ -338,7 +329,6 @@ export default function ManageMembership() {
                           ]
                         );
                       } catch (error) {
-                        console.error("Error updating plan:", error);
                         Alert.alert("Error", "Failed to update plan. Please try again.");
                       } finally {
                         setIsLoading(false);
@@ -434,7 +424,6 @@ export default function ManageMembership() {
                           ]
                         );
                       } catch (error) {
-                        console.error("Error cancelling subscription:", error);
                         Alert.alert("Error", "Failed to cancel subscription. Please try again.");
                       } finally {
                         setIsLoading(false);
@@ -621,7 +610,6 @@ const formatRenewalDate = (dateString) => {
     const date = new Date(dateString);
     // Check if date is valid
     if (isNaN(date.getTime())) {
-      console.error("Invalid date string:", dateString);
       return "";
     }
     const day = date.getDate();
@@ -633,7 +621,6 @@ const formatRenewalDate = (dateString) => {
     const year = date.getFullYear();
     return `${day} ${month} ${year}`;
   } catch (error) {
-    console.error("Error formatting date:", error, dateString);
     return "";
   }
 };

@@ -30,7 +30,6 @@ export default function AddActivityModal({
   const [userInfo, setUserInfo] = useState(null);
   const [intensity, setIntensity] = useState("moderate");
 
-  // 🧹 Reset form whenever modal opens or selected date/activity changes
   useEffect(() => {
     if (visible) {
       setDuration("");
@@ -42,14 +41,12 @@ export default function AddActivityModal({
     }
   }, [visible, selectedActivity, selectedDate]);
 
-  // 🧠 Fetch user info when modal becomes visible
   useEffect(() => {
     if (visible && auth.currentUser?.uid) {
       fetchUserInfo(auth.currentUser.uid);
     }
   }, [visible]);
 
-  // ⚙️ Recalculate calories on input changes
   useEffect(() => {
     calculateEstimatedCalories();
   }, [duration, intensity, userInfo, selectedActivity]);
@@ -59,7 +56,6 @@ export default function AddActivityModal({
       const res = await API.get(`/user_info/${uid}`);
       setUserInfo(res.data);
     } catch (err) {
-      console.error("❌ Error fetching user info:", err);
     }
   };
 
@@ -124,7 +120,6 @@ const handleLogActivity = async () => {
       return;
     }
 
-    // ✅ Force local timezone and prevent UTC shift
     const finalDate =
       typeof selectedDate === "string"
         ? selectedDate
@@ -149,7 +144,6 @@ const handleLogActivity = async () => {
       setEstimatedCalories(null);
     }
   } catch (err) {
-    console.error("❌ Error logging activity:", err);
     showError("Failed to log activity.");
   }
 };

@@ -32,11 +32,10 @@ export default function ViewRatingCoach() {
       const response = await API.get(`/coach/${coachId}/ratings?limit=50`);
       
       if (response.data.success) {
-        // Sort ratings by createdAt on the client side
         const sortedRatings = (response.data.ratings || []).sort((a, b) => {
           const dateA = new Date(a.createdAt);
           const dateB = new Date(b.createdAt);
-          return dateB - dateA; // Descending order (newest first)
+          return dateB - dateA; 
         });
         setRatings(sortedRatings);
       } else {
@@ -44,8 +43,6 @@ export default function ViewRatingCoach() {
       }
     } catch (err) {
       setError(err.response?.data?.error || err.message);
-      console.error("Error fetching ratings:", err);
-      console.error("Error details:", err.response?.data);
     } finally {
       setLoading(false);
       setRefreshing(false);

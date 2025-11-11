@@ -33,7 +33,6 @@ export default function HomeTab() {
   const [articles, setArticles] = useState([]);
   const [loadingArticles, setLoadingArticles] = useState(true);
 
-  // Fetch weight data from daily_summary
   const fetchWeightProgress = async () => {
     try {
       const uid = auth.currentUser?.uid;
@@ -42,7 +41,6 @@ export default function HomeTab() {
       const res = await API.get(`/weight_progress/${uid}`);
       setWeightData(res.data || []);
     } catch (err) {
-      console.error("Error fetching weight progress:", err);
     } finally {
       setLoadingWeight(false);
     }
@@ -53,15 +51,12 @@ export default function HomeTab() {
       const uid = auth.currentUser?.uid;
       if (!uid) return;
 
-      // Fetch goals
       const goalRes = await API.get(`/goals/${uid}`);
       const goalData = goalRes.data;
 
-      // Parse weekly loss (string like "0.5 kg/week")
       const match = goalData?.weightLossGoal?.match(/[\d.]+/);
       const weeklyLoss = match ? parseFloat(match[0]) : 0.3;
 
-      // Fetch initial weight from user_info
       const userRes = await API.get(`/user_info/${uid}`);
       const initialWeight = parseFloat(userRes.data?.weight) || 65;
       const targetWeight = parseFloat(goalData?.targetWeight) || initialWeight - 5;
@@ -69,7 +64,6 @@ export default function HomeTab() {
       setGoal(targetWeight);
       setTarget(weeklyLoss);
 
-      // Generate goal line data
       if (weightData.length > 0) {
         const goalDataArray = weightData.map((_, index) => {
           const expectedWeight = initialWeight - (weeklyLoss / 7) * index;
@@ -85,11 +79,9 @@ export default function HomeTab() {
         setGoalLineData(cleanedData);
       }
     } catch (err) {
-      console.error("Error fetching goal data:", err);
     }
   };
 
-  // Fetch articles from coaches and nutritionists
   const fetchArticles = async () => {
     try {
       setLoadingArticles(true);
@@ -99,7 +91,6 @@ export default function HomeTab() {
         setArticles(response.data.articles || []);
       }
     } catch (err) {
-      console.error("Error fetching articles:", err);
     } finally {
       setLoadingArticles(false);
     }
@@ -118,12 +109,10 @@ export default function HomeTab() {
     }
   }, [isFocused, weightData]);
 
-  // Format author name with prefix
   const getDisplayAuthorName = (article) => {
     const name = article.authorName || (article.authorType === 'coach' ? 'Coach' : 'Nutritionist');
     const prefix = article.authorType === 'coach' ? 'Coach' : 'Nutritionist';
     
-    // Check if name already starts with the prefix
     if (name.toLowerCase().startsWith(prefix.toLowerCase())) {
       return name;
     }
@@ -131,7 +120,6 @@ export default function HomeTab() {
     return `${prefix} ${name}`;
   };
 
-  // Handle article link click
   const handleArticlePress = async (article) => {
     if (article.articleLink) {
       try {
@@ -142,14 +130,12 @@ export default function HomeTab() {
           Alert.alert("Error", "Cannot open this link");
         }
       } catch (error) {
-        console.error("Error opening link:", error);
         Alert.alert("Error", "Failed to open the article link");
       }
     }
   };
 
   const renderArticleCard = (article, index) => {
-    // Get photos array - check both 'photos' and 'imageUrl' fields
     const articlePhotos = article.photos || (article.imageUrl ? [article.imageUrl] : []);
     const hasPhotos = articlePhotos.length > 0;
     const hasLink = !!article.articleLink;
@@ -162,7 +148,6 @@ export default function HomeTab() {
         onPress={() => handleArticlePress(article)}
         disabled={!hasLink}
       >
-        {/* Image Section - Display up to 2 images */}
         {hasPhotos ? (
           <View style={styles.imagesContainer}>
             {articlePhotos.slice(0, 2).map((photo, photoIndex) => (
@@ -403,7 +388,6 @@ const styles = StyleSheet.create({
   stateBox: { marginTop: 15 },
   stateText: { fontSize: 12, color: "#333", marginBottom: 2 },
 
-  // IF Timer Card
   timerCard: {
     backgroundColor: '#FFF3B0',
     marginBottom: 20,
@@ -463,7 +447,6 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
 
-  // Articles Section
   articlesSection: {
     marginBottom: 20,
   },
@@ -511,7 +494,6 @@ const styles = StyleSheet.create({
     paddingRight: 16,
   },
 
-  // Article Card
   articleCard: {
     backgroundColor: '#FFFFFF',
     borderRadius: 16,
@@ -524,7 +506,6 @@ const styles = StyleSheet.create({
     elevation: 4,
     overflow: 'hidden',
   },
-  // Images Container
   imagesContainer: {
     flexDirection: 'row',
     width: '100%',

@@ -21,13 +21,10 @@ export default function LogMealQR() {
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(true);
 
-  // Default values (meal type can be changed by user later)
   const [mealType, setMealType] = useState(logMealData?.mealType || "Lunch");
   
-  // State for fetched food data
   const [foodData, setFoodData] = useState(null);
   
-  // Get original serving info from fetched data or productInfo
   const originalServingSize = foodData?.servingAmount || productInfo?.servingAmount || 100;
   const originalServingUnit = foodData?.servingUnit || productInfo?.servingUnit || "g";
   
@@ -38,7 +35,6 @@ export default function LogMealQR() {
   const [food] = useState(foodData?.productName || productInfo?.name || "Unknown Food");
   const [brand] = useState(foodData?.brand || productInfo?.brand || "");
   
-  // Success and error messages
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
 
@@ -55,20 +51,17 @@ export default function LogMealQR() {
     setTimeout(() => setErrorMessage(""), 3000);
   };
   
-  // Update servingSize when foodData or productInfo changes
   useEffect(() => {
     if (originalServingSize) {
       setServingSize(originalServingSize.toString());
     }
   }, [originalServingSize]);
 
-  // Nutrient values from fetched data or productInfo (per original serving size)
   const proteinPerServing = foodData?.protein || productInfo?.nutriments?.proteins_100g || productInfo?.protein || 0;
   const fatPerServing = foodData?.fat || productInfo?.nutriments?.fat_100g || productInfo?.fat || 0;
   const carbsPerServing = foodData?.carbs || productInfo?.nutriments?.carbohydrates_100g || productInfo?.carbs || 0;
   const caloriesPerServing = foodData?.calories || productInfo?.nutriments?.calories || productInfo?.calories || 0;
 
-  // Fetch food data from backend if barcode is provided
   useEffect(() => {
     const fetchFoodData = async () => {
       if (barcode) {
@@ -79,15 +72,12 @@ export default function LogMealQR() {
           if (response.data.success) {
             setFoodData(response.data);
           } else {
-            console.log("ℹ️ Product not found in backend, using fallback data.");
             setFoodData(productInfo || null);
           }
         } catch (error) {
           if (error.response && error.response.status === 404) {
-            console.log("ℹ️ Product not found (404) — using fallback data.");
             setFoodData(productInfo || null);
           } else {
-            console.error("❌ Unexpected error fetching food data:", error);
             showError("Failed to load food details");
           }
         } finally {
@@ -101,7 +91,6 @@ export default function LogMealQR() {
     fetchFoodData();
   }, [barcode]);
 
-  // Calculate totals based on serving ratio
   const servingRatio = (Number(servingSize) / originalServingSize) * Number(servings);
   
   const totalProtein = (proteinPerServing * servingRatio).toFixed(1);
@@ -117,7 +106,6 @@ export default function LogMealQR() {
   }, [route.params]);
     
   const handleSaveMeal = async () => {
-    // Validate inputs
     if (!servingSize || Number(servingSize) <= 0) {
       showError("Please enter a valid serving size.");
       return;
@@ -149,7 +137,6 @@ export default function LogMealQR() {
 
       await API.post(`/meals_log/${userId}`, meal);
 
-      // Cancel meal reminder if meal is logged for today
       const loggedDate = meal.date;
       const today = new Date().toISOString().split("T")[0];
       if (loggedDate === today) {
@@ -158,12 +145,10 @@ export default function LogMealQR() {
 
       showSuccess("Meal logged successfully!");
     } catch (error) {
-      console.error("❌ Error saving meal:", error);
       showError("Failed to save meal. Try again.");
     }
   };
 
-  // ---------- Screen 1: Analysis Result ----------
   if (step === 1) {
     if (loading) {
       return (
@@ -186,7 +171,6 @@ export default function LogMealQR() {
           <View style={{ width: 24 }} />
         </View>
 
-        {/* Success/Error Messages */}
         {successMessage ? (
           <View style={styles.successBox}>
             <Ionicons name="checkmark-circle-outline" size={20} color="#2E7D32" />
@@ -260,7 +244,6 @@ export default function LogMealQR() {
     );
   }
 
-  // ---------- Screen 2: Log Meal ----------
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <View style={styles.header}>
@@ -271,7 +254,6 @@ export default function LogMealQR() {
         <View style={{ width: 24 }} />
       </View>
 
-      {/* Success/Error Messages */}
       {successMessage ? (
         <View style={styles.successBox}>
           <Ionicons name="checkmark-circle-outline" size={20} color="#2E7D32" />
@@ -292,7 +274,6 @@ export default function LogMealQR() {
         </View>
         <Text style={styles.foodNameLarge}>{food}</Text>
 
-        {/* Meal Type Selection */}
         <View style={[styles.inputGroup, { marginTop: 24 }]}>
           <Text style={styles.label}>
             <Ionicons name="time-outline" size={16} color="#666" /> Meal Type
@@ -348,7 +329,6 @@ export default function LogMealQR() {
           <Text style={styles.sectionTitle}>Serving Information</Text>
         </View>
 
-        {/* Serving Size */}
         <View style={styles.inputGroup}>
           <Text style={styles.label}>Serving Size ({originalServingUnit})</Text>
           <View style={styles.inputWrapper}>
@@ -367,7 +347,6 @@ export default function LogMealQR() {
           </Text>
         </View>
 
-        {/* Number of Servings */}
         <View style={styles.inputGroup}>
           <Text style={styles.label}>Number of Servings</Text>
           <View style={styles.inputWrapper}>
@@ -383,7 +362,6 @@ export default function LogMealQR() {
           </View>
         </View>
 
-        {/* Total Nutrition Summary */}
         <View style={styles.summaryCard}>
           <View style={styles.summaryHeader}>
             <Ionicons name="calculator-outline" size={20} color="#2196f3" />

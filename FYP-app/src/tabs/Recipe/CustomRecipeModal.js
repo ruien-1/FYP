@@ -53,7 +53,6 @@ export default function CustomRecipeModal({
           const res = await API.get(`/CustomRecipe/${uid}`);
           setMyRecipes(res.data || []);
         } catch (err) {
-          console.error("❌ Error fetching recipes:", err);
           setMyRecipes([]);
           showError("Failed to fetch recipes.");
         }
@@ -93,7 +92,6 @@ export default function CustomRecipeModal({
 
       const postRes = await API.post(`/meals_log/${uid}`, mealLog);
       if (postRes.data.success) {
-        // Cancel meal reminder if meal is logged for today
         if (today === new Date().toISOString().split("T")[0]) {
           cancelMealReminderNotifications();
         }
@@ -101,7 +99,6 @@ export default function CustomRecipeModal({
         setLogModalVisible(false);
       }
     } catch (err) {
-      console.error("Error logging meal:", err);
       showError("Failed to log recipe to diary.");
     }
   };
@@ -139,7 +136,6 @@ const handleSave = async () => {
     showSuccess("Recipe added successfully!");
     resetForm();
   } catch (err) {
-    console.error("Add recipe error:", err);
     showError("Failed to add recipe.");
   }
 };
@@ -176,7 +172,6 @@ const handleUpdate = async () => {
     showSuccess("Recipe updated successfully!");
     setModalType("list");
   } catch (err) {
-    console.error("Update recipe error:", err);
     showError("Failed to update recipe.");
   }
 };
@@ -188,7 +183,6 @@ const handleUpdate = async () => {
       setMyRecipes((prev) => prev.filter((r) => r.recipeid !== recipeid));
       showSuccess("Recipe deleted successfully!");
     } catch (err) {
-      console.error("Delete recipe error:", err);
       showError("Failed to delete recipe.");
     }
   };
@@ -292,7 +286,7 @@ const handleUpdate = async () => {
                           <Ionicons name="restaurant-outline" size={18} color="black" />
                         </TouchableOpacity>
 
-                        {/* ✏️ Edit */}
+                        {/* Edit */}
                         <TouchableOpacity
                           style={styles.editBtn}
                           onPress={() => {

@@ -1,4 +1,3 @@
-// CoachPendingAction.js - Coach: For accepted workout plan requests that need further action
 import React, { useEffect, useState } from "react";
 import {
   View,
@@ -32,14 +31,12 @@ export default function PendingAction() {
       const response = await API.get("/workout-plans/coach", {
         params: { coachId: currentUser.uid, status: "confirmed" },
       }).catch((err) => {
-        console.error("Error fetching confirmed workout plans:", err);
         return { data: { data: [] } };
       });
 
       const workoutPlanData = response.data?.data || [];
       setWorkoutPlans(workoutPlanData);
     } catch (error) {
-      console.error("Error fetching accepted workout plans:", error);
     } finally {
       setLoading(false);
     }
@@ -65,9 +62,7 @@ export default function PendingAction() {
         read: false,
       });
 
-      console.log('✅ Chat message sent successfully');
     } catch (error) {
-      console.error('❌ Error sending chat message:', error);
     }
   };
 
@@ -84,7 +79,6 @@ export default function PendingAction() {
         ? `${currentUser.uid}_${userId}`
         : `${userId}_${currentUser.uid}`;
 
-      // Navigate via Messages tab to ensure correct stack
       navigation.navigate("Messages", {
         screen: "CoachChatScreen",
         params: {
@@ -94,7 +88,6 @@ export default function PendingAction() {
         }
       });
     } catch (error) {
-      console.error("Error navigating to chat:", error);
     }
   };
 
@@ -281,11 +274,11 @@ const styles = StyleSheet.create({
   },
   completeButton: {
     backgroundColor: "#34C759",
-      paddingHorizontal: 8,  // Add this line to give more horizontal padding
+      paddingHorizontal: 8,  
   },
  completeButtonText: {
   color: "#fff",
-  fontSize: 12,  // Changed from 14 to 13
+  fontSize: 12, 
   fontWeight: "600",
 },
 });

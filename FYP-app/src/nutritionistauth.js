@@ -30,7 +30,6 @@ export const checkNutritionistEmailExists = async (email) => {
     const snapshot = await getDocs(q);
     return !snapshot.empty;
   } catch (error) {
-    console.error("Error checking email:", error);
     return false;
   }
 };
@@ -106,14 +105,12 @@ export const completeNutritionistSignup = async (uid, email, profile) => {
       created_on: new Date(),
     });
 
-    console.log("Nutritionist info, credentials, services, and availability saved to Firestore");
 
     return {
       success: true,
       message: "Nutritionist signup completed successfully",
     };
   } catch (error) {
-    console.error("Firestore error:", error);
     return { success: false, error: error.message };
   }
 };
@@ -125,7 +122,6 @@ export const checkNutritionistEmailVerified = async (email, password) => {
     await reload(userCredential.user);
     return userCredential.user.emailVerified;
   } catch (error) {
-    console.error("Error checking email verification:", error);
     return false;
   }
 };

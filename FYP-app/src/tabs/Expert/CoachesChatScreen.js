@@ -49,7 +49,7 @@ export default function CoachesChatScreen() {
 
   const [messages, setMessages] = useState([]);
   const [text, setText] = useState("");
-  const [userName, setUserName] = useState("User"); // ✅ Add userName state
+  const [userName, setUserName] = useState("User"); 
   const [showPlusMenu, setShowPlusMenu] = useState(false);
   const [showAppointmentModal, setShowAppointmentModal] = useState(false);
   const [showWorkoutModal, setShowWorkoutModal] = useState(false);
@@ -63,7 +63,6 @@ export default function CoachesChatScreen() {
       ? `${currentUser.uid}_${coachId}`
       : `${coachId}_${currentUser.uid}`;
 
-  // ✅ Fetch user name from Firestore
   useEffect(() => {
     const fetchUserName = async () => {
       try {
@@ -73,13 +72,11 @@ export default function CoachesChatScreen() {
           setUserName(userDocSnap.data().name);
         }
       } catch (error) {
-        console.error("Error fetching user name:", error);
       }
     };
     fetchUserName();
   }, [currentUser.uid]);
 
-  // Mark messages as read when screen is focused
   useFocusEffect(
     useCallback(() => {
       const markMessagesAsRead = async () => {
@@ -97,9 +94,7 @@ export default function CoachesChatScreen() {
           );
 
           await Promise.all(updatePromises);
-          console.log(`✅ User marked ${updatePromises.length} messages as read`);
         } catch (error) {
-          console.log("Error marking messages as read:", error);
         }
       };
 
@@ -124,19 +119,16 @@ export default function CoachesChatScreen() {
 
         setMessages(allMessages);
       },
-      (error) => console.error("❌ Snapshot error:", error)
     );
 
     return unsubscribe;
   }, [chatId]);
 
-  // ✅ Ensure chat document exists
   const ensureChatDocument = async (messageText) => {
     try {
       const chatDocRef = doc(db, "chats", chatId);
       const chatDocSnap = await getDoc(chatDocRef);
 
-      // Fetch coach name if not provided or is undefined
       let coachNameToUse = coachName;
       if (!coachNameToUse || coachNameToUse === undefined) {
         try {
@@ -144,17 +136,15 @@ export default function CoachesChatScreen() {
           if (coachDoc.exists()) {
             coachNameToUse = coachDoc.data().name || 'Coach';
           } else {
-            // Fallback to coach_info collection
             const coachInfoDoc = await getDoc(doc(db, "coach_info", coachId));
             if (coachInfoDoc.exists()) {
               coachNameToUse = coachInfoDoc.data().name || 'Coach';
             } else {
-              coachNameToUse = 'Coach'; // Final fallback
+              coachNameToUse = 'Coach'; 
             }
           }
         } catch (fetchError) {
-          console.warn('Could not fetch coach name:', fetchError);
-          coachNameToUse = 'Coach'; // Fallback if fetch fails
+          coachNameToUse = 'Coach'; 
         }
       }
 
@@ -179,7 +169,6 @@ export default function CoachesChatScreen() {
         await setDoc(chatDocRef, chatData, { merge: true });
       }
     } catch (error) {
-      console.error("❌ Error ensuring chat document:", error);
     }
   };
 
@@ -202,7 +191,6 @@ export default function CoachesChatScreen() {
         read: false,
       });
     } catch (error) {
-      console.error("Error sending message:", error.message);
     }
   }, [chatId, currentUser, userName, coachId, coachName]);
 
@@ -210,7 +198,7 @@ export default function CoachesChatScreen() {
     try {
       const appointmentData = {
         userId: currentUser.uid,
-        userName: userName, // ✅ Use fetched userName
+        userName: userName, 
         expertId: coachId,
         expertName: coachName,
         appointmentDate: selectedDate.toISOString(),
@@ -221,7 +209,6 @@ export default function CoachesChatScreen() {
       const response = await API.post("/appointments/coach", appointmentData);
 
       if (response.data.success) {
-        // Send message to chat
         const appointmentMessage = `📅 Appointment Request\n\nDate: ${selectedDate.toLocaleDateString(
           "en-US",
           {
@@ -235,7 +222,7 @@ export default function CoachesChatScreen() {
           minute: "2-digit",
         })}\n\nWaiting for confirmation...`;
 
-        await ensureChatDocument(appointmentMessage); // ✅ Ensure chat doc
+        await ensureChatDocument(appointmentMessage); 
 
         await addDoc(collection(db, "chats", chatId, "messages"), {
           _id: Math.random().toString(36).substring(7),
@@ -243,7 +230,7 @@ export default function CoachesChatScreen() {
           createdAt: serverTimestamp(),
           user: {
             _id: currentUser.uid,
-            name: userName, // ✅ Use fetched userName
+            name: userName,
           },
           appointmentId: response.data.appointmentId,
           isAppointmentRequest: true,
@@ -254,14 +241,12 @@ export default function CoachesChatScreen() {
         setShowAppointmentModal(false);
       }
     } catch (error) {
-      console.error("Error creating appointment:", error);
       Alert.alert("Error", "Failed to create appointment request.");
     }
   };
 
   const handleRequestWorkoutPlan = async () => {
     try {
-      // Create a backend workout plan request
       let workoutPlanId = null;
       const workoutPlanData = {
         userId: currentUser.uid,
@@ -277,10 +262,7 @@ export default function CoachesChatScreen() {
       try {
         const resp = await API.post("/workout-plans/coach", workoutPlanData);
         workoutPlanId = resp.data?.workoutPlanId || resp.data?.data?.id || null;
-        console.log("✅ Workout plan request created:", workoutPlanId);
       } catch (apiError) {
-        console.error("❌ Error creating workout plan request:", apiError);
-        // Still continue to send chat message even if API fails
       }
 
       const workoutMessage = `💪 Workout Plan Request\n\nDuration: 1 Week\n\nI would like to request a personalized workout plan for one week. Please provide a detailed schedule.`;
@@ -307,7 +289,6 @@ export default function CoachesChatScreen() {
       Alert.alert("Success", "Workout plan request sent!");
       setShowWorkoutModal(false);
     } catch (error) {
-      console.error("Error requesting workout plan:", error);
       Alert.alert("Error", "Failed to send workout plan request.");
     }
   };

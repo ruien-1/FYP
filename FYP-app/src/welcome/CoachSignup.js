@@ -74,8 +74,6 @@ const CoachSignup = ({ navigation, onBack }) => {
   // Upload file to Cloudinary
   const uploadFileToCloudinary = async (fileUri, userId) => {
     try {
-      console.log("Starting file upload to Cloudinary for user:", userId);
-      console.log("File URI:", fileUri);
 
       // Read file as base64
       const fileContent = await FileSystemLegacy.readAsStringAsync(fileUri, {
@@ -98,13 +96,11 @@ const CoachSignup = ({ navigation, onBack }) => {
         mimeType = 'image/jpeg';
       }
 
-      // Prepare form data
       const formData = new FormData();
       formData.append('file', `data:${mimeType};base64,${fileContent}`);
       formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
       formData.append('folder', `coach_credentials/${userId}`);
 
-      console.log("Uploading to Cloudinary...");
 
       // Upload to Cloudinary
       const response = await fetch(
@@ -121,7 +117,6 @@ const CoachSignup = ({ navigation, onBack }) => {
         throw new Error(data.error?.message || 'Upload failed');
       }
 
-      console.log("Upload successful! URL:", data.secure_url);
 
       return {
         success: true,
@@ -130,7 +125,6 @@ const CoachSignup = ({ navigation, onBack }) => {
         publicId: data.public_id,
       };
     } catch (error) {
-      console.error("Upload error:", error);
       return {
         success: false,
         error: error.message,
@@ -183,7 +177,6 @@ const CoachSignup = ({ navigation, onBack }) => {
         [{ text: "Continue", onPress: handleContinueAfterVerification }]
       );
     } catch (error) {
-      console.error("Signup error:", error);
       Alert.alert("Signup Error", error.message);
     }
   };
@@ -215,10 +208,8 @@ const CoachSignup = ({ navigation, onBack }) => {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
 
-      // Upload file to Cloudinary if document exists
       let uploadedFileData = null;
       if (profile.proofDocument && profile.proofDocument.uri) {
-        console.log("Uploading document to Cloudinary...");
 
         const uploadResult = await uploadFileToCloudinary(
           profile.proofDocument.uri,
@@ -239,10 +230,8 @@ const CoachSignup = ({ navigation, onBack }) => {
           uploadedAt: new Date().toISOString(),
         };
 
-        console.log("Document uploaded successfully!");
       }
 
-      // Convert numeric values before sending to backend
       const convertedProfile = {
         ...profile,
         age: Number(profile.age),
@@ -250,8 +239,6 @@ const CoachSignup = ({ navigation, onBack }) => {
         proofDocument: uploadedFileData,
       };
 
-      // Save profile to backend
-      console.log("Saving profile to backend...");
       const response = await API.post("/complete-coach-signup", {
         uid: user.uid,
         email,
@@ -271,7 +258,6 @@ const CoachSignup = ({ navigation, onBack }) => {
       );
     } catch (error) {
       setIsUploading(false);
-      console.error("Verification flow error:", error);
       Alert.alert("Error", error.message);
     }
   };
@@ -653,7 +639,6 @@ const CoachSignup = ({ navigation, onBack }) => {
                     });
                   }
                 } catch (error) {
-                  console.log('Document picker error:', error);
                   Alert.alert("Error", "Failed to pick document. Please try again.");
                 }
               }}

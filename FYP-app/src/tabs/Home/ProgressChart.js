@@ -22,7 +22,6 @@ export default function ProgressChart() {
       const res = await API.get(`/weight_progress/${uid}`);
       setWeightData(res.data || []);
     } catch (err) {
-      console.error("Error fetching weight progress:", err);
     } finally {
       setLoading(false);
     }
@@ -41,11 +40,11 @@ export default function ProgressChart() {
   }
 
   const chartData = {
-    labels: weightData.map((item) => item.date.slice(5)), // show MM-DD
+    labels: weightData.map((item) => item.date.slice(5)), 
     datasets: [
       {
         data: weightData.map((item) => item.weight),
-        color: () => "#007AFF", // line color
+        color: () => "#007AFF", 
         strokeWidth: 2,
       },
     ],

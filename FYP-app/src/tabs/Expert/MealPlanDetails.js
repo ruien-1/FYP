@@ -20,12 +20,10 @@ export default function MealPlanDetails() {
   const { mealPlanDetails } = route.params || {};
   const uid = auth.currentUser?.uid;
 
-  // Check if this is a 1 week plan (has days array) or 1 day plan (has meals array)
   const isOneWeekPlan = mealPlanDetails?.days && Array.isArray(mealPlanDetails.days) && mealPlanDetails.days.length > 0;
   const meals = isOneWeekPlan ? [] : (mealPlanDetails?.meals || []);
   const days = isOneWeekPlan ? (mealPlanDetails?.days || []) : [];
 
-  // Calculate total meal count
   const totalMealCount = useMemo(() => {
     if (isOneWeekPlan) {
       return days.reduce((total, day) => total + (day.meals?.length || 0), 0);
@@ -53,7 +51,6 @@ export default function MealPlanDetails() {
       }
 
       if (isOneWeekPlan) {
-        // For 1 week plans, log meals for today's date only
         const today = new Date().toISOString().split("T")[0];
         const todayDay = days.find(day => day.date === today);
         
@@ -73,7 +70,6 @@ export default function MealPlanDetails() {
         const defaultPerCarbs = Math.round(totalCarbs / count) || 0;
         const defaultPerFats = Math.round(totalFats / count) || 0;
 
-        // Log each meal entry for today
         for (const m of todayDay.meals) {
           const mealType = (m.mealTime || '').toLowerCase();
           const kcal = Number(m.calories) || defaultPerMealCal;
@@ -94,14 +90,12 @@ export default function MealPlanDetails() {
           await API.post(`/meals_log/${uid}`, mealLog);
         }
 
-        // Cancel meal reminder since meals are logged for today
         cancelMealReminderNotifications();
         
         Alert.alert("Logged", "Today's meals added to your diary.", [
           { text: "OK", onPress: () => navigation.goBack() },
         ]);
       } else {
-        // For 1 day plans, use existing logic
         const today = new Date().toISOString().split("T")[0];
         const totalGoal = Number(mealPlanDetails?.calorieGoal || 0) || 0;
         const totalProtein = Number(mealPlanDetails?.nutrients?.protein || 0) || 0;
@@ -114,7 +108,6 @@ export default function MealPlanDetails() {
         const defaultPerCarbs = Math.round(totalCarbs / count) || 0;
         const defaultPerFats = Math.round(totalFats / count) || 0;
 
-        // Log each meal entry as a separate diary record
         for (const m of meals) {
           const mealType = (m.mealTime || '').toLowerCase();
           const kcal = Number(m.calories) || defaultPerMealCal;
@@ -135,7 +128,6 @@ export default function MealPlanDetails() {
           await API.post(`/meals_log/${uid}`, mealLog);
         }
 
-        // Cancel meal reminder since meals are logged for today
         cancelMealReminderNotifications();
 
         Alert.alert("Logged", "Meals added to your diary.", [
@@ -143,7 +135,6 @@ export default function MealPlanDetails() {
         ]);
       }
     } catch (err) {
-      console.error("Error logging meal plan:", err);
       Alert.alert("Error", "Failed to log meals. Please try again.");
     }
   };
@@ -244,7 +235,6 @@ export default function MealPlanDetails() {
               </View>
             ))
           ) : (
-            // Render 1 day plan with meals array
             meals.map((m) => (
               <View key={m.id} style={styles.mealCard}>
                 <View style={styles.mealCardHeader}>
@@ -371,7 +361,6 @@ const styles = StyleSheet.create({
   numberBadge: { width: 20, height: 20, borderRadius: 10, backgroundColor: "#007AFF", alignItems: "center", justifyContent: "center", marginRight: 10 },
   numberBadgeText: { color: "#fff", fontSize: 11, fontWeight: "700" },
   
-  // New nutrient grid layout
   nutrientsGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
@@ -402,7 +391,6 @@ const styles = StyleSheet.create({
   footer: { position: "absolute", left: 0, right: 0, bottom: 0, backgroundColor: "#fff", padding: 12, borderTopWidth: 1, borderTopColor: "#EEE" },
   logButton: { backgroundColor: "#007AFF", borderRadius: 10, alignItems: "center", paddingVertical: 14 },
   logButtonText: { color: "#fff", fontSize: 16, fontWeight: "700" },
-  // Day container styles for 1 week plans
   dayContainer: {
     backgroundColor: "#F8F9FA",
     borderRadius: 12,

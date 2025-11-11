@@ -46,7 +46,6 @@ export default function NutriArticleManagement() {
       const uid = auth.currentUser?.uid;
       if (!uid) return;
 
-      console.log("Fetching nutritionist name from Firestore for UID:", uid);
 
       const nutritionistDocRef = doc(db, "nutritionist", uid);
       const nutritionistDoc = await getDoc(nutritionistDocRef);
@@ -55,13 +54,10 @@ export default function NutriArticleManagement() {
         const nutritionistData = nutritionistDoc.data();
         const name = nutritionistData.name || "Nutritionist";
         setNutritionistName(name);
-        console.log("Fetched nutritionist name:", name);
       } else {
-        console.log("Nutritionist document not found, using default name");
         setNutritionistName(currentUser.displayName || "Nutritionist");
       }
     } catch (error) {
-      console.error("Error fetching nutritionist name:", error);
       setNutritionistName(currentUser.displayName || "Nutritionist");
     }
   };
@@ -69,8 +65,6 @@ export default function NutriArticleManagement() {
   // Upload image to Cloudinary
   const uploadImageToCloudinary = async (imageUri, userId) => {
     try {
-      console.log("Starting image upload to Cloudinary...");
-      console.log("Image URI:", imageUri);
 
       const fileContent = await FileSystemLegacy.readAsStringAsync(imageUri, {
         encoding: 'base64',
@@ -90,7 +84,6 @@ export default function NutriArticleManagement() {
       formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
       formData.append('folder', `nutritionist_articles/${userId}`);
 
-      console.log("Uploading to Cloudinary...");
 
       const response = await fetch(
         `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`,
@@ -106,7 +99,6 @@ export default function NutriArticleManagement() {
         throw new Error(data.error?.message || 'Upload failed');
       }
 
-      console.log("Upload successful! URL:", data.secure_url);
 
       return {
         success: true,
@@ -114,7 +106,6 @@ export default function NutriArticleManagement() {
         publicId: data.public_id,
       };
     } catch (error) {
-      console.error("Upload error:", error);
       return {
         success: false,
         error: error.message,
@@ -150,7 +141,6 @@ export default function NutriArticleManagement() {
         setPhotos([...photos, ...newPhotos]);
       }
     } catch (error) {
-      console.error("Error picking image:", error);
       Alert.alert("Error", "Failed to pick image. Please try again.");
     }
   };
@@ -196,7 +186,6 @@ export default function NutriArticleManagement() {
       let uploadedPhotoUrls = [];
       
       if (photos.length > 0) {
-        console.log(`Uploading ${photos.length} photos to Cloudinary...`);
         
         for (let i = 0; i < photos.length; i++) {
           const photo = photos[i];
@@ -211,8 +200,6 @@ export default function NutriArticleManagement() {
 
           uploadedPhotoUrls.push(uploadResult.url);
         }
-
-        console.log("All photos uploaded successfully!");
       }
 
       const articleData = {
@@ -226,7 +213,6 @@ export default function NutriArticleManagement() {
         createdAt: new Date().toISOString(),
       };
 
-      console.log("Saving article to backend with nutritionist name:", nutritionistName);
       const response = await API.post("/nutritionist_article", articleData);
 
       if (response.data.success) {
@@ -250,7 +236,6 @@ export default function NutriArticleManagement() {
         throw new Error(response.data.message || "Failed to publish article");
       }
     } catch (error) {
-      console.error("Error creating article:", error);
       Alert.alert(
         "Error",
         error.message || "Failed to publish article. Please try again."

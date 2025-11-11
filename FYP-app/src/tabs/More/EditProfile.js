@@ -23,7 +23,7 @@ import * as ImagePicker from "expo-image-picker";
 import * as FileSystemLegacy from "expo-file-system/legacy";
 
 const CLOUDINARY_CLOUD_NAME = 'djmgxrebz';
-const CLOUDINARY_UPLOAD_PRESET = 'coach_articles'; // Using existing preset
+const CLOUDINARY_UPLOAD_PRESET = 'coach_articles'; 
 
 export default function EditProfile() {
   const navigation = useNavigation();
@@ -32,7 +32,6 @@ export default function EditProfile() {
   const [wallpaperImage, setWallpaperImage] = useState(null);
   const [saving, setSaving] = useState(false);
 
-  // Load user data on mount
   useEffect(() => {
     loadUserData();
   }, []);
@@ -52,7 +51,6 @@ export default function EditProfile() {
         setWallpaperImage(data.wallpaperImage || null);
       }
     } catch (error) {
-      console.error("Error loading user data:", error);
     }
   };
 
@@ -96,7 +94,6 @@ export default function EditProfile() {
         publicId: data.public_id,
       };
     } catch (error) {
-      console.error("Upload error:", error);
       return {
         success: false,
         error: error.message,
@@ -127,7 +124,6 @@ export default function EditProfile() {
         setProfileImage(result.assets[0].uri);
       }
     } catch (error) {
-      console.error("Error picking image:", error);
       Alert.alert("Error", "Failed to pick image. Please try again.");
     }
   };
@@ -154,7 +150,6 @@ export default function EditProfile() {
         setWallpaperImage(result.assets[0].uri);
       }
     } catch (error) {
-      console.error("Error picking image:", error);
       Alert.alert("Error", "Failed to pick image. Please try again.");
     }
   };
@@ -219,7 +214,6 @@ export default function EditProfile() {
         },
       ]);
     } catch (error) {
-      console.error("Error saving profile:", error);
       Alert.alert("Error", "Failed to save profile. Please try again.");
     } finally {
       setSaving(false);
@@ -318,7 +312,6 @@ export default function EditProfile() {
                 />
               </View>
 
-              {/* Save Button - Moved inside ScrollView for better keyboard handling */}
               <View style={styles.saveButtonContainer}>
                 <TouchableOpacity
                   style={[styles.saveButton, saving && styles.saveButtonDisabled]}
@@ -368,7 +361,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollViewContent: {
-    paddingBottom: 40, // Extra padding at bottom for keyboard
+    paddingBottom: 40, 
   },
   wallpaperSection: {
     padding: 20,
@@ -433,7 +426,7 @@ const styles = StyleSheet.create({
     width: 120,
     height: 120,
     borderRadius: 60,
-    overflow: "hidden", // Keep hidden for circular clipping
+    overflow: "hidden",
     backgroundColor: "#f0f0f0",
     borderWidth: 4,
     borderColor: "#fff",
@@ -456,15 +449,15 @@ const styles = StyleSheet.create({
   },
   profileEditOverlay: {
     position: "absolute",
-    bottom: -4, // Extend below the profile picture border
-    right: -4, // Extend to the right of the profile picture border
+    bottom: -4, 
+    right: -4, 
     backgroundColor: "rgba(0, 0, 0, 0.75)",
     borderRadius: 20,
     width: 40,
     height: 40,
     justifyContent: "center",
     alignItems: "center",
-    zIndex: 10, // Ensure it's on top
+    zIndex: 10, 
     borderWidth: 3,
     borderColor: "#fff",
     shadowColor: "#000",

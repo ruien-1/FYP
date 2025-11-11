@@ -5,29 +5,21 @@ import admin from "firebase-admin";
 import fs from "fs";
 import bodyParser from "body-parser";
 import dotenv from "dotenv";
-import fetch from "node-fetch"; // for API calls
+import fetch from "node-fetch";
 import vision from "@google-cloud/vision";
 import { searchComplex, searchByNutrients, addDetailsRecipeList } from "./spoonacular.js";
 import activitiesData from './activitiesData.js';
 
-// Load service account
-// Load service account from environment variable or file
+
 let serviceAccount;
 
 if (process.env.FIREBASE_SERVICE_ACCOUNT) {
-  // Production: Use environment variable
-  console.log("📦 Loading Firebase credentials from environment variable");
   serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
 } else if (fs.existsSync("./serviceAccount.json")) {
-  // Development: Use local file
-  console.log("📦 Loading Firebase credentials from serviceAccount.json");
   serviceAccount = JSON.parse(fs.readFileSync("./serviceAccount.json", "utf8"));
 } else if (fs.existsSync("./google-vision-key.json")) {
-  // Alternative file name
-  console.log("📦 Loading Firebase credentials from google-vision-key.json");
   serviceAccount = JSON.parse(fs.readFileSync("./google-vision-key.json", "utf8"));
 } else {
-  console.error("❌ No Firebase service account found!");
   process.exit(1);
 }
 // Initialize Firebase Admin
@@ -123,15 +115,12 @@ app.post("/complete-signup", async (req, res) => {
       weightLossGoal,
     });
 
-    console.log(" User info, user, and goals saved to Firestore");
     res.status(200).json({ success: true, message: "Signup completed successfully" });
   } catch (error) {
-    console.error("Firestore error:", error);
     res.status(500).json({ success: false, error: error.message });
   }
 });
 
-// Add this endpoint after your /complete-signup endpoint
 
 app.post("/complete-nutritionist-signup", async (req, res) => {
   try {
@@ -211,10 +200,8 @@ app.post("/complete-nutritionist-signup", async (req, res) => {
       created_on: admin.firestore.FieldValue.serverTimestamp(),
     });
 
-    console.log("Nutritionist info, credentials, services, and availability saved to Firestore");
     res.status(200).json({ success: true, message: "Nutritionist signup completed successfully" });
   } catch (error) {
-    console.error("Firestore error:", error);
     res.status(500).json({ success: false, error: error.message });
   }
 });
@@ -297,16 +284,13 @@ app.post("/complete-coach-signup", async (req, res) => {
       created_on: admin.firestore.FieldValue.serverTimestamp(),
     });
 
-    console.log("Coach info, credentials, services, and availability saved to Firestore");
     res.status(200).json({ success: true, message: "Coach signup completed successfully" });
   } catch (error) {
-    console.error("Firestore error:", error);
     res.status(500).json({ success: false, error: error.message });
   }
 });
 
 
-// Add these endpoints to your backend server
 
 // Get all coaches
 app.get("/coaches", async (req, res) => {
@@ -333,12 +317,10 @@ app.get("/coaches", async (req, res) => {
 
     res.status(200).json(coaches);
   } catch (error) {
-    console.error("Error fetching coaches:", error);
     res.status(500).json({ success: false, error: error.message });
   }
 });
 
-// Get all nutritionists
 app.get("/nutritionists", async (req, res) => {
   try {
     const nutritionistsSnapshot = await db.collection("nutritionist_info").get();
@@ -363,7 +345,6 @@ app.get("/nutritionists", async (req, res) => {
 
     res.status(200).json(nutritionists);
   } catch (error) {
-    console.error("Error fetching nutritionists:", error);
     res.status(500).json({ success: false, error: error.message });
   }
 });
@@ -395,7 +376,6 @@ app.get("/coach/:uid", async (req, res) => {
       availability
     });
   } catch (error) {
-    console.error("Error fetching coach:", error);
     res.status(500).json({ success: false, error: error.message });
   }
 });
@@ -427,7 +407,6 @@ app.get("/nutritionist/:uid", async (req, res) => {
       availability
     });
   } catch (error) {
-    console.error("Error fetching nutritionist:", error);
     res.status(500).json({ success: false, error: error.message });
   }
 });
@@ -492,7 +471,6 @@ app.post("/coach/:uid/rating", async (req, res) => {
       totalRatings,
     });
   } catch (error) {
-    console.error("Error submitting coach rating:", error);
     res.status(500).json({ success: false, error: error.message });
   }
 });
@@ -558,7 +536,6 @@ app.post("/nutritionist/:uid/rating", async (req, res) => {
       totalRatings,
     });
   } catch (error) {
-    console.error("Error submitting nutritionist rating:", error);
     res.status(500).json({ success: false, error: error.message });
   }
 });
@@ -590,7 +567,6 @@ app.get("/coach/:uid/ratings", async (req, res) => {
               userName = userData.name || "Anonymous";
             }
           } catch (error) {
-            console.error("Error fetching user name:", error);
           }
         }
 
@@ -605,7 +581,6 @@ app.get("/coach/:uid/ratings", async (req, res) => {
 
     res.status(200).json({ success: true, ratings: ratingsWithNames });
   } catch (error) {
-    console.error("Error fetching coach ratings:", error);
     res.status(500).json({ success: false, error: error.message });
   }
 });
@@ -637,7 +612,6 @@ app.get("/nutritionist/:uid/ratings", async (req, res) => {
               userName = userData.name || "Anonymous";
             }
           } catch (error) {
-            console.error("Error fetching user name:", error);
           }
         }
 
@@ -652,7 +626,6 @@ app.get("/nutritionist/:uid/ratings", async (req, res) => {
 
     res.status(200).json({ success: true, ratings: ratingsWithNames });
   } catch (error) {
-    console.error("Error fetching nutritionist ratings:", error);
     res.status(500).json({ success: false, error: error.message });
   }
 });
@@ -703,7 +676,6 @@ app.post("/user/:userId/assign-coach", async (req, res) => {
       coachAssignedAt: admin.firestore.FieldValue.serverTimestamp(),
     });
 
-    console.log(`✅ Coach ${coachId} assigned to user ${userId}`);
     
     res.status(200).json({ 
       success: true, 
@@ -711,7 +683,6 @@ app.post("/user/:userId/assign-coach", async (req, res) => {
       coachId 
     });
   } catch (error) {
-    console.error("Error assigning coach:", error);
     res.status(500).json({ success: false, error: error.message });
   }
 });
@@ -759,7 +730,6 @@ app.get("/user/:userId/coach", async (req, res) => {
       }
     });
   } catch (error) {
-    console.error("Error fetching user's coach:", error);
     res.status(500).json({ success: false, error: error.message });
   }
 });
@@ -810,7 +780,6 @@ app.post("/user/:userId/assign-nutritionist", async (req, res) => {
       nutritionistAssignedAt: admin.firestore.FieldValue.serverTimestamp(),
     });
 
-    console.log(`✅ Nutritionist ${nutritionistId} assigned to user ${userId}`);
     
     res.status(200).json({ 
       success: true, 
@@ -818,7 +787,6 @@ app.post("/user/:userId/assign-nutritionist", async (req, res) => {
       nutritionistId 
     });
   } catch (error) {
-    console.error("Error assigning nutritionist:", error);
     res.status(500).json({ success: false, error: error.message });
   }
 });
@@ -866,7 +834,6 @@ app.get("/user/:userId/nutritionist", async (req, res) => {
       }
     });
   } catch (error) {
-    console.error("Error fetching user's nutritionist:", error);
     res.status(500).json({ success: false, error: error.message });
   }
 });
@@ -907,7 +874,6 @@ app.post('/appointments/coach', async (req, res) => {
       data: { id: docRef.id, ...appointmentData }
     });
   } catch (error) {
-    console.error('Error creating coach appointment:', error);
     res.status(500).json({ 
       error: 'Failed to create appointment',
       message: error.message 
@@ -957,7 +923,6 @@ app.get('/appointments/coach', async (req, res) => {
       data: appointments
     });
   } catch (error) {
-    console.error('Error fetching coach appointments:', error);
     res.status(500).json({ 
       error: 'Failed to fetch appointments',
       message: error.message 
@@ -1017,7 +982,6 @@ app.put('/appointments/coach/:appointmentId', async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Error updating coach appointment:', error);
     res.status(500).json({
       error: 'Failed to update appointment',
       message: error.message,
@@ -1039,7 +1003,6 @@ app.delete('/appointments/coach/:appointmentId', async (req, res) => {
       appointmentId
     });
   } catch (error) {
-    console.error('Error deleting coach appointment:', error);
     res.status(500).json({ 
       error: 'Failed to delete appointment',
       message: error.message 
@@ -1079,7 +1042,6 @@ app.post('/appointments/nutritionist', async (req, res) => {
           }
         }
       } catch (fetchError) {
-        console.warn('Could not fetch nutritionist name:', fetchError);
         nutritionistName = 'Nutritionist'; // Fallback if fetch fails
       }
     }
@@ -1104,7 +1066,6 @@ app.post('/appointments/nutritionist', async (req, res) => {
       data: { id: docRef.id, ...appointmentData }
     });
   } catch (error) {
-    console.error('Error creating nutritionist appointment:', error);
     res.status(500).json({ 
       error: 'Failed to create appointment',
       message: error.message 
@@ -1154,7 +1115,6 @@ app.get('/appointments/nutritionist', async (req, res) => {
       data: appointments
     });
   } catch (error) {
-    console.error('Error fetching nutritionist appointments:', error);
     res.status(500).json({ 
       error: 'Failed to fetch appointments',
       message: error.message 
@@ -1213,7 +1173,6 @@ app.put('/appointments/nutritionist/:appointmentId', async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Error updating nutritionist appointment:', error);
     res.status(500).json({
       error: 'Failed to update appointment',
       message: error.message,
@@ -1234,7 +1193,6 @@ app.delete('/appointments/nutritionist/:appointmentId', async (req, res) => {
       appointmentId
     });
   } catch (error) {
-    console.error('Error deleting nutritionist appointment:', error);
     res.status(500).json({ 
       error: 'Failed to delete appointment',
       message: error.message 
@@ -1274,7 +1232,6 @@ app.post('/meal-plans/nutritionist', async (req, res) => {
           }
         }
       } catch (fetchError) {
-        console.warn('Could not fetch nutritionist name:', fetchError);
         nutritionistName = 'Nutritionist'; // Fallback if fetch fails
       }
     }
@@ -1300,7 +1257,6 @@ app.post('/meal-plans/nutritionist', async (req, res) => {
       data: { id: docRef.id, ...mealPlanData }
     });
   } catch (error) {
-    console.error('Error creating nutritionist meal plan request:', error);
     res.status(500).json({ 
       error: 'Failed to create meal plan request',
       message: error.message 
@@ -1350,7 +1306,6 @@ app.get('/meal-plans/nutritionist', async (req, res) => {
       data: mealPlans
     });
   } catch (error) {
-    console.error('Error fetching nutritionist meal plan requests:', error);
     res.status(500).json({ 
       error: 'Failed to fetch meal plan requests',
       message: error.message 
@@ -1380,7 +1335,6 @@ app.put('/meal-plans/nutritionist/:mealPlanId', async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Error updating nutritionist meal plan request:', error);
     res.status(500).json({ 
       error: 'Failed to update meal plan request',
       message: error.message 
@@ -1401,7 +1355,6 @@ app.delete('/meal-plans/nutritionist/:mealPlanId', async (req, res) => {
       mealPlanId
     });
   } catch (error) {
-    console.error('Error deleting nutritionist meal plan request:', error);
     res.status(500).json({ 
       error: 'Failed to delete meal plan request',
       message: error.message 
@@ -1436,7 +1389,6 @@ app.post('/workout-plans/coach', async (req, res) => {
           coachName = coachInfoDoc.exists ? (coachInfoDoc.data().name || 'Coach') : 'Coach';
         }
       } catch (fetchError) {
-        console.warn('Could not fetch coach name:', fetchError);
         coachName = 'Coach';
       }
     }
@@ -1462,7 +1414,6 @@ app.post('/workout-plans/coach', async (req, res) => {
       data: { id: docRef.id, ...workoutPlanData }
     });
   } catch (error) {
-    console.error('Error creating coach workout plan request:', error);
     res.status(500).json({
       error: 'Failed to create workout plan request',
       message: error.message
@@ -1502,7 +1453,6 @@ app.get('/workout-plans/coach', async (req, res) => {
       data: workoutPlans,
     });
   } catch (error) {
-    console.error('Error fetching coach workout plan requests:', error);
     res.status(500).json({
       error: 'Failed to fetch workout plan requests',
       message: error.message,
@@ -1526,7 +1476,6 @@ app.put('/workout-plans/coach/:planId', async (req, res) => {
       data: { id: updatedDoc.id, ...updatedDoc.data() },
     });
   } catch (error) {
-    console.error('Error updating coach workout plan request:', error);
     res.status(500).json({
       error: 'Failed to update workout plan request',
       message: error.message,
@@ -1541,7 +1490,6 @@ app.delete('/workout-plans/coach/:planId', async (req, res) => {
     await db.collection('coachWorkoutPlans').doc(planId).delete();
     res.status(200).json({ success: true, message: 'Coach workout plan request deleted', workoutPlanId: planId });
   } catch (error) {
-    console.error('Error deleting coach workout plan request:', error);
     res.status(500).json({ error: 'Failed to delete workout plan request', message: error.message });
   }
 });
@@ -1597,7 +1545,6 @@ app.get('/appointments/all/:userId', async (req, res) => {
       data: allAppointments
     });
   } catch (error) {
-    console.error('Error fetching all appointments:', error);
     res.status(500).json({ 
       error: 'Failed to fetch appointments',
       message: error.message 
@@ -1657,7 +1604,6 @@ app.post("/recognize-food", async (req, res) => {
 
     res.json({ food: topFood });
   } catch (error) {
-    console.error(error);
     res.status(500).json({ error: "Food recognition failed" });
   }
 });
@@ -1717,12 +1663,10 @@ app.get("/recipes", async (req, res) => {
     // Check if recipes is in firestore
     const snapshot = await query.limit(44).get();
     if (!snapshot.empty) {
-      console.log(`Found ${snapshot.size} recipes in Firestore for`, { type, diet, intolerances, category });
       return res.json(snapshot.docs.map(doc => doc.data()));
     }
 
     // If dont have fetch from spoonacular
-    console.log("Not found in Firestore → fetching from Spoonacular");
     const excludeIngredients = intolerances || "";
     let data;
 
@@ -1818,11 +1762,9 @@ app.get("/recipes", async (req, res) => {
     });
 
     await batch.commit();
-    console.log(`Saved ${details.length} recipes into Firestore`);
 
     res.json(details);
   } catch (error) {
-    console.error("Error fetching recipes:", error);
     res.status(500).json({ error: error.message });
   }
 });
@@ -1883,7 +1825,6 @@ app.get("/recipes/filter", async (req, res) => {
       results = metadataFiltered;
     } else {
       // No metadata match → fallback to ingredients
-      console.log("No recipes matched intolerance in metadata → checking ingredients");
 
       const detailsSnapshot = await db.collection("recipeDetails").get();
       let details = detailsSnapshot.docs.map(d => d.data());
@@ -1934,10 +1875,8 @@ app.get("/recipes/filter", async (req, res) => {
         return true;
       });
 
-    console.log(` Found ${results.length} recipes with filters`, req.query);
     res.json(results);
   } catch (error) {
-    console.error(" Error filtering recipes:", error);
     res.status(500).json({ error: error.message });
   }
 });
@@ -1948,18 +1887,15 @@ app.get("/recipes/filter", async (req, res) => {
 app.get("/recipeDetails/:id", async (req, res) => {
   try {
     const id = req.params.id.toString();
-    console.log(" Fetching recipeDetails with id:", id);
 
     const doc = await db.collection("recipeDetails").doc(id).get();
 
     if (!doc.exists) {
-      console.log("Recipe not found in Firestore:", id);
       return res.status(404).json({ error: "Recipe not found in Firestore" });
     }
 
     res.json({ id: doc.id, ...doc.data() });
   } catch (error) {
-    console.error("Error fetching recipe details:", error);
     res.status(500).json({ error: error.message });
   }
 });
@@ -2041,7 +1977,6 @@ async function seedFilterOptions() {
       batch.set(ref, item, { merge: true });
     });
     await batch.commit();
-    console.log(`Added filter options for ${group}`);
   }
 }
 
@@ -2058,12 +1993,10 @@ app.get("/filteroptions", async (req, res) => {
 
     res.json(result);
   } catch (error) {
-    console.error("Error fetching filter options:", error);
     res.status(500).json({ error: error.message });
   }
 });
   
-seedFilterOptions().catch(err => console.error("Failed to add filter options:", err));
 
 
 
@@ -2078,12 +2011,9 @@ async function ensureCategoriesAdded() {
           created_at: admin.firestore.FieldValue.serverTimestamp(),
         });
       }
-      console.log("✅ Categories added to Firestore");
     } else {
-      console.log("✅ Categories already exist in Firestore");
     }
   } catch (err) {
-    console.error("Error ensuring categories:", err);
   }
 }
 ensureCategoriesAdded();
@@ -2149,43 +2079,30 @@ app.post("/meals_log/:uid", async (req, res) => {
           // This allows proper streak progression even if timezones differ
           const diff = differenceInCalendarDays(mealDateObj, lastMealLogged);
           
-          console.log(`📊 Date comparison: mealDate=${mealDateStr}, lastMealLogged=${lastMealLoggedStr}, serverToday=${serverTodayStr}, diff=${diff}`);
           
           if (diff === 0) {
             // Same day - don't update streak (shouldn't happen since we check for first meal)
             newStreak = currentStreak;
-            console.log(`⏭️ Same day as last meal, streak unchanged: ${currentStreak}`);
           } else if (diff === 1) {
             // Consecutive day - increment streak
             newStreak = currentStreak + 1;
-            console.log(`📈 Consecutive day! Incrementing streak: ${currentStreak} -> ${newStreak}`);
           } else if (diff > 1) {
             // Missed days - reset streak to 1 (they're logging again after missing days)
             newStreak = 1;
-            console.log(`🔄 Missed ${diff - 1} day(s), resetting streak to 1`);
           } else if (diff < 0) {
             // Logging a meal for a past date relative to lastMealLogged
-            // Only check server time to prevent logging meals too far in the past
             const mealDateForCompare = new Date(mealDateStr);
             const daysDiffFromServer = differenceInCalendarDays(mealDateForCompare, serverToday);
             
-            console.log(`⚠️ Meal date is ${Math.abs(diff)} day(s) before lastMealLogged, checking against server time (${daysDiffFromServer} days from server today)`);
             
             if (daysDiffFromServer < -1) {
-              // Meal is more than 1 day in the past relative to server - don't update streak
               newStreak = currentStreak;
-              console.log(`⏭️ Meal logged for past date (${daysDiffFromServer} days ago from server), streak unchanged: ${currentStreak}`);
             } else {
-              // Meal is recent enough (within 1 day of server time) - allow it but don't increment streak
-              // This handles timezone differences and minor date discrepancies
               newStreak = currentStreak;
-              console.log(`⏭️ Meal date is before lastMealLogged but recent (${daysDiffFromServer} days from server), keeping streak: ${currentStreak}`);
             }
           }
         } else {
-          // First meal ever logged, start streak at 1
           newStreak = 1;
-          console.log(`🎯 First meal ever logged, starting streak at 1`);
         }
 
         // Update user document with new streak and lastMealLogged
@@ -2193,38 +2110,25 @@ app.post("/meals_log/:uid", async (req, res) => {
           streak: newStreak,
         };
         
-        // Only update lastMealLogged if:
-        // 1. Meal date is today or in the future (allows forward logging)
-        // 2. Meal date is not more than 1 day in the past from server time
+
         const mealDateForCompare = new Date(mealDateStr);
         const daysDiffFromServer = differenceInCalendarDays(mealDateForCompare, serverToday);
         
-        console.log(`📅 Streak update check: mealDate=${mealDateStr}, serverToday=${serverTodayStr}, daysDiffFromServer=${daysDiffFromServer}, lastMealLogged=${lastMealLoggedStr}`);
         
-        // Update lastMealLogged if:
-        // - No lastMealLogged exists, OR
-        // - Meal date is newer than lastMealLogged (normal progression)
-        // Only prevent updating if meal is more than 1 day in the past from server (prevents cheating)
-        if (daysDiffFromServer >= -1) { // Allow today, future, or 1 day past
-          // Always update if meal date is newer than lastMealLogged (normal date progression)
+
+        if (daysDiffFromServer >= -1) { 
           if (!lastMealLoggedStr || mealDateStr > lastMealLoggedStr) {
             updateData.lastMealLogged = mealDateStr;
-            console.log(`✅ Updating lastMealLogged to: ${mealDateStr} (was: ${lastMealLoggedStr || 'none'})`);
           } else {
-            console.log(`⏭️ Keeping lastMealLogged as ${lastMealLoggedStr} (meal date ${mealDateStr} is not newer)`);
           }
         } else {
-          console.log(`⏭️ Meal date ${mealDateStr} is more than 1 day in the past from server (${daysDiffFromServer} days), not updating lastMealLogged`);
         }
 
         await userRef.update(updateData);
 
-        console.log(`✅ Streak updated for user ${uid}: ${currentStreak} -> ${newStreak} days (meal date: ${mealDateStr}, server today: ${serverTodayStr})`);
       } else {
-        console.log(`User document not found for ${uid}`);
       }
     } else {
-      console.log(`Not first meal for date ${mealDateStr}, streak unchanged`);
     }
 
     // Save the meal log
@@ -2248,7 +2152,6 @@ app.post("/meals_log/:uid", async (req, res) => {
 
     res.status(200).json({ success: true, meal });
   } catch (error) {
-    console.error("Error saving meal log:", error);
     res.status(500).json({ success: false, error: error.message });
   }
 });
@@ -2271,7 +2174,6 @@ app.get("/meals_log/:uid", async (req, res) => {
 
     res.json(meals);
   } catch (error) {
-    console.error("Error fetching meals:", error);
     res.status(500).json({ error: error.message });
   }
 });
@@ -2291,8 +2193,7 @@ app.post("/streak/validate/:uid", async (req, res) => {
     const userDoc = await userRef.get();
 
     if (!userDoc.exists) {
-      // User not found - this can happen for new users who haven't verified email yet
-      // Return success with default values instead of error
+
       return res.json({
         success: true,
         streak: 0,
@@ -2327,7 +2228,6 @@ app.post("/streak/validate/:uid", async (req, res) => {
       if (lastMealLoggedStr > serverTodayStr) {
         newStreak = 0;
         streakUpdated = true;
-        console.log(`⚠️ Streak reset: lastMealLogged (${lastMealLoggedStr}) is in the future`);
       } else {
         const diff = differenceInCalendarDays(serverToday, lastMealLogged);
         
@@ -2335,7 +2235,6 @@ app.post("/streak/validate/:uid", async (req, res) => {
         if (diff > 1) {
           newStreak = 0;
           streakUpdated = true;
-          console.log(`⚠️ Streak reset: ${diff} days since last meal logged`);
         }
       }
 
@@ -2344,7 +2243,6 @@ app.post("/streak/validate/:uid", async (req, res) => {
         await userRef.update({
           streak: newStreak,
         });
-        console.log(`✅ Streak validated and updated: ${currentStreak} -> ${newStreak}`);
       }
     } else if (!hasLoggedMealToday && !lastMealLoggedStr && currentStreak > 0) {
       // User has no lastMealLogged but has a streak (shouldn't happen, but reset to be safe)
@@ -2353,7 +2251,6 @@ app.post("/streak/validate/:uid", async (req, res) => {
         streak: 0,
       });
       streakUpdated = true;
-      console.log(`✅ Streak reset: no lastMealLogged but streak was ${currentStreak}`);
     }
 
     res.json({
@@ -2364,7 +2261,6 @@ app.post("/streak/validate/:uid", async (req, res) => {
       streakUpdated,
     });
   } catch (error) {
-    console.error("Error validating streak:", error);
     res.status(500).json({ success: false, error: error.message });
   }
 });
@@ -2382,12 +2278,10 @@ app.delete("/meals_log/:uid/:mealId", async (req, res) => {
 
     res.json({ success: true, mealId });
   } catch (error) {
-    console.error("Error deleting meal log:", error);
     res.status(500).json({ error: error.message });
   }
 });
 
-// ✅ Get single meal by ID
 app.get("/meals_log/:uid/:mealId", async (req, res) => {
   try {
     const { uid, mealId } = req.params;
@@ -2404,12 +2298,10 @@ app.get("/meals_log/:uid/:mealId", async (req, res) => {
 
     res.json({ id: doc.id, ...doc.data() });
   } catch (error) {
-    console.error("Error fetching meal:", error);
     res.status(500).json({ error: error.message });
   }
 });
 
-// ✅ Update a meal
 app.put("/meals_log/:uid/:mealId", async (req, res) => {
   try {
     const { uid, mealId } = req.params;
@@ -2426,7 +2318,6 @@ app.put("/meals_log/:uid/:mealId", async (req, res) => {
 
     res.json({ success: true, mealId, updates });
   } catch (error) {
-    console.error("Error updating meal:", error);
     res.status(500).json({ success: false, error: error.message });
   }
 });
@@ -2448,7 +2339,6 @@ app.post("/CustomIFPlan/:uid/customPlans", async (req, res) => {
 
     res.status(200).json({ success: true, plan });
   } catch (error) {
-    console.error("Error saving custom plan:", error);
     res.status(500).json({ success: false, error: error.message });
   }
 });
@@ -2495,7 +2385,6 @@ app.post("/favorites/:uid", async (req, res) => {
 
     res.json({ success: true });
   } catch (error) {
-    console.error("Error adding favorite:", error);
     res.status(500).json({ error: error.message });
   }
 });
@@ -2513,7 +2402,6 @@ app.delete("/favorites/:uid/:recipeId", async (req, res) => {
 
     res.json({ success: true });
   } catch (error) {
-    console.error("Error removing favorite:", error);
     res.status(500).json({ error: error.message });
   }
 });
@@ -2530,7 +2418,6 @@ app.get("/favorites/:uid", async (req, res) => {
     const favorites = snapshot.docs.map(doc => doc.data());
     res.json(favorites);
   } catch (error) {
-    console.error("Error fetching favorites:", error);
     res.status(500).json({ error: error.message });
   }
 });
@@ -2553,7 +2440,7 @@ app.post("/CustomRecipe/:uid", async (req, res) => {
       servings,
     } = req.body;
 
-    const recipeId = Date.now().toString(); // simple unique ID
+    const recipeId = Date.now().toString(); 
     const newRecipe = {
       recipeid: recipeId,
       uid,
@@ -2578,7 +2465,6 @@ app.post("/CustomRecipe/:uid", async (req, res) => {
 
     res.json({ success: true, recipe: newRecipe });
   } catch (error) {
-    console.error("❌ Error adding custom recipe:", error);
     res.status(500).json({ error: error.message });
   }
 });
@@ -2597,7 +2483,6 @@ app.get("/CustomRecipe/:uid", async (req, res) => {
     const recipes = snapshot.docs.map((doc) => doc.data());
     res.json(recipes);
   } catch (error) {
-    console.error("Error fetching recipes:", error);
     res.status(500).json({ error: error.message });
   }
 });
@@ -2620,7 +2505,6 @@ app.put("/CustomRecipe/:uid/:recipeid", async (req, res) => {
 
     res.json({ success: true });
   } catch (error) {
-    console.error("Error updating recipe:", error);
     res.status(500).json({ error: error.message });
   }
 });
@@ -2639,7 +2523,6 @@ app.delete("/CustomRecipe/:uid/:recipeid", async (req, res) => {
 
     res.json({ success: true });
   } catch (error) {
-    console.error("Error deleting recipe:", error);
     res.status(500).json({ error: error.message });
   }
 });
@@ -2672,7 +2555,6 @@ app.post("/water_log/:uid", async (req, res) => {
       entry: { ...waterEntry, id: docId, date: formattedDate },
     });
   } catch (error) {
-    console.error("Error saving water log:", error);
     res.status(500).json({ success: false, error: error.message });
   }
 });
@@ -2705,14 +2587,12 @@ app.get("/water_log/:uid", async (req, res) => {
 
     res.json(waterEntries);
   } catch (error) {
-    console.error("Error fetching water logs:", error);
     res.status(500).json({ error: error.message });
   }
 });
 
 
-// Save activity log
-// POST - Save activity log
+
 app.post("/activity_log/:uid", async (req, res) => {
   try {
     const { uid } = req.params;
@@ -2721,7 +2601,6 @@ app.post("/activity_log/:uid", async (req, res) => {
     const formattedDate = activityEntry.date || new Date().toISOString().split("T")[0];
     const calories = Number(activityEntry.calories) || 0;
     
-    // Create a new activity log entry with auto-generated ID
     const activityRef = await db.collection("activity_log")
       .doc(uid)
       .collection("entries")
@@ -2743,9 +2622,7 @@ app.post("/activity_log/:uid", async (req, res) => {
       await userRef.update({
         totalCaloriesBurned: currentTotal + calories,
       });
-      console.log(`✅ Updated total calories burned for user ${uid}: ${currentTotal} -> ${currentTotal + calories}`);
     } else {
-      // Initialize totalCaloriesBurned if user document doesn't exist
       await userRef.set({
         totalCaloriesBurned: calories,
       }, { merge: true });
@@ -2762,7 +2639,6 @@ app.post("/activity_log/:uid", async (req, res) => {
       },
     });
   } catch (error) {
-    console.error("Error saving activity log:", error);
     res.status(500).json({ success: false, error: error.message });
   }
 });
@@ -2796,7 +2672,6 @@ app.get("/activity_log/:uid", async (req, res) => {
 
     res.json(activities);
   } catch (error) {
-    console.error("Error fetching activity logs:", error);
     res.status(500).json({ error: error.message });
   }
 });
@@ -2830,7 +2705,6 @@ app.delete("/activity_log/:uid/:entryId", async (req, res) => {
         await userRef.update({
           totalCaloriesBurned: newTotal,
         });
-        console.log(`✅ Updated total calories burned for user ${uid}: ${currentTotal} -> ${newTotal} (deleted ${calories} calories)`);
       }
     } else {
       // If activity doesn't exist, just return success
@@ -2839,15 +2713,12 @@ app.delete("/activity_log/:uid/:entryId", async (req, res) => {
 
     res.status(200).json({ success: true, message: "Activity deleted successfully" });
   } catch (error) {
-    console.error("Error deleting activity:", error);
     res.status(500).json({ success: false, error: error.message });
   }
 });
 
 
-// POST - Add new custom activity
-// Note: CustomActivity is for activity templates, not actual logged activities
-// Actual activities are logged via /activity_log endpoint which tracks calories
+
 app.post("/CustomActivity/:uid", async (req, res) => {
   try {
     const { uid } = req.params;
@@ -2874,7 +2745,6 @@ app.post("/CustomActivity/:uid", async (req, res) => {
       },
     });
   } catch (error) {
-    console.error("Error saving custom activity:", error);
     res.status(500).json({ success: false, error: error.message });
   }
 });
@@ -2897,7 +2767,6 @@ app.get("/CustomActivity/:uid", async (req, res) => {
 
     res.json(activities);
   } catch (error) {
-    console.error("Error fetching custom activities:", error);
     res.status(500).json({ error: error.message });
   }
 });
@@ -2922,7 +2791,6 @@ app.put("/CustomActivity/:uid/:entryId", async (req, res) => {
 
     res.status(200).json({ success: true, message: "Custom activity updated" });
   } catch (error) {
-    console.error("Error updating custom activity:", error);
     res.status(500).json({ success: false, error: error.message });
   }
 });
@@ -2940,7 +2808,6 @@ app.delete("/CustomActivity/:uid/:entryId", async (req, res) => {
 
     res.status(200).json({ success: true, message: "Custom activity deleted" });
   } catch (error) {
-    console.error("Error deleting custom activity:", error);
     res.status(500).json({ success: false, error: error.message });
   }
 });
@@ -2983,7 +2850,6 @@ app.post("/CustomFood/:uid", async (req, res) => {
       },
     });
   } catch (error) {
-    console.error("Error saving custom food:", error);
     res.status(500).json({ success: false, error: error.message });
   }
 });
@@ -3006,7 +2872,6 @@ app.get("/CustomFood/:uid", async (req, res) => {
 
     res.json(foods);
   } catch (error) {
-    console.error("Error fetching custom foods:", error);
     res.status(500).json({ error: error.message });
   }
 });
@@ -3036,7 +2901,6 @@ app.put("/CustomFood/:uid/:entryId", async (req, res) => {
 
     res.status(200).json({ success: true, message: "Custom food updated" });
   } catch (error) {
-    console.error("Error updating custom food:", error);
     res.status(500).json({ success: false, error: error.message });
   }
 });
@@ -3054,7 +2918,6 @@ app.delete("/CustomFood/:uid/:entryId", async (req, res) => {
 
     res.status(200).json({ success: true, message: "Custom food deleted" });
   } catch (error) {
-    console.error("Error deleting custom food:", error);
     res.status(500).json({ success: false, error: error.message });
   }
 });
@@ -3065,7 +2928,6 @@ async function seedActivities() {
     const snapshot = await db.collection("Activities").get();
 
     if (snapshot.size === 0) {
-      console.log("⚡ Seeding default activities...");
       const batch = db.batch();
 
       activitiesData.forEach((activity) => {
@@ -3078,20 +2940,15 @@ async function seedActivities() {
       });
 
       await batch.commit();
-      console.log("✅ Default activities loaded into Firestore");
     } else {
-      console.log(`ℹ️ Activities already exist (${snapshot.size} docs), skipping seeding`);
     }
   } catch (error) {
-    console.error("❌ Error seeding activities:", error);
   }
 }
 
-// ⚡ Call seeding on server start
 seedActivities();
 
 
-// ✅ GET - Fetch all activities
 app.get("/activities", async (req, res) => {
   try {
     const snapshot = await db.collection("Activities").orderBy("name").get();
@@ -3103,12 +2960,10 @@ app.get("/activities", async (req, res) => {
 
     res.status(200).json(activities);
   } catch (error) {
-    console.error("Error fetching activities:", error);
     res.status(500).json({ error: error.message });
   }
 });
 
-// ✅ POST - Add a single activity manually (admin feature)
 app.post("/activities", async (req, res) => {
   try {
     const { name, duration, calories } = req.body;
@@ -3134,7 +2989,6 @@ app.post("/activities", async (req, res) => {
       calories,
     });
   } catch (error) {
-    console.error("Error adding activity:", error);
     res.status(500).json({ error: error.message });
   }
 });
@@ -3152,13 +3006,11 @@ app.get("/user_info/:uid", async (req, res) => {
 
     res.json(userDoc.data());
   } catch (error) {
-    console.error("❌ Error fetching user info:", error);
     res.status(500).json({ error: error.message });
   }
 });
 
 
-// Add this to your backend routes file
 
 app.get("/goals/:uid", async (req, res) => {
   try {
@@ -3189,13 +3041,11 @@ app.get("/goals/:uid", async (req, res) => {
 
     res.json(formattedGoals);
   } catch (error) {
-    console.error("❌ Error fetching user goals:", error);
     res.status(500).json({ error: error.message });
   }
 });
 
-// POST - Recalculate total calories burned from all activity logs
-// This is useful for existing users who had activities before totalCaloriesBurned was tracked
+
 app.post("/recalculate-calories/:uid", async (req, res) => {
   try {
     const { uid } = req.params;
@@ -3218,14 +3068,12 @@ app.post("/recalculate-calories/:uid", async (req, res) => {
       totalCaloriesBurned: totalCalories,
     });
     
-    console.log(`✅ Recalculated total calories for user ${uid}: ${totalCalories}`);
     
     res.json({
       success: true,
       totalCaloriesBurned: totalCalories,
     });
   } catch (error) {
-    console.error("❌ Error recalculating calories:", error);
     res.status(500).json({ error: error.message });
   }
 });
@@ -3240,7 +3088,6 @@ app.get("/challenges-list", async (req, res) => {
     };
     res.json(challengesMap);
   } catch (error) {
-    console.error("❌ Error fetching challenges list:", error);
     res.status(500).json({ error: error.message });
   }
 });
@@ -3254,136 +3101,133 @@ app.get("/goals-list", async (req, res) => {
     };
     res.json(goalsMap);
   } catch (error) {
-    console.error("❌ Error fetching goals list:", error);
     res.status(500).json({ error: error.message });
   }
 });
 
 
 // =======================
-// ✅ POST - Add new QRFood entry
-app.post("/QRFood", async (req, res) => {
-  try {
-    const {
-      barcode,
-      productName,
-      calories,
-      protein,
-      fat,
-      carbs,
-      uid,
-      servingAmount,
-      servingUnit,
-      status,
-    } = req.body;
+// app.post("/QRFood", async (req, res) => {
+//   try {
+//     const {
+//       barcode,
+//       productName,
+//       calories,
+//       protein,
+//       fat,
+//       carbs,
+//       uid,
+//       servingAmount,
+//       servingUnit,
+//       status,
+//     } = req.body;
 
-    // Validation
-    if (!barcode || !productName || !uid) {
-      return res.status(400).json({
-        success: false,
-        error: "Barcode, product name, and user ID are required",
-      });
-    }
+//     // Validation
+//     if (!barcode || !productName || !uid) {
+//       return res.status(400).json({
+//         success: false,
+//         error: "Barcode, product name, and user ID are required",
+//       });
+//     }
 
-    // Use barcode as document ID
-    const docRef = db.collection("QRFood").doc(barcode);
+//     // Use barcode as document ID
+//     const docRef = db.collection("QRFood").doc(barcode);
 
-    // Save to Firestore
-    await docRef.set({
-      barcode,
-      productName,
-      calories: parseFloat(calories) || 0,
-      protein: parseFloat(protein) || 0,
-      fat: parseFloat(fat) || 0,
-      carbs: parseFloat(carbs) || 0,
-      uid,
-      servingAmount: parseFloat(servingAmount) || 100, // fallback to 100 if empty
-      servingUnit: servingUnit || "g", // fallback to grams if empty
-      status: status || "pending_verification",
-      createdAt: new Date(),
-    });
+//     // Save to Firestore
+//     await docRef.set({
+//       barcode,
+//       productName,
+//       calories: parseFloat(calories) || 0,
+//       protein: parseFloat(protein) || 0,
+//       fat: parseFloat(fat) || 0,
+//       carbs: parseFloat(carbs) || 0,
+//       uid,
+//       servingAmount: parseFloat(servingAmount) || 100, // fallback to 100 if empty
+//       servingUnit: servingUnit || "g", // fallback to grams if empty
+//       status: status || "pending_verification",
+//       createdAt: new Date(),
+//     });
 
-    // Return success response with ID
-    res.status(201).json({
-      success: true,
-      id: docRef.id,
-      message: "Food submitted successfully for verification",
-    });
-  } catch (error) {
-    console.error("Error adding QRFood:", error);
-    res.status(500).json({
-      success: false,
-      error: error.message,
-    });
-  }
-});
-
-
-// ✅ GET - Fetch all QRFood entries for a specific user
-app.get("/QRFood/:uid", async (req, res) => {
-  try {
-    const { uid } = req.params;
-
-    if (!uid) {
-      return res.status(400).json({ error: "User ID (uid) is required" });
-    }
-
-    const snapshot = await db
-      .collection("QRFood")
-      .where("uid", "==", uid)
-      .get();
-
-    const foods = snapshot.docs
-      .map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }))
-      .sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
-
-    res.status(200).json(foods);
-  } catch (error) {
-    console.error("Error fetching QRFood:", error);
-    res.status(500).json({ error: error.message });
-  }
-});
+//     // Return success response with ID
+//     res.status(201).json({
+//       success: true,
+//       id: docRef.id,
+//       message: "Food submitted successfully for verification",
+//     });
+//   } catch (error) {
+//     console.error("Error adding QRFood:", error);
+//     res.status(500).json({
+//       success: false,
+//       error: error.message,
+//     });
+//   }
+// });
 
 
-// GET single product by barcode (NEW - ADD THIS)
-app.get("/QRFood/barcode/:barcode", async (req, res) => {
-  try {
-    const { barcode } = req.params;
+// // ✅ GET - Fetch all QRFood entries for a specific user
+// app.get("/QRFood/:uid", async (req, res) => {
+//   try {
+//     const { uid } = req.params;
+
+//     if (!uid) {
+//       return res.status(400).json({ error: "User ID (uid) is required" });
+//     }
+
+//     const snapshot = await db
+//       .collection("QRFood")
+//       .where("uid", "==", uid)
+//       .get();
+
+//     const foods = snapshot.docs
+//       .map((doc) => ({
+//         id: doc.id,
+//         ...doc.data(),
+//       }))
+//       .sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+
+//     res.status(200).json(foods);
+//   } catch (error) {
+//     console.error("Error fetching QRFood:", error);
+//     res.status(500).json({ error: error.message });
+//   }
+// });
+
+
+// // GET single product by barcode (NEW - ADD THIS)
+// app.get("/QRFood/barcode/:barcode", async (req, res) => {
+//   try {
+//     const { barcode } = req.params;
     
-    if (!barcode) {
-      return res.status(400).json({ 
-        success: false,
-        error: "Barcode is required" 
-      });
-    }
+//     if (!barcode) {
+//       return res.status(400).json({ 
+//         success: false,
+//         error: "Barcode is required" 
+//       });
+//     }
 
-    const docRef = db.collection("QRFood").doc(barcode);
-    const doc = await docRef.get();
+//     const docRef = db.collection("QRFood").doc(barcode);
+//     const doc = await docRef.get();
 
-    if (!doc.exists) {
-      return res.status(404).json({ 
-        success: false,
-        error: "Product not found" 
-      });
-    }
+//     if (!doc.exists) {
+//       return res.status(404).json({ 
+//         success: false,
+//         error: "Product not found" 
+//       });
+//     }
 
-    res.status(200).json({
-      success: true,
-      ...doc.data()
-    });
-  } catch (error) {
-    console.error("Error fetching product:", error);
-    res.status(500).json({ 
-      success: false,
-      error: error.message 
-    });
-  }
-});
+//     res.status(200).json({
+//       success: true,
+//       ...doc.data()
+//     });
+//   } catch (error) {
+//     console.error("Error fetching product:", error);
+//     res.status(500).json({ 
+//       success: false,
+//       error: error.message 
+//     });
+//   }
+// });
 
-// ✅ Get daily summary for a user for a specific date
 app.get("/daily_summary/:uid", async (req, res) => {
   try {
     const { uid } = req.params;
@@ -3397,18 +3241,16 @@ app.get("/daily_summary/:uid", async (req, res) => {
     const doc = await docRef.get();
 
     if (!doc.exists) {
-      return res.status(200).json({}); // no summary yet, return empty object
+      return res.status(200).json({}); 
     }
 
     res.json(doc.data());
   } catch (err) {
-    console.error("Error fetching daily summary:", err);
     res.status(500).json({ success: false, message: "Internal server error" });
   }
 });
 
 
-// ✅ Update daily calorie summary for a user
 app.post("/daily_summary/:uid", async (req, res) => {
   try {
     const { uid } = req.params;
@@ -3418,7 +3260,6 @@ app.post("/daily_summary/:uid", async (req, res) => {
       return res.status(400).json({ success: false, message: "Missing uid or date" });
     }
 
-    // Default numeric fields if undefined
     caloriesEaten = caloriesEaten ?? 0;
     caloriesBurned = caloriesBurned ?? 0;
     remainingCalories = remainingCalories ?? 0;
@@ -3439,13 +3280,10 @@ app.post("/daily_summary/:uid", async (req, res) => {
 
     res.json({ success: true, message: "Daily summary updated" });
   } catch (err) {
-    console.error("❌ Error updating daily summary:", err);
     res.status(500).json({ success: false, message: "Internal server error" });
   }
 });
 
-// Get all weight entries for a user (for progress chart)
-// ✅ Fetch weight progress from daily_summary
 app.get("/weight_progress/:uid", async (req, res) => {
   try {
     const { uid } = req.params;
@@ -3458,7 +3296,7 @@ app.get("/weight_progress/:uid", async (req, res) => {
       .get();
 
     if (snapshot.empty) {
-      return res.json([]); // No records yet
+      return res.json([]); 
     }
 
     const data = snapshot.docs
@@ -3468,23 +3306,20 @@ app.get("/weight_progress/:uid", async (req, res) => {
           ? { date: d.date, weight: d.weight }
           : null;
       })
-      .filter(Boolean); // Remove nulls (entries without weight)
+      .filter(Boolean); 
 
     res.json(data);
   } catch (err) {
-    console.error("❌ Error fetching weight progress:",err.toString(), err);
     res.status(500).json({ error: "Internal server error" });
   }
 });
 
 
 
-// ✅ Get user's target weight goal
 app.get("/goals/:uid", async (req, res) => {
   try {
     const { uid } = req.params;
     const doc = await db.collection("goals").doc(uid).get();
-    console.log("🎯 Goals fetched for", uid, "=>", doc.data());
 
     if (!doc.exists) {
       return res.status(404).json({ success: false, message: "Goals not found" });
@@ -3494,13 +3329,12 @@ app.get("/goals/:uid", async (req, res) => {
     res.json({
       success: true,
       targetWeight: data.targetWeight || 0,
-      weightLossGoal: data.weightLossGoal || "Not specified", // ✅ Added
+      weightLossGoal: data.weightLossGoal || "Not specified",
       goals: data.goals || [],
       challenges: data.challenges || [],
       personalizedPref: data.personalizedPref || "",
     });
   } catch (err) {
-    console.error("Error fetching goals:", err);
     res.status(500).json({ success: false, message: "Internal server error" });
   }
 });
@@ -3511,7 +3345,6 @@ app.get("/goals/:uid", async (req, res) => {
 app.get("/nutritionist-info/:uid", async (req, res) => {
   try {
     const { uid } = req.params;
-    console.log("Fetching nutritionist info for:", uid);
     
     // Fetch name from nutritionist collection
     const nutritionistDoc = await db.collection("nutritionist").doc(uid).get();
@@ -3533,11 +3366,10 @@ app.get("/nutritionist-info/:uid", async (req, res) => {
       success: true,
       nutritionist: {
         ...nutritionistInfoData,
-        ...nutritionistData, // name from nutritionist collection takes priority
+        ...nutritionistData, 
       },
     });
   } catch (error) {
-    console.error("Error fetching nutritionist info:", error);
     res.status(500).json({
       success: false,
       error: error.message
@@ -3549,7 +3381,6 @@ app.get("/nutritionist-info/:uid", async (req, res) => {
 app.get("/servicesNutritionist/:uid", async (req, res) => {
   try {
     const { uid } = req.params;
-    console.log("Fetching services for nutritionist:", uid);
    
     // Fetch from the servicesNutritionist collection
     const servicesDoc = await db.collection("servicesNutritionist").doc(uid).get();
@@ -3568,7 +3399,6 @@ app.get("/servicesNutritionist/:uid", async (req, res) => {
       services: servicesData,
     });
   } catch (error) {
-    console.error("Error fetching nutritionist services:", error);
     res.status(500).json({
       success: false,
       error: error.message
@@ -3580,7 +3410,6 @@ app.get("/servicesNutritionist/:uid", async (req, res) => {
 app.get("/availabilityNutritionist/:uid", async (req, res) => {
   try {
     const { uid } = req.params;
-    console.log("Fetching availability for nutritionist:", uid);
 
     // Fetch from the availabilityNutritionist collection
     const availabilityDoc = await db.collection("availabilityNutritionist").doc(uid).get();
@@ -3599,7 +3428,6 @@ app.get("/availabilityNutritionist/:uid", async (req, res) => {
       availability: availabilityData,
     });
   } catch (error) {
-    console.error("Error fetching nutritionist availability:", error);
     res.status(500).json({
       success: false,
       error: error.message
@@ -3613,8 +3441,6 @@ app.put("/nutritionist-info/:uid", async (req, res) => {
     const { uid } = req.params;
     const updates = req.body;
     
-    console.log("Updating nutritionist info for:", uid);
-    console.log("Updates:", updates);
 
     // Validate that the document exists in main collection
     const nutritionistDoc = await db.collection("nutritionist").doc(uid).get();
@@ -3668,7 +3494,6 @@ app.put("/nutritionist-info/:uid", async (req, res) => {
       message: "Nutritionist info updated successfully"
     });
   } catch (error) {
-    console.error("Error updating nutritionist info:", error);
     res.status(500).json({
       success: false,
       error: error.message
@@ -3682,14 +3507,11 @@ app.put("/servicesNutritionist/:uid", async (req, res) => {
     const { uid } = req.params;
     const updates = req.body;
     
-    console.log("Updating services for nutritionist:", uid);
-    console.log("Updates:", updates);
 
     // Check if document exists
     const servicesDoc = await db.collection("servicesNutritionist").doc(uid).get();
     
     if (!servicesDoc.exists) {
-      // Create new document if it doesn't exist
       await db.collection("servicesNutritionist").doc(uid).set({
         ...updates,
         createdAt: admin.firestore.FieldValue.serverTimestamp(),
@@ -3712,7 +3534,6 @@ app.put("/servicesNutritionist/:uid", async (req, res) => {
       message: "Services updated successfully"
     });
   } catch (error) {
-    console.error("Error updating nutritionist services:", error);
     res.status(500).json({
       success: false,
       error: error.message
@@ -3726,8 +3547,7 @@ app.put("/availabilityNutritionist/:uid", async (req, res) => {
     const { uid } = req.params;
     const updates = req.body;
     
-    console.log("Updating availability for nutritionist:", uid);
-    console.log("Updates:", updates);
+
 
     // Check if document exists
     const availabilityDoc = await db.collection("availabilityNutritionist").doc(uid).get();
@@ -3756,7 +3576,6 @@ app.put("/availabilityNutritionist/:uid", async (req, res) => {
       message: "Availability updated successfully"
     });
   } catch (error) {
-    console.error("Error updating nutritionist availability:", error);
     res.status(500).json({
       success: false,
       error: error.message
@@ -3768,7 +3587,6 @@ app.put("/availabilityNutritionist/:uid", async (req, res) => {
 app.get("/coach-info/:uid", async (req, res) => {
   try {
     const { uid } = req.params;
-    console.log("Fetching coach info for:", uid);
     
     // Fetch name from coach collection
     const coachDoc = await db.collection("coach").doc(uid).get();
@@ -3794,7 +3612,6 @@ app.get("/coach-info/:uid", async (req, res) => {
       },
     });
   } catch (error) {
-    console.error("Error fetching coach info:", error);
     res.status(500).json({
       success: false,
       error: error.message
@@ -3806,7 +3623,6 @@ app.get("/coach-info/:uid", async (req, res) => {
 app.get("/servicesCoach/:uid", async (req, res) => {
   try {
     const { uid } = req.params;
-    console.log("Fetching services for coach:", uid);
    
     // Fetch from the servicesCoach collection
     const servicesDoc = await db.collection("servicesCoach").doc(uid).get();
@@ -3825,7 +3641,6 @@ app.get("/servicesCoach/:uid", async (req, res) => {
       services: servicesData,
     });
   } catch (error) {
-    console.error("Error fetching coach services:", error);
     res.status(500).json({
       success: false,
       error: error.message
@@ -3837,7 +3652,6 @@ app.get("/servicesCoach/:uid", async (req, res) => {
 app.get("/availabilityCoach/:uid", async (req, res) => {
   try {
     const { uid } = req.params;
-    console.log("Fetching availability for coach:", uid);
 
     // Fetch from the availabilityCoach collection
     const availabilityDoc = await db.collection("availabilityCoach").doc(uid).get();
@@ -3856,7 +3670,6 @@ app.get("/availabilityCoach/:uid", async (req, res) => {
       availability: availabilityData,
     });
   } catch (error) {
-    console.error("Error fetching coach availability:", error);
     res.status(500).json({
       success: false,
       error: error.message
@@ -3869,9 +3682,7 @@ app.put("/coach-info/:uid", async (req, res) => {
   try {
     const { uid } = req.params;
     const updates = req.body;
-    
-    console.log("Updating coach info for:", uid);
-    console.log("Updates:", updates);
+
 
     // Validate that the document exists in main collection
     const coachDoc = await db.collection("coach").doc(uid).get();
@@ -3925,7 +3736,6 @@ app.put("/coach-info/:uid", async (req, res) => {
       message: "Coach info updated successfully"
     });
   } catch (error) {
-    console.error("Error updating coach info:", error);
     res.status(500).json({
       success: false,
       error: error.message
@@ -3939,8 +3749,7 @@ app.put("/servicesCoach/:uid", async (req, res) => {
     const { uid } = req.params;
     const updates = req.body;
     
-    console.log("Updating services for coach:", uid);
-    console.log("Updates:", updates);
+
 
     // Check if document exists
     const servicesDoc = await db.collection("servicesCoach").doc(uid).get();
@@ -3969,7 +3778,6 @@ app.put("/servicesCoach/:uid", async (req, res) => {
       message: "Services updated successfully"
     });
   } catch (error) {
-    console.error("Error updating coach services:", error);
     res.status(500).json({
       success: false,
       error: error.message
@@ -3983,8 +3791,6 @@ app.put("/availabilityCoach/:uid", async (req, res) => {
     const { uid } = req.params;
     const updates = req.body;
     
-    console.log("Updating availability for coach:", uid);
-    console.log("Updates:", updates);
 
     // Check if document exists
     const availabilityDoc = await db.collection("availabilityCoach").doc(uid).get();
@@ -4013,7 +3819,6 @@ app.put("/availabilityCoach/:uid", async (req, res) => {
       message: "Availability updated successfully"
     });
   } catch (error) {
-    console.error("Error updating coach availability:", error);
     res.status(500).json({
       success: false,
       error: error.message
@@ -4073,7 +3878,6 @@ app.post('/nutritionist_article', async (req, res) => {
           }
         }
       } catch (fetchError) {
-        console.warn('Could not fetch nutritionist name:', fetchError);
         finalNutritionistName = 'Nutritionist'; // Fallback if fetch fails
       }
     }
@@ -4100,7 +3904,6 @@ app.post('/nutritionist_article', async (req, res) => {
       data: { id: docRef.id, ...articleData },
     });
   } catch (error) {
-    console.error('Error creating article:', error);
     res.status(500).json({
       error: 'Failed to create article',
       message: error.message,
@@ -4147,7 +3950,6 @@ app.get('/nutritionist_article', async (req, res) => {
       data: articles,
     });
   } catch (error) {
-    console.error('Error fetching articles:', error);
     res.status(500).json({
       error: 'Failed to fetch articles',
       message: error.message,
@@ -4184,7 +3986,6 @@ app.get('/nutritionist_article/all', async (req, res) => {
       data: articles,
     });
   } catch (error) {
-    console.error('Error fetching articles:', error);
     res.status(500).json({
       error: 'Failed to fetch articles',
       message: error.message,
@@ -4214,7 +4015,6 @@ app.get('/nutritionist_article/:id', async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Error fetching article:', error);
     res.status(500).json({
       error: 'Failed to fetch article',
       message: error.message,
@@ -4267,7 +4067,6 @@ app.put('/nutritionist_article/:id', async (req, res) => {
       message: 'Article updated successfully',
     });
   } catch (error) {
-    console.error('Error updating article:', error);
     res.status(500).json({
       error: 'Failed to update article',
       message: error.message,
@@ -4297,7 +4096,6 @@ app.delete('/nutritionist_article/:id', async (req, res) => {
       message: 'Article deleted successfully',
     });
   } catch (error) {
-    console.error('Error deleting article:', error);
     res.status(500).json({
       error: 'Failed to delete article',
       message: error.message,
@@ -4358,7 +4156,6 @@ app.post('/coacharticle', async (req, res) => {
           }
         }
       } catch (fetchError) {
-        console.warn('Could not fetch coach name:', fetchError);
         finalCoachName = 'Coach'; // Fallback if fetch fails
       }
     }
@@ -4385,7 +4182,6 @@ app.post('/coacharticle', async (req, res) => {
       data: { id: docRef.id, ...articleData },
     });
   } catch (error) {
-    console.error('Error creating article:', error);
     res.status(500).json({
       error: 'Failed to create article',
       message: error.message,
@@ -4432,7 +4228,6 @@ app.get('/coacharticle', async (req, res) => {
       data: articles,
     });
   } catch (error) {
-    console.error('Error fetching articles:', error);
     res.status(500).json({
       error: 'Failed to fetch articles',
       message: error.message,
@@ -4469,7 +4264,6 @@ app.get('/coacharticle/all', async (req, res) => {
       data: articles,
     });
   } catch (error) {
-    console.error('Error fetching articles:', error);
     res.status(500).json({
       error: 'Failed to fetch articles',
       message: error.message,
@@ -4499,7 +4293,6 @@ app.get('/coacharticle/:id', async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Error fetching article:', error);
     res.status(500).json({
       error: 'Failed to fetch article',
       message: error.message,
@@ -4552,7 +4345,6 @@ app.put('/coacharticle/:id', async (req, res) => {
       message: 'Article updated successfully',
     });
   } catch (error) {
-    console.error('Error updating article:', error);
     res.status(500).json({
       error: 'Failed to update article',
       message: error.message,
@@ -4582,7 +4374,6 @@ app.delete('/coacharticle/:id', async (req, res) => {
       message: 'Article deleted successfully',
     });
   } catch (error) {
-    console.error('Error deleting article:', error);
     res.status(500).json({
       error: 'Failed to delete article',
       message: error.message,
@@ -4594,7 +4385,6 @@ app.delete('/coacharticle/:id', async (req, res) => {
 app.get("/articles/all", async (req, res) => {
   try {
     const { limit = 20 } = req.query;
-    console.log("Fetching all articles from coaches and nutritionists for HomeTab");
 
     const articles = [];
 
@@ -4662,7 +4452,6 @@ app.get("/articles/all", async (req, res) => {
       count: limitedArticles.length
     });
   } catch (error) {
-    console.error("Error fetching articles:", error);
     res.status(500).json({
       success: false,
       error: error.message
@@ -4705,7 +4494,6 @@ app.post("/submit-review", async (req, res) => {
       reviewId: docRef.id,
     });
   } catch (error) {
-    console.error("Error submitting review:", error);
     res.status(500).json({
       success: false,
       message: "Failed to submit review",
@@ -4742,7 +4530,6 @@ app.get("/user/:uid", async (req, res) => {
       user: userData,
     });
   } catch (error) {
-    console.error("Error fetching user:", error);
     res.status(500).json({
       success: false,
       error: error.message,
@@ -4802,7 +4589,6 @@ app.put("/user/:uid/membership", async (req, res) => {
       user: updatedUserDoc.data(),
     });
   } catch (error) {
-    console.error("Error updating membership:", error);
     res.status(500).json({
       success: false,
       error: error.message,

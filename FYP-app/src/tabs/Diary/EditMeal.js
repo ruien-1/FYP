@@ -20,11 +20,9 @@ export default function EditMeal() {
   const navigation = useNavigation();
   const route = useRoute();
   
-  // Get food data passed from MealLog
   const { food, meal: initialMeal, selectedDate } = route.params || {};
   const uid = auth.currentUser?.uid;
 
-  // Base nutritional values (per serving)
   const baseProtein = food?.protein || 0;
   const baseFat = food?.fats || 0;
   const baseCarbs = food?.carbs || 0;
@@ -37,7 +35,6 @@ export default function EditMeal() {
   const [showDropdown, setShowDropdown] = useState(false);
   const [message, setMessage] = useState(null);
 
-  // Calculated nutritional values
   const [protein, setProtein] = useState(baseProtein);
   const [fat, setFat] = useState(baseFat);
   const [carbs, setCarbs] = useState(baseCarbs);
@@ -45,7 +42,6 @@ export default function EditMeal() {
 
   const mealOptions = ["Breakfast", "Lunch", "Dinner", "Snacks"];
 
-  // 🔹 Auto-calculate nutrition based on servings
   useEffect(() => {
     const servings = parseFloat(numServings) || 1;
     setProtein(Math.round((baseProtein * servings) * 10) / 10);
@@ -54,7 +50,6 @@ export default function EditMeal() {
     setCalories(Math.round(baseCalories * servings));
   }, [numServings, baseProtein, baseFat, baseCarbs, baseCalories]);
 
-  // Auto-hide message after 3 seconds
   useEffect(() => {
     if (message) {
       const timer = setTimeout(() => {
@@ -64,7 +59,6 @@ export default function EditMeal() {
     }
   }, [message]);
 
-  // 🔹 Log meal to Firestore
   const logMeal = async () => {
     try {
       if (!uid) {
@@ -96,7 +90,6 @@ export default function EditMeal() {
         setMessage({ text: "Could not log meal. Please try again.", type: "error" });
       }
     } catch (err) {
-      console.error("Error logging meal:", err);
       setMessage({ text: "Could not log meal. Please try again.", type: "error" });
     }
   };
@@ -130,7 +123,6 @@ export default function EditMeal() {
           </View>
         )}
 
-        {/* 🍞 Food Title */}
         <View style={styles.titleContainer}>
           <Text style={styles.foodTitle}>{foodName}</Text>
           <Text style={styles.servingInfo}>Per serving: {servingSize}</Text>
@@ -374,7 +366,6 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
   },
 
-  // Servings Card
   servingsCard: {
     backgroundColor: "#fff",
     borderRadius: 14,
@@ -460,7 +451,6 @@ const styles = StyleSheet.create({
     color: "#fff",
   },
 
-  // Meal Card
   mealCard: {
     backgroundColor: "#fff",
     borderRadius: 14,
@@ -537,7 +527,6 @@ const styles = StyleSheet.create({
     color: "#333",
   },
 
-  // Nutrition Card
   nutritionCard: {
     backgroundColor: "#fff",
     borderRadius: 14,
@@ -621,7 +610,6 @@ const styles = StyleSheet.create({
     fontWeight: "500",
   },
 
-  // Button Container - Fixed at Bottom
   buttonContainer: {
     paddingHorizontal: 16,
     paddingVertical: 12,

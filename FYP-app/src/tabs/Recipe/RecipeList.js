@@ -69,12 +69,9 @@ export default function RecipeList() {
         else if (category.filterType === "diet") apiParams.diet = category.filterValue;
         else if (category.filterType === "intolerances") apiParams.intolerances = category.filterValue;
 
-        console.log("Sending API params:", apiParams);
         const res = await API.get("/recipes", { params: apiParams });
-        console.log("API response:", res.data);
         setRecipes(Array.isArray(res.data) ? res.data : []);
       } catch (error) {
-        console.error("Error fetching recipes:", error.message);
         setRecipes([]);
       } finally {
         setLoading(false);
@@ -88,10 +85,8 @@ export default function RecipeList() {
     const fetchFilterOptions = async () => {
       try {
         const res = await API.get("/filteroptions");
-        console.log("✅ Filter options:", res.data);
         setFilterOptions(res.data || { popular: [], diets: [], intolerances: [] });
       } catch (error) {
-        console.error("❌ Error fetching filter options:", error.message);
       }
     };
     fetchFilterOptions();
@@ -113,7 +108,6 @@ export default function RecipeList() {
             setMembership(userData.membership || "free");
           }
         } catch (error) {
-          console.error("Error fetching membership:", error);
         }
       };
       fetchMembership();
@@ -133,7 +127,6 @@ export default function RecipeList() {
           setMembership(userData.membership || "free");
         }
       } catch (error) {
-        console.error("Error fetching membership:", error);
       }
     };
     fetchMembership();
@@ -171,7 +164,6 @@ export default function RecipeList() {
       res.data.forEach((r) => { favsObj[r.id] = r; });
       setFavorites(favsObj);
     } catch (error) {
-      console.error(" Error fetching favorites:", error.message);
     }
   };
 
@@ -185,7 +177,6 @@ export default function RecipeList() {
       else await API.post(`/favorites/${user.uid}`, recipe);
       await fetchFavorites();
     } catch (error) {
-      console.error("Error toggling favorite:", error.message);
     }
   };
 
@@ -212,12 +203,10 @@ export default function RecipeList() {
       };
       const postRes = await API.post(`/meals_log/${uid}`, mealLog);
       if (postRes.data.success) {
-        console.log("Meal logged:", postRes.data.meal);
         setSuccessMessage(`"${fullRecipe.title}" logged successfully!`);
         setTimeout(() => setSuccessMessage(""), 3000);
       }
     } catch (err) {
-      console.error("Error logging meal:", err);
       setSuccessMessage("Failed to log meal. Please try again.");
       setTimeout(() => setSuccessMessage(""), 3000);
     }

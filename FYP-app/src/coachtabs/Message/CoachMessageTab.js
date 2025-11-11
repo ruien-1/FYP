@@ -36,22 +36,17 @@ export default function CoachMessageTab() {
   const [lastOpenedChatId, setLastOpenedChatId] = useState(null);
   const unsubscribersRef = useRef([]);
 
-  // --- Handle focus: fetch conversations and force clear unread for last opened chat ---
   useFocusEffect(
     React.useCallback(() => {
-      console.log("📱 Screen focused - fetching conversations");
       const refreshConversations = async () => {
-        // ✅ Get current user ID at the time of fetching
         const currentCoachId = auth.currentUser?.uid;
         if (!currentCoachId) {
-          console.log("❌ No authenticated coach found");
           setLoading(false);
           return;
         }
 
         await fetchConversations(currentCoachId);
 
-        // ✅ Force mark last opened chat as read
         if (lastOpenedChatId) {
           try {
             const messagesRef = collection(db, "chats", lastOpenedChatId, "messages");
@@ -66,17 +61,12 @@ export default function CoachMessageTab() {
             );
             await Promise.all(updates);
 
-            console.log(
-              `✅ Force-marked ${updates.length} messages as read for ${lastOpenedChatId}`
-            );
-
             // Immediately clear unread in state
             setUnreadCounts((prev) => ({
               ...prev,
               [lastOpenedChatId]: 0,
             }));
           } catch (error) {
-            console.error("❌ Error force-marking messages as read:", error);
           }
         }
       };
@@ -84,14 +74,12 @@ export default function CoachMessageTab() {
       refreshConversations();
 
       return () => {
-        console.log("🧹 Cleaning up listeners");
         unsubscribersRef.current.forEach((unsub) => unsub());
         unsubscribersRef.current = [];
       };
     }, [lastOpenedChatId])
   );
 
-  // --- Real-time unread and latest message listeners ---
   const setupUnreadListeners = async (conversationList, currentCoachId) => {
     try {
       unsubscribersRef.current.forEach((unsub) => unsub());
@@ -157,30 +145,18 @@ export default function CoachMessageTab() {
                 });
               }
             }
-
-            console.log(
-              `📬 Updated ${conv.clientName}: ${unreadCount} unread, latest: "${latestMessage?.text?.substring(
-                0,
-                30
-              )}..."`
-            );
           },
-          (error) => console.error(`❌ Snapshot error for ${conv.chatId}:`, error)
         );
 
         unsubscribersRef.current.push(unsubscribe);
       });
 
-      console.log(`✅ Setup ${unsubscribersRef.current.length} real-time listeners`);
     } catch (error) {
-      console.error("❌ Error setting up listeners:", error);
     }
   };
 
-// --- Fetch all conversations (Option 3: show all chats that include this coach) ---
 const fetchConversations = async (currentCoachId) => {
   try {
-    console.log("📥 Fetching all chats involving coach:", currentCoachId);
     if (!refreshing) setLoading(true);
 
     const chatsRef = collection(db, "chats");
@@ -190,19 +166,16 @@ const fetchConversations = async (currentCoachId) => {
     for (const chatDoc of chatSnapshot.docs) {
       const chatId = chatDoc.id;
 
-      // Only include chats where coach is one of the participants
       if (chatId.includes(currentCoachId)) {
         const [id1, id2] = chatId.split("_");
         const clientId = id1 === currentCoachId ? id2 : id1;
 
-        // Fetch user info from "user" collection
         const userDocRef = doc(db, "user", clientId);
         const userSnap = await getDoc(userDocRef);
         if (!userSnap.exists()) continue;
 
         const clientData = userSnap.data();
 
-        // Get messages
         const messagesRef = collection(db, "chats", chatId, "messages");
         const messagesSnapshot = await getDocs(messagesRef);
         if (messagesSnapshot.docs.length === 0) continue;
@@ -239,10 +212,8 @@ const fetchConversations = async (currentCoachId) => {
     setConversations(conversationList);
     setFilteredConversations(conversationList);
 
-    // Real-time updates for unread/latest message
     setTimeout(() => setupUnreadListeners(conversationList, currentCoachId), 400);
   } catch (error) {
-    console.error("❌ Error fetching all coach chats:", error);
   } finally {
     setLoading(false);
     setRefreshing(false);
@@ -263,8 +234,7 @@ const fetchConversations = async (currentCoachId) => {
   };
 
   const handleChatPress = (clientId, clientName, chatId) => {
-    console.log("💬 Opening chat with client:", clientName);
-    setLastOpenedChatId(chatId); // ✅ Store last opened chat
+    setLastOpenedChatId(chatId);
     navigation.navigate("CoachChatScreen", {
       userId: clientId,
       userName: clientName,

@@ -62,7 +62,6 @@ import WeightPage from "./src/tabs/Diary/WeightPage";
 import RecipeTab from "./src/tabs/Recipe/RecipeTab";
 import RecipeList from "./src/tabs/Recipe/RecipeList";
 import RecipeDetail from "./src/tabs/Recipe/RecipeDetail";
-import ViewRestaurant from "./src/tabs/Recipe/ViewRestaurant";
 import ViewMoreRecipes from "./src/tabs/Recipe/ViewMoreRecipes";
 import FavRecipes from "./src/tabs/Recipe/FavRecipes";
 
@@ -72,7 +71,7 @@ import CoachChatScreen from "./src/coachtabs/Message/CoachChatScreen";
 import CoachHomeTab from "./src/coachtabs/Home/CoachHomeTab";
 import CoachPendingRequest from "./src/coachtabs/Home/CoachPendingRequest";
 import CoachPendingAction from "./src/coachtabs/Home/CoachPendingAction";
-import CoachProfileTab from "./src/coachtabs/Profile/CoachProfileTab"; // ✅ Add this import
+import CoachProfileTab from "./src/coachtabs/Profile/CoachProfileTab"; 
 import CoachUpcomingAppointment from "./src/coachtabs/Home/CoachUpcomingAppointment";
 import CoachArticleManagement from "./src/coachtabs/Home/CoachArticleManagement";
 import CreateWorkoutPlan from "./src/coachtabs/Home/CreateWorkoutPlan";
@@ -83,7 +82,7 @@ import NutritionistChatScreen from "./src/nutritionisttabs/Message/NutritionistC
 import NutritionistHomeTab from "./src/nutritionisttabs/Home/NutritionistHomeTab";
 import NutritionistPendingRequest from "./src/nutritionisttabs/Home/NutritionistPendingRequest";
 import NutritionistPendingAction from "./src/nutritionisttabs/Home/NutritionistPendingAction";
-import NutriProfileTab from "./src/nutritionisttabs/Profile/NutriProfileTab"; // ✅ Add this import
+import NutriProfileTab from "./src/nutritionisttabs/Profile/NutriProfileTab"; 
 import NutriUpcomingAppointment from "./src/nutritionisttabs/Home/NutriUpcomingAppointment";
 import CreateMealPlan from "./src/nutritionisttabs/Home/CreateMealPlan";
 import NutritionistRecipeBrowser from "./src/nutritionisttabs/Home/NutritionistRecipeBrowser";
@@ -105,26 +104,23 @@ import { db } from "./src/firebaseConfig";
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 
-// Sub-stacks
 const DiaryStackNav = createNativeStackNavigator();
 const RecipeStackNav = createNativeStackNavigator();
 const ExpertStackNav = createNativeStackNavigator();
 const MoreStackNav = createNativeStackNavigator();
 const CoachHomeStackNav = createNativeStackNavigator();
 const CoachMessageStackNav = createNativeStackNavigator();
-const CoachProfileStackNav = createNativeStackNavigator(); // ✅ Fixed
+const CoachProfileStackNav = createNativeStackNavigator(); 
 
 const NutritionistHomeStackNav = createNativeStackNavigator();
 const NutritionistMessageStackNav = createNativeStackNavigator();
-const NutritionistProfileStackNav = createNativeStackNavigator(); // ✅ Add this
+const NutritionistProfileStackNav = createNativeStackNavigator(); 
 
 LogBox.ignoreLogs([
   "expo-notifications: Android Push notifications (remote notifications) functionality provided by expo-notifications was removed",
 ]);
 
-// ======================
-// 📘 Regular User Stacks
-// ======================
+
 function DiaryStack() {
   return (
     <DiaryStackNav.Navigator screenOptions={{ headerShown: false }}>
@@ -160,7 +156,6 @@ function RecipeStack() {
       <RecipeStackNav.Screen name="RecipeTab" component={RecipeTab} />
       <RecipeStackNav.Screen name="RecipeList" component={RecipeList} />
       <RecipeStackNav.Screen name="RecipeDetail" component={RecipeDetail} />
-      <RecipeStackNav.Screen name="ViewRestaurant" component={ViewRestaurant} />
       <RecipeStackNav.Screen name="ViewMoreRecipes" component={ViewMoreRecipes} />
       <RecipeStackNav.Screen name="FavRecipes" component={FavRecipes} />
       <RecipeStackNav.Screen name="UpgradePremium" component={UpgradePremium} />
@@ -206,7 +201,6 @@ function MoreStack() {
   );
 }
 
-// ✅ MainTabs for regular users
 function MainTabs() {
   return (
     <Tab.Navigator
@@ -242,9 +236,7 @@ function MainTabs() {
   );
 }
 
-// ======================
-// 🧑‍🏫 Coach-Specific Stacks
-// ======================
+
 function CoachHomeStack() {
   return (
     <CoachHomeStackNav.Navigator screenOptions={{ headerShown: false }}>
@@ -269,7 +261,6 @@ function CoachMessageStack() {
   );
 }
 
-// ✅ Fixed: Use CoachProfileStackNav instead of CoachProfileStack
 function CoachProfileStack() {
   return (
     <CoachProfileStackNav.Navigator screenOptions={{ headerShown: false }}>
@@ -278,7 +269,7 @@ function CoachProfileStack() {
   );
 }
 
-// ✅ CoachTabs
+
 function CoachTabs() {
   return (
     <Tab.Navigator
@@ -308,9 +299,7 @@ function CoachTabs() {
   );
 }
 
-// ======================
-// 🥗 Nutritionist-Specific Stacks
-// ======================
+
 function NutritionistHomeStack() {
   return (
     <NutritionistHomeStackNav.Navigator screenOptions={{ headerShown: false }}>
@@ -344,7 +333,6 @@ function NutritionistMessageStack() {
   );
 }
 
-// ✅ Add NutritionistProfileStack
 function NutritionistProfileStack() {
   return (
     <NutritionistProfileStackNav.Navigator screenOptions={{ headerShown: false }}>
@@ -353,7 +341,6 @@ function NutritionistProfileStack() {
   );
 }
 
-// ✅ NutritionistTabs (added Profile tab)
 function NutritionistTabs() {
   return (
     <Tab.Navigator
@@ -383,9 +370,7 @@ function NutritionistTabs() {
   );
 }
 
-// ======================
-// 🚀 App Root
-// ======================
+
 export default function App() {
   const navigationRef = React.useRef(null);
   const [isAuthReady, setIsAuthReady] = React.useState(false);
@@ -433,11 +418,9 @@ export default function App() {
             setInitialRouteName("Welcome");
           }
         } catch (error) {
-          console.error("Error checking user type:", error);
           setInitialRouteName("Welcome");
         }
       } else {
-        // No user logged in or email not verified
         setInitialRouteName("Welcome");
       }
       
@@ -486,15 +469,11 @@ export default function App() {
     // Initialize meal reminder when auth state changes (user logs in)
     const unsubscribeAuth = onAuthStateChanged(auth, async (user) => {
       if (user) {
-        // Only initialize meal reminder if user email is verified
-        // New signups won't have user document until they verify email and complete signup
         if (user.emailVerified) {
-          // Small delay to ensure user document exists in Firestore after signup completion
           setTimeout(() => {
             initializeMealReminder();
           }, 1000);
         } else {
-          console.log("⚠️ User email not verified yet, skipping meal reminder setup");
         }
       }
     });
@@ -505,7 +484,6 @@ export default function App() {
     };
   }, []);
 
-  // Show loading screen while checking auth
   if (!isAuthReady) {
     return (
       <View style={styles.loadingContainer}>
@@ -519,7 +497,6 @@ export default function App() {
       <NavigationContainer 
         ref={navigationRef}
         onReady={() => {
-          // Navigate to initial route after navigation is ready
           if (initialRouteName !== "Welcome") {
             navigationRef.current?.reset({
               index: 0,

@@ -42,7 +42,6 @@ export default function ManualAddFoodQR() {
       : ""
   );
 
-  // Serving size fields
   const [servingAmount, setServingAmount] = useState(
     partialData?.servingAmount || partialData?.serving_size || "100"
   );
@@ -113,7 +112,6 @@ export default function ManualAddFoodQR() {
         showError("Failed to submit food.");
       }
     } catch (error) {
-      console.error("Error adding food:", error);
       showError("Something went wrong while saving.");
     } finally {
       setLoading(false);
@@ -127,8 +125,7 @@ export default function ManualAddFoodQR() {
         contentContainerStyle={styles.contentContainer}
         showsVerticalScrollIndicator={false}
       >
-        {/* Header */}
-        {/* Header (Fixed Center Alignment) */}
+
         <View style={styles.headerContainer}>
           <TouchableOpacity
             style={styles.backButton}
@@ -137,7 +134,6 @@ export default function ManualAddFoodQR() {
             <Ionicons name="arrow-back" size={24} color="#1a1a1a" />
           </TouchableOpacity>
 
-          {/* Centered title */}
           <View style={styles.headerTitleWrapper}>
             <Text style={styles.headerTitle}>
               {partialData ? "Complete Information" : "Add New Food"}
@@ -651,7 +647,6 @@ headerTitle: {
     fontStyle: "italic",
   },
   
-  // Input Cards
   inputCard: {
     backgroundColor: "#fff",
     borderRadius: 16,
@@ -696,7 +691,6 @@ headerTitle: {
     lineHeight: 18,
   },
   
-  // Serving Size
   servingSizeRow: {
     flexDirection: "row",
     gap: 12,
@@ -731,7 +725,6 @@ headerTitle: {
     fontWeight: "500",
   },
   
-  // Meal Type Dropdown
   mealDropdown: {
     flexDirection: "row",
     alignItems: "center",
@@ -776,7 +769,6 @@ headerTitle: {
     fontWeight: "500",
   },
   
-  // Nutrition
   nutritionItemFull: {
     marginBottom: 16,
   },
@@ -825,7 +817,6 @@ headerTitle: {
     fontWeight: "600",
   },
   
-  // Macros Grid
   macrosGrid: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -875,7 +866,6 @@ headerTitle: {
     lineHeight: 19,
   },
   
-  // Submit Button
   submitButton: {
     flexDirection: "row",
     alignItems: "center",
@@ -900,7 +890,6 @@ headerTitle: {
     fontSize: 17,
   },
   
-  // Dropdown Modal
   modalOverlay: {
     flex: 1,
     backgroundColor: "rgba(0,0,0,0.5)",

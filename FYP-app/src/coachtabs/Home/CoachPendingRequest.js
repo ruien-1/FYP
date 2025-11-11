@@ -1,4 +1,3 @@
-// CoachPendingRequest.js - Updated with Chat Messages, Read Status, and Workout Plan tab
 import React, { useEffect, useState } from "react";
 import {
   View,
@@ -30,7 +29,6 @@ export default function PendingRequest() {
     fetchRequests();
   }, [selectedType]);
 
-  // Fetch all counts on initial load or when tab changes
   const fetchAllCounts = async () => {
     try {
       const [appointmentResponse, workoutPlanResponse] = await Promise.all([
@@ -40,7 +38,6 @@ export default function PendingRequest() {
         API.get("/workout-plans/coach", {
           params: { coachId: currentUser.uid, status: "pending" },
         }).catch((err) => {
-          console.error("Error fetching workout plan counts:", err);
           return { data: { data: [] } };
         }),
       ]);
@@ -55,7 +52,6 @@ export default function PendingRequest() {
       setRescheduleCount(rescheduleData.length);
       setWorkoutPlanCount(workoutPlanData.length);
     } catch (error) {
-      console.error("Error fetching counts:", error);
     }
   };
 
@@ -66,7 +62,6 @@ export default function PendingRequest() {
         const workoutPlanResponse = await API.get("/workout-plans/coach", {
           params: { coachId: currentUser.uid, status: "pending" },
         }).catch((err) => {
-          console.error("Error fetching workout plans:", err);
           return { data: { data: [] } };
         });
         const workoutPlanData = workoutPlanResponse.data?.data || [];
@@ -89,7 +84,6 @@ export default function PendingRequest() {
         );
       }
     } catch (error) {
-      console.error("Error fetching requests:", error);
     } finally {
       setLoading(false);
     }
@@ -120,9 +114,7 @@ export default function PendingRequest() {
 
       await addDoc(collection(db, "chats", chatId, "messages"), payload);
 
-      console.log('✅ Chat message sent successfully');
     } catch (error) {
-      console.error('❌ Error sending chat message:', error);
     }
   };
 
@@ -196,7 +188,6 @@ export default function PendingRequest() {
       Alert.alert("✅ Success", appointment.isRescheduled ? "Reschedule approved successfully!" : "Appointment approved successfully!");
       fetchRequests();
     } catch (error) {
-      console.error("Error approving request:", error);
       Alert.alert("Error", "Failed to approve request.");
     }
   };
@@ -260,7 +251,6 @@ export default function PendingRequest() {
       Alert.alert("❌ Rejected", appointment.isRescheduled ? "Reschedule request declined." : "Appointment request declined.");
       fetchRequests();
     } catch (error) {
-      console.error("Error rejecting request:", error);
       Alert.alert("Error", "Failed to reject request.");
     }
   };

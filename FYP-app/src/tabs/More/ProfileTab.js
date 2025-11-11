@@ -42,7 +42,6 @@ const ProfileTab = () => {
       
       setAchievementBadgeImages(badgesMap);
     } catch (error) {
-      console.error("Error fetching achievement badges:", error);
     }
   };
 
@@ -80,20 +79,15 @@ const ProfileTab = () => {
           await checkAndUnlockCaloriesAchievements(newTotalCalories);
         }
         
-        console.log("ProfileTab: Streak updated to", newStreak, "Total calories:", newTotalCalories);
       }
     }, (error) => {
-      console.error("Error listening to user data:", error);
     });
 
-    // Fetch achievement badges from shared collection
     fetchAchievementBadges();
 
-    // Cleanup listener on unmount
     return () => unsubscribe();
   }, []);
 
-  // Refresh data when screen is focused (in case listener didn't catch updates)
   useFocusEffect(
     React.useCallback(() => {
       fetchUserData();
@@ -136,7 +130,6 @@ const ProfileTab = () => {
       // Fetch achievement badges from shared collection
       await fetchAchievementBadges();
     } catch (error) {
-      console.error("Error fetching user data:", error);
     }
   };
 
@@ -323,7 +316,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "transparent",
   },
-  // Wallpaper Section
   wallpaperContainer: {
     height: WALLPAPER_HEIGHT,
     width: "100%",
@@ -341,9 +333,9 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: "rgba(0, 0, 0, 0.3)", // Dark overlay for better text visibility
+    backgroundColor: "rgba(0, 0, 0, 0.3)", 
   },
-  // Fixed Header Buttons Container
+
   headerButtonsContainer: {
     position: "absolute",
     top: 0,
@@ -372,9 +364,9 @@ const styles = StyleSheet.create({
   },
   profilePictureContainer: {
     position: "absolute",
-    top: WALLPAPER_HEIGHT * 0.30, // Moved up - around 35% from top
+    top: WALLPAPER_HEIGHT * 0.30, 
     left: "50%",
-    marginLeft: -60, // Half of profile picture width (120/2)
+    marginLeft: -60, 
     zIndex: 5,
   },
   profilePicture: {
@@ -401,7 +393,7 @@ const styles = StyleSheet.create({
   },
   userNameContainer: {
     position: "absolute",
-    top: WALLPAPER_HEIGHT * 0.58, // Slightly below halfway mark (52%)
+    top: WALLPAPER_HEIGHT * 0.58, 
     left: 0,
     right: 0,
     alignItems: "center",
@@ -417,12 +409,12 @@ const styles = StyleSheet.create({
   },
   statsContainer: {
     position: "absolute",
-    bottom: 25, // Slightly above bottom
+    bottom: 25, 
     left: 20,
     right: 20,
     flexDirection: "row",
     justifyContent: "space-around",
-    backgroundColor: "rgba(255, 255, 255, 0.2)", // More translucent
+    backgroundColor: "rgba(255, 255, 255, 0.2)", 
     borderRadius: 16,
     padding: 18,
     borderWidth: 1,
@@ -459,7 +451,6 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(255, 255, 255, 0.4)",
     marginHorizontal: 10,
   },
-  // Bottom Section
   bottomSection: {
     paddingHorizontal: 16,
     paddingTop: 20,

@@ -60,38 +60,30 @@ export default function NutritionistChatScreen() {
       ? `${currentUser.uid}_${userId}`
       : `${userId}_${currentUser.uid}`;
 
-  // Fetch nutritionist name from Firestore
   useEffect(() => {
     const fetchNutritionistName = async () => {
       try {
-        // First try nutritionist collection
         const nutritionistDocRef = doc(db, "nutritionist", currentUser.uid);
         const nutritionistDocSnap = await getDoc(nutritionistDocRef);
         
         if (nutritionistDocSnap.exists() && nutritionistDocSnap.data().name) {
           setNutritionistName(nutritionistDocSnap.data().name);
-          console.log("✅ Fetched nutritionist name:", nutritionistDocSnap.data().name);
           return;
         }
 
-        // Fallback to nutritionist_info collection
         const nutritionistInfoDocRef = doc(db, "nutritionist_info", currentUser.uid);
         const nutritionistInfoDocSnap = await getDoc(nutritionistInfoDocRef);
         
         if (nutritionistInfoDocSnap.exists() && nutritionistInfoDocSnap.data().name) {
           setNutritionistName(nutritionistInfoDocSnap.data().name);
-          console.log("✅ Fetched nutritionist name from info:", nutritionistInfoDocSnap.data().name);
         } else {
-          console.warn("⚠️ Nutritionist name not found in Firestore");
         }
       } catch (error) {
-        console.error("❌ Error fetching nutritionist name:", error);
       }
     };
     fetchNutritionistName();
   }, [currentUser.uid]);
 
-  // Fetch user name from Firestore (in case it wasn't passed or needs updating)
   useEffect(() => {
     const fetchUserName = async () => {
       try {
@@ -99,16 +91,13 @@ export default function NutritionistChatScreen() {
         const userDocSnap = await getDoc(userDocRef);
         if (userDocSnap.exists() && userDocSnap.data().name) {
           setUserName(userDocSnap.data().name);
-          console.log("✅ Fetched user name:", userDocSnap.data().name);
         }
       } catch (error) {
-        console.error("❌ Error fetching user name:", error);
       }
     };
     fetchUserName();
   }, [userId]);
 
-  // Mark messages as read when screen is focused
   useFocusEffect(
     useCallback(() => {
       const markMessagesAsRead = async () => {
@@ -121,7 +110,6 @@ export default function NutritionistChatScreen() {
           
           const snapshot = await getDocs(unreadQuery);
           
-          // Filter to only messages NOT from current nutritionist
           const messagesToUpdate = snapshot.docs.filter(
             doc => doc.data().user?._id !== currentUser.uid
           );
@@ -131,9 +119,7 @@ export default function NutritionistChatScreen() {
           );
           
           await Promise.all(updatePromises);
-          console.log(`✅ Nutritionist marked ${updatePromises.length} messages as read`);
         } catch (error) {
-          console.log('Error marking messages as read:', error);
         }
       };
 
@@ -141,7 +127,6 @@ export default function NutritionistChatScreen() {
     }, [chatId, currentUser.uid])
   );
 
-  // Check which appointments have been responded to from messages
   const updateRespondedAppointments = useCallback((allMessages) => {
     const responded = new Set();
     
@@ -160,7 +145,6 @@ export default function NutritionistChatScreen() {
     setRespondedAppointments(responded);
   }, [currentUser.uid]);
 
-  // Check appointment statuses for all pending appointment messages
   useEffect(() => {
     const checkAppointmentStatuses = async () => {
       try {
@@ -175,16 +159,13 @@ export default function NutritionistChatScreen() {
         });
         
         setAppointmentStatuses(statuses);
-        console.log('📊 Updated appointment statuses:', statuses);
       } catch (error) {
-        console.error("Error checking appointment statuses:", error);
       }
     };
 
     checkAppointmentStatuses();
   }, [currentUser.uid, userId]);
 
-  // Listen to messages
   useEffect(() => {
     const q = query(
       collection(db, "chats", chatId, "messages"),
@@ -203,7 +184,6 @@ export default function NutritionistChatScreen() {
         setMessages(allMessages);
         updateRespondedAppointments(allMessages);
       },
-      (error) => console.error("❌ Snapshot error:", error)
     );
 
     return unsubscribe;
@@ -272,9 +252,7 @@ export default function NutritionistChatScreen() {
         read: false,
       });
       
-      console.log("✅ Message sent with nutritionist name:", nutritionistName);
     } catch (error) {
-      console.error("Error sending message:", error.message);
     }
   }, [chatId, currentUser, nutritionistName]);
 

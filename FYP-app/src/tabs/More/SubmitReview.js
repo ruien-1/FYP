@@ -53,7 +53,6 @@ const SubmitReview = () => {
         setReview("");
       }
     } catch (error) {
-      console.error("Error submitting review:", error);
       setMessage({ text: "Failed to submit review. Please try again.", type: "error" });
     } finally {
       setLoading(false);

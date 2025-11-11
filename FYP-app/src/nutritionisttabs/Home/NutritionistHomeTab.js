@@ -29,7 +29,6 @@ export default function NutritionistHomeTab() {
   const [upcomingAppointments, setUpcomingAppointments] = useState([]);
   const [articles, setArticles] = useState([]);
 
-  // Edit Modal States
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [editingArticle, setEditingArticle] = useState(null);
   const [editTitle, setEditTitle] = useState("");
@@ -95,7 +94,6 @@ export default function NutritionistHomeTab() {
       setUpcomingAppointments(confirmedAppointments);
       setArticles(fetchedArticles);
     } catch (error) {
-      console.error("Error fetching dashboard data:", error);
     } finally {
       setLoading(false);
     }
@@ -184,7 +182,6 @@ export default function NutritionistHomeTab() {
         setNewPhotos([...newPhotos, ...photos]);
       }
     } catch (error) {
-      console.error("Error picking image:", error);
       Alert.alert("Error", "Failed to pick image. Please try again.");
     }
   };
@@ -239,7 +236,6 @@ export default function NutritionistHomeTab() {
         publicId: data.public_id,
       };
     } catch (error) {
-      console.error("Upload error:", error);
       return {
         success: false,
         error: error.message,
@@ -284,7 +280,6 @@ export default function NutritionistHomeTab() {
       
       // Upload new photos
       if (newPhotos.length > 0) {
-        console.log(`Uploading ${newPhotos.length} new photos...`);
         
         for (let i = 0; i < newPhotos.length; i++) {
           const photo = newPhotos[i];
@@ -312,7 +307,6 @@ export default function NutritionistHomeTab() {
         photos: allPhotos,
       };
 
-      console.log("Updating article ID:", editingArticle.id);
       const response = await API.put(`/nutritionist_article/${editingArticle.id}`, updateData);
 
       if (response.data.success) {
@@ -329,7 +323,6 @@ export default function NutritionistHomeTab() {
         throw new Error(response.data.message || "Failed to update article");
       }
     } catch (error) {
-      console.error("Error updating article:", error);
       Alert.alert("Error", error.message || "Failed to update article. Please try again.");
     } finally {
       setUpdating(false);
@@ -357,7 +350,6 @@ export default function NutritionistHomeTab() {
                 Alert.alert("Success", "Article deleted successfully");
               }
             } catch (error) {
-              console.error("Error deleting article:", error);
               Alert.alert("Error", "Failed to delete article. Please try again.");
             }
           },

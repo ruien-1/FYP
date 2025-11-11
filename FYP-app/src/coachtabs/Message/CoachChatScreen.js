@@ -50,7 +50,7 @@ export default function CoachChatScreen() {
   const [messages, setMessages] = useState([]);
   const [text, setText] = useState("");
   const [respondedAppointments, setRespondedAppointments] = useState(new Set());
-  const [appointmentStatuses, setAppointmentStatuses] = useState({}); // Track statuses by appointmentId
+  const [appointmentStatuses, setAppointmentStatuses] = useState({}); 
   const textInputRef = useRef(null);
   const isFetchingRef = useRef(false);
 
@@ -59,7 +59,6 @@ export default function CoachChatScreen() {
       ? `${currentUser.uid}_${userId}`
       : `${userId}_${currentUser.uid}`;
 
-  // Mark messages as read when screen is focused (when navigating back to chat)
   useFocusEffect(
     useCallback(() => {
       const markMessagesAsRead = async () => {
@@ -72,7 +71,6 @@ export default function CoachChatScreen() {
           
           const snapshot = await getDocs(unreadQuery);
           
-          // Filter to only messages NOT from current coach
           const messagesToUpdate = snapshot.docs.filter(
             doc => doc.data().user?._id !== currentUser.uid
           );
@@ -82,9 +80,7 @@ export default function CoachChatScreen() {
           );
           
           await Promise.all(updatePromises);
-          console.log(`✅ Coach marked ${updatePromises.length} messages as read`);
         } catch (error) {
-          console.log('Error marking messages as read:', error);
         }
       };
 
@@ -92,7 +88,6 @@ export default function CoachChatScreen() {
     }, [chatId, currentUser.uid])
   );
 
-  // 🔥 Check which appointments have been responded to from messages
   const updateRespondedAppointments = useCallback((allMessages) => {
     const responded = new Set();
     
@@ -111,7 +106,6 @@ export default function CoachChatScreen() {
     setRespondedAppointments(responded);
   }, [currentUser.uid]);
 
-  // 🔥 Check appointment statuses for all pending appointment messages
   useEffect(() => {
     const checkAppointmentStatuses = async () => {
       try {
@@ -126,16 +120,13 @@ export default function CoachChatScreen() {
         });
         
         setAppointmentStatuses(statuses);
-        console.log('📊 Updated appointment statuses:', statuses);
       } catch (error) {
-        console.error("Error checking appointment statuses:", error);
       }
     };
 
     checkAppointmentStatuses();
   }, [currentUser.uid, userId]);
 
-  // 🔥 Listen to messages
   useEffect(() => {
     const q = query(
       collection(db, "chats", chatId, "messages"),
@@ -154,7 +145,6 @@ export default function CoachChatScreen() {
         setMessages(allMessages);
         updateRespondedAppointments(allMessages);
       },
-      (error) => console.error("❌ Snapshot error:", error)
     );
 
     return unsubscribe;
@@ -223,7 +213,6 @@ export default function CoachChatScreen() {
         read: false,
       });
     } catch (error) {
-      console.error("Error sending message:", error.message);
     }
   }, [chatId, currentUser]);
 

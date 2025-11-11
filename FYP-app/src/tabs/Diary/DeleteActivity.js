@@ -11,7 +11,6 @@ import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRoute, useNavigation } from "@react-navigation/native";
 
-// 🔹 Backend API
 import API from "../../api/backend";
 
 export default function DeleteActivity() {
@@ -38,7 +37,6 @@ export default function DeleteActivity() {
       setActivitiesList(entries);
       setLoading(false);
     } catch (err) {
-      console.error("Error fetching activities:", err);
       setMessage({ text: "❌ Could not fetch activities.", type: "error" });
       setLoading(false);
     }
@@ -61,7 +59,6 @@ export default function DeleteActivity() {
       setMessage({ text: "✅ Activity has been deleted.", type: "success" });
       fetchActivities();
     } catch (err) {
-      console.error("Error deleting activity:", err);
       setMessage({ text: "❌ Could not delete activity.", type: "error" });
     }
   };
@@ -86,7 +83,6 @@ export default function DeleteActivity() {
       setSelectedActivities([]);
       fetchActivities();
     } catch (err) {
-      console.error("Error deleting activities:", err);
       setMessage({ text: "❌ Could not delete activities.", type: "error" });
     }
   };

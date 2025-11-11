@@ -17,7 +17,6 @@ export default function CoachUpcomingAppointment() {
   const navigation = useNavigation();
   const route = useRoute();
   
-  // Get params from navigation (if coming from Home screen)
   const { userId, appointmentDate, userName } = route.params || {};
 
   const [loading, setLoading] = useState(true);
@@ -39,11 +38,8 @@ export default function CoachUpcomingAppointment() {
     try {
       setLoading(true);
       const response = await API.get(`/user_info/${userId}`);
-      console.log("User details fetched:", response.data);
       setUserDetails(response.data);
     } catch (error) {
-      console.error("Error fetching user details:", error);
-      // Use basic info from params if API fails
       setUserDetails({
         name: userName,
       });
@@ -73,10 +69,8 @@ export default function CoachUpcomingAppointment() {
   const fetchUserGoals = async () => {
     try {
       const response = await API.get(`/goals/${userId}`);
-      console.log("User goals fetched:", response.data);
       setUserGoals(response.data);
     } catch (error) {
-      console.error("Error fetching user goals:", error);
     }
   };
 
@@ -93,7 +87,6 @@ export default function CoachUpcomingAppointment() {
         await generateGoalLine(data);
       }
     } catch (err) {
-      console.error("Error fetching weight progress:", err);
     } finally {
       setLoadingWeight(false);
     }
@@ -132,11 +125,9 @@ export default function CoachUpcomingAppointment() {
           (val) => typeof val === "number" && isFinite(val)
         );
 
-        console.log("📊 Goal line values per day:", cleanedData);
         setGoalLineData(cleanedData);
       }
     } catch (err) {
-      console.error("Error generating goal line:", err);
     }
   };
 

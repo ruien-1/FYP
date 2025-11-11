@@ -27,13 +27,11 @@ export default function CoachProfile() {
   const [error, setError] = useState(null);
   const [assigningCoach, setAssigningCoach] = useState(false);
   
-  // Rating modal states
   const [showRatingModal, setShowRatingModal] = useState(false);
   const [selectedRating, setSelectedRating] = useState(0);
   const [ratingComment, setRatingComment] = useState("");
   const [submittingRating, setSubmittingRating] = useState(false);
 
-  // Get current user ID
   const currentUserId = auth.currentUser?.uid;
 
   const fetchCoachProfile = useCallback(async () => {
@@ -44,13 +42,11 @@ export default function CoachProfile() {
       setError(null);
     } catch (err) {
       setError(err.message);
-      console.error("Error fetching coach profile:", err);
     } finally {
       setLoading(false);
     }
   }, [coachId]);
 
-  // Use useFocusEffect to refresh profile when screen comes into focus
   useFocusEffect(
     useCallback(() => {
       fetchCoachProfile();
@@ -66,17 +62,13 @@ export default function CoachProfile() {
     setAssigningCoach(true);
 
     try {
-      console.log("Assigning coach to user...");
       
-      // Call backend to assign coach
       const response = await API.post(`/user/${currentUserId}/assign-coach`, {
         coachId: coachId,
       });
 
       if (response.data.success) {
-        console.log("Coach assigned successfully");
         
-        // Navigate to chat screen
         navigation.navigate("CoachesChatScreen", { 
           coachId: coachId, 
           coachName: coach.name 
@@ -85,9 +77,7 @@ export default function CoachProfile() {
         Alert.alert("Error", response.data.error || "Failed to assign coach");
       }
     } catch (err) {
-      console.error("Error assigning coach:", err);
       
-      // Check if already assigned (if, just navigate to chat)
       if (err.response?.status === 200) {
         navigation.navigate("ChatScreen", { 
           coachId: coachId, 
@@ -150,10 +140,8 @@ export default function CoachProfile() {
 
       Alert.alert("Success", "Thank you for your rating!");
       handleCloseRatingModal();
-      // Refresh coach profile to get updated rating
       fetchCoachProfile();
     } catch (err) {
-      console.error("Error submitting rating:", err);
       Alert.alert("Error", err.response?.data?.error || "Failed to submit rating. Please try again.");
     } finally {
       setSubmittingRating(false);
@@ -178,7 +166,6 @@ export default function CoachProfile() {
     ));
   };
 
-  // Format availability object to readable string
   const formatAvailability = (availability) => {
     if (!availability) return "Contact for details";
     
@@ -186,16 +173,12 @@ export default function CoachProfile() {
       return availability;
     }
     
-    // If it's an object with days
     if (typeof availability === "object") {
       const availableDays = Object.entries(availability)
         .filter(([day, dayData]) => {
-          // Only include days that are available AND have working hours
           if (typeof dayData === "object" && dayData.available === true) {
-            // Check if it has both startTime and endTime to be truly available
             return dayData.startTime && dayData.endTime;
           }
-          // Handle old format (boolean) - but this is less reliable
           if (typeof dayData === "boolean") return dayData;
           return false;
         })
@@ -211,7 +194,6 @@ export default function CoachProfile() {
     return "Contact for details";
   };
 
-  // Get all available days with their working hours
   const getAvailableDaysWithHours = (availability) => {
     if (!availability || typeof availability !== "object") {
       return [];
@@ -233,10 +215,8 @@ export default function CoachProfile() {
     return daysWithHours;
   };
 
-  // Check if coach has reviews
   const hasReviews = coach?.totalRatings > 0;
 
-  // Get all available days with hours
   const availableDaysWithHours = coach ? getAvailableDaysWithHours(coach.availability) : [];
 
   if (loading) {

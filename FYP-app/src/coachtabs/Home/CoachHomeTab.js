@@ -74,13 +74,11 @@ export default function CoachHomeTab() {
         API.get("/workout-plans/coach", {
           params: { coachId: currentUser.uid, status: "pending" },
         }).catch((err) => {
-          console.error("Error fetching pending workout plans:", err);
           return { data: { data: [] } };
         }),
         API.get("/workout-plans/coach", {
           params: { coachId: currentUser.uid, status: "confirmed" },
         }).catch((err) => {
-          console.error("Error fetching confirmed workout plans:", err);
           return { data: { data: [] } };
         }),
         API.get("/coacharticle", {
@@ -99,7 +97,6 @@ export default function CoachHomeTab() {
       setUpcomingAppointments(confirmedAppointments);
       setArticles(fetchedArticles);
     } catch (error) {
-      console.error("Error fetching dashboard data:", error);
     } finally {
       setLoading(false);
     }
@@ -186,7 +183,6 @@ export default function CoachHomeTab() {
         setNewPhotos([...newPhotos, ...photos]);
       }
     } catch (error) {
-      console.error("Error picking image:", error);
       Alert.alert("Error", "Failed to pick image. Please try again.");
     }
   };
@@ -241,7 +237,6 @@ export default function CoachHomeTab() {
         publicId: data.public_id,
       };
     } catch (error) {
-      console.error("Upload error:", error);
       return {
         success: false,
         error: error.message,
@@ -283,7 +278,6 @@ export default function CoachHomeTab() {
       
       // Upload new photos
       if (newPhotos.length > 0) {
-        console.log(`Uploading ${newPhotos.length} new photos...`);
         
         for (let i = 0; i < newPhotos.length; i++) {
           const photo = newPhotos[i];
@@ -311,7 +305,6 @@ export default function CoachHomeTab() {
         photos: allPhotos,
       };
 
-      console.log("Updating article ID:", editingArticle.id);
       const response = await API.put(`/coacharticle/${editingArticle.id}`, updateData);
 
       if (response.data.success) {
@@ -328,7 +321,6 @@ export default function CoachHomeTab() {
         throw new Error(response.data.message || "Failed to update article");
       }
     } catch (error) {
-      console.error("Error updating article:", error);
       Alert.alert("Error", error.message || "Failed to update article. Please try again.");
     } finally {
       setUploading(false);
@@ -356,7 +348,6 @@ export default function CoachHomeTab() {
                 Alert.alert("Success", "Article deleted successfully");
               }
             } catch (error) {
-              console.error("Error deleting article:", error);
               Alert.alert("Error", "Failed to delete article. Please try again.");
             }
           },
@@ -940,7 +931,6 @@ const styles = StyleSheet.create({
     fontWeight: "500",
   },
   
-  // Modal Styles
   modalContainer: {
     flex: 1,
     backgroundColor: "#EAF3FF",

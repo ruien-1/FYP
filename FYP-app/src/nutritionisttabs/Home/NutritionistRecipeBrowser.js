@@ -42,7 +42,6 @@ export default function NutritionistRecipeBrowser() {
         const res = await API.get("/recipes", { params: { number: 44 } });
         setRecipes(Array.isArray(res.data) ? res.data : []);
       } catch (error) {
-        console.error("Error fetching recipes:", error.message);
         setRecipes([]);
       } finally {
         setLoading(false);
@@ -66,7 +65,6 @@ export default function NutritionistRecipeBrowser() {
     try {
       const res = await API.get(`/recipeDetails/${recipe.id}`);
       const full = res.data || {};
-      // Parse instructions similarly to RecipeDetail
       let steps = [];
       if (full.instructions) {
         let cleaned = full.instructions.replace(/<[^>]+>/g, "").trim();
@@ -103,7 +101,6 @@ export default function NutritionistRecipeBrowser() {
         navigation.navigate("CreateMealPlan", { assignedRecipe: mealFromRecipe, selectedMealTime, mealPlan });
       }
     } catch (err) {
-      console.error("Error assigning recipe:", err);
       Alert.alert("Error", "Failed to retrieve recipe details.");
     }
   };

@@ -10,7 +10,7 @@ import {
   ActivityIndicator,
 } from "react-native";
 import Ionicons from "react-native-vector-icons/Ionicons";
-import { SafeAreaView } from "react-native-safe-area-context"; // ✅ SafeAreaView
+import { SafeAreaView } from "react-native-safe-area-context"; 
 import { auth } from "../../firebaseConfig";
 import API from "../../api/backend";
 
@@ -42,21 +42,17 @@ export default function WaterPage({ navigation, route }) {
       const postRes = await API.post(`/water_log/${uid}`, waterLog);
 
       if (postRes.data.success) {
-        console.log("Water logged:", postRes.data.entry);
         setMessage({ text: "Water log saved!", type: "success" });
       } else {
-        console.log("Water log failed:", postRes.data.message);
         setMessage({ text: "❌ Failed to log water. Please try again.", type: "error" });
       }
     } catch (error) {
-      console.error("❌ Save water error:", error);
       setMessage({ text: "❌ Something went wrong while logging water.", type: "error" });
     } finally {
       setLoading(false);
     }
   };
 
-  // auto-hide messages after 3s
   useEffect(() => {
     if (message) {
       const timer = setTimeout(() => setMessage(null), 3000);
@@ -68,7 +64,6 @@ export default function WaterPage({ navigation, route }) {
     <SafeAreaView style={styles.safeArea}>
       <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
         <View style={styles.container}>
-          {/* ✅ Message popup */}
           {message && (
             <View
               style={[

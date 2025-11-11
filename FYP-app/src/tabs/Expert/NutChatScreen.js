@@ -57,7 +57,6 @@ export default function NutChatScreen() {
       ? `${currentUser.uid}_${nutritionistId}`
       : `${nutritionistId}_${currentUser.uid}`;
 
-  // Fetch user name from Firestore
   useEffect(() => {
     const fetchUserName = async () => {
       try {
@@ -67,13 +66,11 @@ export default function NutChatScreen() {
           setUserName(userDocSnap.data().name);
         }
       } catch (error) {
-        console.error("Error fetching user name:", error);
       }
     };
     fetchUserName();
   }, [currentUser.uid]);
 
-  // --- MAIN CHAT MESSAGES REALTIME FETCH ---
   useEffect(() => {
     const q = query(
       collection(db, "chats", chatId, "messages"),
@@ -90,13 +87,11 @@ export default function NutChatScreen() {
         setMessages(allMessages);
       },
       (error) => {
-        console.error("❌ Snapshot error:", error);
       }
     );
     return unsubscribe;
   }, [chatId]);
 
-  // --- 1️⃣ MARK ALL UNREAD MESSAGES AS READ WHEN OPENING CHAT ---
   useEffect(() => {
     const markMessagesAsRead = async () => {
       try {
@@ -114,16 +109,14 @@ export default function NutChatScreen() {
 
         await Promise.all(updatePromises);
         if (updatePromises.length > 0)
-          console.log(`✅ Marked ${updatePromises.length} messages as read (on open)`);
+          (`✅ Marked ${updatePromises.length} messages as read (on open)`);
       } catch (error) {
-        console.log('Error marking messages as read:', error);
       }
     };
 
     markMessagesAsRead();
   }, [chatId, currentUser.uid]);
 
-  // --- 2️⃣ REAL-TIME MARK AS READ FOR NEW MESSAGES WHILE OPEN ---
   useEffect(() => {
     const messagesRef = collection(db, "chats", chatId, "messages");
     const q = query(messagesRef, where("read", "==", false));
@@ -138,21 +131,17 @@ export default function NutChatScreen() {
           updateDoc(doc.ref, { read: true })
         );
         await Promise.all(updatePromises);
-        console.log(`✅ Realtime: marked ${updatePromises.length} new messages as read`);
       }
     });
 
     return () => unsubscribe();
   }, [chatId, currentUser.uid]);
-  // --- END REALTIME READ LOGIC ---
 
-  // --- ENSURE CHAT DOCUMENT ---
   const ensureChatDocument = async (messageText) => {
     try {
       const chatDocRef = doc(db, "chats", chatId);
       const chatDocSnap = await getDoc(chatDocRef);
 
-      // Fetch nutritionist name if not provided or is undefined
       let nutritionistNameToUse = nutritionistName;
       if (!nutritionistNameToUse || nutritionistNameToUse === undefined) {
         try {
@@ -160,17 +149,15 @@ export default function NutChatScreen() {
           if (nutritionistDoc.exists()) {
             nutritionistNameToUse = nutritionistDoc.data().name || 'Nutritionist';
           } else {
-            // Fallback to nutritionist_info collection
             const nutritionistInfoDoc = await getDoc(doc(db, "nutritionist_info", nutritionistId));
             if (nutritionistInfoDoc.exists()) {
               nutritionistNameToUse = nutritionistInfoDoc.data().name || 'Nutritionist';
             } else {
-              nutritionistNameToUse = 'Nutritionist'; // Final fallback
+              nutritionistNameToUse = 'Nutritionist'; 
             }
           }
         } catch (fetchError) {
-          console.warn('Could not fetch nutritionist name:', fetchError);
-          nutritionistNameToUse = 'Nutritionist'; // Fallback if fetch fails
+          nutritionistNameToUse = 'Nutritionist'; 
         }
       }
 
@@ -195,11 +182,9 @@ export default function NutChatScreen() {
         await setDoc(chatDocRef, chatData, { merge: true });
       }
     } catch (error) {
-      console.error("❌ Error ensuring chat document:", error);
     }
   };
 
-  // --- SEND MESSAGE ---
   const onSend = useCallback(async (messageText) => {
     if (!messageText.trim()) return;
     
@@ -219,7 +204,6 @@ export default function NutChatScreen() {
         read: false,
       });
     } catch (error) {
-      console.error("Error sending message:", error.message);
     }
   }, [chatId, currentUser, userName, nutritionistId, nutritionistName]);
 
@@ -235,7 +219,6 @@ export default function NutChatScreen() {
 
   const handleConfirmAppointment = async () => {
     try {
-      // Validate required parameters
       if (!nutritionistId) {
         Alert.alert("Error", "Nutritionist information is missing. Please try again.");
         return;
@@ -247,16 +230,13 @@ export default function NutChatScreen() {
       appointmentDateTime.setSeconds(0);
       appointmentDateTime.setMilliseconds(0);
 
-      console.log('📅 Selected Date:', selectedDate);
-      console.log('🕐 Selected Time:', selectedTime);
-      console.log('✅ Combined DateTime:', appointmentDateTime);
+
 
       if (appointmentDateTime < new Date()) {
         Alert.alert("Invalid Date", "Please select a future date and time.");
         return;
       }
 
-      // Fetch user name for appointment
       const userDocRef = doc(db, "user", currentUser.uid);
       const userDocSnap = await getDoc(userDocRef);
       const nameFromDB =
@@ -274,13 +254,10 @@ export default function NutChatScreen() {
         createdAt: new Date().toISOString(),
       };
 
-      // Debug logging
-      console.log("Creating appointment with data:", appointmentData);
 
       const response = await API.post("/appointments/nutritionist", appointmentData);
 
       const appointmentId = response.data.appointmentId;
-      console.log("Created appointment with ID:", appointmentId);
 
       setShowAppointmentModal(false);
       setShowDatePicker(false);
@@ -318,7 +295,6 @@ export default function NutChatScreen() {
         { text: "OK" },
       ]);
     } catch (error) {
-      console.error("Error creating appointment:", error);
       Alert.alert("Error", "Failed to create appointment. Please try again.", [
         { text: "OK" },
       ]);
@@ -334,13 +310,11 @@ export default function NutChatScreen() {
     setShowDietPlanModal(false);
     
     try {
-      // Validate required parameters
       if (!nutritionistId) {
         Alert.alert("Error", "Nutritionist information is missing. Please try again.");
         return;
       }
 
-      // Fetch user name for meal plan request
       const userDocRef = doc(db, "user", currentUser.uid);
       const userDocSnap = await getDoc(userDocRef);
       const nameFromDB =
@@ -359,12 +333,10 @@ export default function NutChatScreen() {
         createdAt: new Date().toISOString(),
       };
 
-      // Debug logging
-      console.log("Creating meal plan with data:", mealPlanData);
+  
 
       const response = await API.post("/meal-plans/nutritionist", mealPlanData);
       const mealPlanId = response.data.mealPlanId;
-      console.log("Created meal plan request with ID:", mealPlanId);
 
       const mealPlanMessage = `🥗 Meal Plan Request\n\nDuration: ${duration}\n\nI would like to request a ${duration} meal plan. Please help me create a personalized plan.`;
 
@@ -387,7 +359,6 @@ export default function NutChatScreen() {
         { text: "OK" },
       ]);
     } catch (error) {
-      console.error("Error creating meal plan request:", error);
       Alert.alert("Error", "Failed to create meal plan request. Please try again.", [
         { text: "OK" },
       ]);
@@ -400,7 +371,6 @@ export default function NutChatScreen() {
     }
     if (date) {
       setSelectedDate(date);
-      console.log('📅 Date selected:', date);
     }
   };
 
@@ -410,7 +380,6 @@ export default function NutChatScreen() {
     }
     if (time) {
       setSelectedTime(time);
-      console.log('🕐 Time selected:', time);
     }
   };
 
@@ -611,7 +580,6 @@ export default function NutChatScreen() {
         </TouchableOpacity>
       </Modal>
 
-      {/* Appointment Date/Time Picker Modal */}
       <Modal
         visible={showAppointmentModal}
         transparent={true}

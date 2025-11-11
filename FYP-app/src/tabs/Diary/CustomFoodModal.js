@@ -45,11 +45,9 @@ export default function CustomFoodModal({
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
 
-  // ✅ LogMealModal states
   const [logModalVisible, setLogModalVisible] = useState(false);
   const [foodToLog, setFoodToLog] = useState(null);
 
-  // fetch foods
   useEffect(() => {
     const fetchFoods = async () => {
       if (visible && modalType === "list" && uid) {
@@ -57,7 +55,6 @@ export default function CustomFoodModal({
           const res = await API.get(`/CustomFood/${uid}`);
           setMyFoods(res.data || []);
         } catch (err) {
-          console.error("❌ Error fetching custom foods:", err);
           setMyFoods([]);
           showError("Failed to fetch foods.");
         }
@@ -79,7 +76,6 @@ export default function CustomFoodModal({
     setForm((prev) => ({ ...prev, [key]: value }));
   };
 
-  // add food
   const handleSave = async () => {
   if (!form.name.trim()) return showError("Food name is required.");
   if (!form.serving.trim()) return showError("Serving size is required.");
@@ -104,12 +100,10 @@ export default function CustomFoodModal({
     showSuccess("Food added successfully!");
     resetForm();
   } catch (err) {
-    console.error("Add food error:", err);
     showError("Failed to add food.");
   }
 };
 
-// update food
 const handleUpdate = async () => {
   if (!form.name.trim()) return showError("Food name is required.");
 
@@ -135,25 +129,21 @@ const handleUpdate = async () => {
     showSuccess("Food updated successfully!");
     setModalType("list");
   } catch (err) {
-    console.error("Update food error:", err);
     showError("Failed to update food.");
   }
 };
 
 
-  // delete food
   const handleDelete = async (entryId) => {
     try {
       await API.delete(`/CustomFood/${uid}/${entryId}`);
       setMyFoods((prev) => prev.filter((f) => f.id !== entryId));
       showSuccess("Food deleted successfully!");
     } catch (err) {
-      console.error("Delete food error:", err);
       showError("Failed to delete food.");
     }
   };
 
-  // log food to diary
   const LogToDiary = async (food, mealType, servings) => {
     try {
       const uid = auth.currentUser?.uid;
@@ -176,7 +166,6 @@ const handleUpdate = async () => {
         showSuccess(`"${food.name}" logged to meal log!`);
       }
     } catch (err) {
-      console.error("Error logging food:", err);
       showError("Failed to log food.");
     }
   };
@@ -202,7 +191,6 @@ const handleUpdate = async () => {
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContainer}>
-            {/* close */}
             <TouchableOpacity
               style={styles.closeBtn}
               onPress={() => {
@@ -213,7 +201,6 @@ const handleUpdate = async () => {
               <Ionicons name="close" size={24} color="black" />
             </TouchableOpacity>
 
-            {/* messages - now with absolute positioning */}
             {successMessage ? (
               <View style={styles.messageOverlay}>
                 <View style={styles.successMsg}>

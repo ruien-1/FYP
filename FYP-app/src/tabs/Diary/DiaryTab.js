@@ -47,7 +47,6 @@ export default function DiaryTab({ navigation }) {
       const res = await API.get(`/user_info/${uid}`);
       setUserInfo(res.data);
     } catch (err) {
-      console.error("Error fetching user info:", err);
     }
   };
 
@@ -110,7 +109,6 @@ export default function DiaryTab({ navigation }) {
         meals: mealsGrouped,
       }));
     } catch (err) {
-      console.error("Error fetching meals:", err);
     }
   };
 
@@ -126,7 +124,6 @@ export default function DiaryTab({ navigation }) {
       const lastEntry = entries.length > 0 ? entries[entries.length - 1] : null;
       setWaterAmount(lastEntry ? lastEntry.water : 0);
     } catch (err) {
-      console.error("Error fetching water:", err);
     }
   };
 
@@ -149,7 +146,6 @@ export default function DiaryTab({ navigation }) {
         activity: { totalCalories, activities },
       }));
     } catch (err) {
-      console.error("Error fetching activities:", err);
     }
   };
 
@@ -158,21 +154,17 @@ export default function DiaryTab({ navigation }) {
       const uid = auth.currentUser?.uid;
       if (!uid) return;
 
-      // Call the backend daily_summary route for the selected date
       const res = await API.get(`/daily_summary/${uid}?date=${formatDate(selectedDate)}`);
       const summary = res.data;
 
-      // summary.weight should contain the logged weight for that date
       setWeight(summary?.weight ?? null);
     } catch (err) {
-      console.error("Error fetching weight:", err);
       setWeight(null);
     }
   };
 
 
 
-  // Auto-post to /daily_summary whenever values change
   const updateDailySummary = async () => {
     try {
       const uid = auth.currentUser?.uid;
@@ -191,13 +183,10 @@ export default function DiaryTab({ navigation }) {
         remainingCalories,
       });
 
-      console.log("Daily summary updated successfully");
     } catch (err) {
-      console.error("Error posting daily summary:", err);
     }
   };
 
-  // 🔁 Fetch data when screen changes
   useEffect(() => {
     const loadData = async () => {
       const uid = auth.currentUser?.uid;
@@ -213,7 +202,6 @@ export default function DiaryTab({ navigation }) {
     loadData();
   }, [selectedDate, isFocused, userInfo]);
 
-  // 🔄 Auto-update summary whenever data changes
   useEffect(() => {
     if (userInfo && auth.currentUser?.uid) {
       updateDailySummary();
@@ -491,7 +479,7 @@ export default function DiaryTab({ navigation }) {
                   {renderPlusMinus(
                     () =>
                       navigation.navigate("ActivityPage", {
-                        selectedDate: formatDate(selectedDate), // send date from DiaryTab
+                        selectedDate: formatDate(selectedDate), 
                       }),
                     () =>
                       navigation.navigate("DeleteActivity", {
@@ -541,7 +529,6 @@ const styles = StyleSheet.create({
   dateText: { fontSize: 18, fontWeight: "600", color: "#333", marginHorizontal: 16 },
   pickerOverlay: { position: "absolute", top: 60, left: 20, right: 20, zIndex: 100, backgroundColor: "#fff", borderRadius: 16, shadowColor: "#000", shadowOpacity: 0.1, shadowRadius: 8, elevation: 6 },
   
-  // Calories Section with Better Design
   caloriesSection: {
     marginTop: 20,
     marginBottom: 30,
@@ -625,7 +612,6 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
 
-  // Card Styles
   card: { backgroundColor: "#fff", borderRadius: 20, padding: 18, marginTop: 10, marginBottom: 24, shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 6, elevation: 3 },
   cardTitle: { fontSize: 16, fontWeight: "600", color: "#333", marginBottom: 12 },
   mealItem: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", backgroundColor: "#F5F7FB", borderRadius: 14, paddingVertical: 12, paddingHorizontal: 10, marginBottom: 10 },

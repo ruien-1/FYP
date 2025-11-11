@@ -7,11 +7,9 @@ const getBaseURL = () => {
                        !__DEV__;
   
   if (isStandalone) {
-    console.log("🏗️ Using production URL");
     return "https://fyp-0rqn.onrender.com";
   }
   
-  console.log("🌐 Using production URL");
   return "https://fyp-0rqn.onrender.com";
 };
 
@@ -22,29 +20,22 @@ const API = axios.create({
 
 API.interceptors.request.use(
   (config) => {
-    console.log(`📡 API Request: ${config.method.toUpperCase()} ${config.baseURL}${config.url}`);
     return config;
   },
   (error) => {
-    console.error("❌ Request error:", error.message);
     return Promise.reject(error);
   }
 );
 
 API.interceptors.response.use(
   (response) => {
-    console.log(`✅ Response received: ${response.status}`);
     return response;
   },
   (error) => {
     if (error.code === 'ECONNABORTED') {
-      console.error("⏱️ Timeout - backend might be waking up");
     } else if (error.response) {
-      console.error(`❌ Error ${error.response.status}:`, error.response.data);
     } else if (error.request) {
-      console.error("❌ No response - check if backend is running");
     } else {
-      console.error("❌ Error:", error.message);
     }
     return Promise.reject(error);
   }

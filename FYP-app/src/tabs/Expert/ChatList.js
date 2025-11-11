@@ -34,21 +34,17 @@ export default function ChatList() {
   const unsubscribersRef = useRef([]);
   const [lastOpenedChatId, setLastOpenedChatId] = useState(null);
 
-  // Fetch chat list & setup listeners when screen is focused
   useFocusEffect(
     React.useCallback(() => {
-      console.log('📱 ChatList focused - fetching chats');
       fetchChatList();
 
       return () => {
-        console.log('🧹 Cleaning up unread listeners');
         unsubscribersRef.current.forEach((unsub) => unsub());
         unsubscribersRef.current = [];
       };
     }, [])
   );
 
-  // Setup real-time listeners for unread count + last message
   const setupRealtimeListeners = (chats) => {
     unsubscribersRef.current.forEach((unsub) => unsub());
     unsubscribersRef.current = [];
@@ -89,10 +85,8 @@ export default function ChatList() {
       unsubscribersRef.current.push(unreadUnsub);
     });
 
-    console.log(`✅ Real-time listeners set for ${chats.length} chats`);
   };
 
-  // Fetch chat list
   const fetchChatList = async () => {
     try {
       setRefreshing(true);
@@ -118,9 +112,7 @@ export default function ChatList() {
 
         let expertInfo = null;
 
-        // Fetch from Firestore instead of API
         try {
-          // Try coach collection first
           const coachDocRef = doc(db, "coach", otherUserId);
           const coachSnap = await getDoc(coachDocRef);
           
@@ -134,7 +126,6 @@ export default function ChatList() {
               specialization: coachData.specialization || '',
             };
           } else {
-            // Try nutritionist collection
             const nutritionistDocRef = doc(db, "nutritionist", otherUserId);
             const nutritionistSnap = await getDoc(nutritionistDocRef);
             
@@ -150,10 +141,8 @@ export default function ChatList() {
             }
           }
         } catch (error) {
-          console.log('⚠️ Error fetching expert from Firestore:', error);
         }
 
-        // Fallback if not found
         if (!expertInfo) {
           expertInfo = {
             id: otherUserId,
@@ -178,7 +167,6 @@ export default function ChatList() {
               lastMessageTime = lastMsg.createdAt?.toDate();
             }
           } catch (err) {
-            console.log('⚠️ Could not fetch messages:', err);
           }
         }
 
@@ -199,7 +187,6 @@ export default function ChatList() {
       setChatList(chats);
       setupRealtimeListeners(chats);
     } catch (error) {
-      console.error('❌ Error fetching chat list:', error);
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -207,16 +194,14 @@ export default function ChatList() {
   };
 
   const handleChatPress = (chat) => {
-    setLastOpenedChatId(chat.chatId); // Track opened chat
+    setLastOpenedChatId(chat.chatId); 
 
     if (chat.type === 'coach') {
-      // Navigate to CoachesChatScreen for coaches
       navigation.navigate('CoachesChatScreen', {
         coachId: chat.id,
         coachName: chat.name,
       });
     } else {
-      // Navigate to NutChatScreen for nutritionists
       navigation.navigate('NutChatScreen', {
         nutritionistId: chat.id,
         nutritionistName: chat.name,

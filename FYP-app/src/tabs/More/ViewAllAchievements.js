@@ -44,7 +44,6 @@ const ViewAllAchievements = ({ navigation }) => {
       
       setAchievementBadgeImages(badgesMap);
     } catch (error) {
-      console.error("Error fetching achievement badges:", error);
     }
   };
 
@@ -67,7 +66,6 @@ const ViewAllAchievements = ({ navigation }) => {
         await checkAndUnlockCaloriesIntakeAchievements(totalIntake);
       }
     } catch (error) {
-      console.error("Error fetching total calories intake:", error);
     }
   };
 
@@ -90,7 +88,6 @@ const ViewAllAchievements = ({ navigation }) => {
         await checkAndUnlockCaloriesAchievements(totalBurned);
       }
     } catch (error) {
-      console.error("Error fetching total calories burned:", error);
     }
   };
 
@@ -130,7 +127,6 @@ const ViewAllAchievements = ({ navigation }) => {
         await checkAndUnlockCaloriesAchievements(totalBurned);
       }
     }, (error) => {
-      console.error("Error listening to activities:", error);
       // If listener fails, fallback to one-time fetch
       fetchTotalCaloriesBurned(user.uid);
     });
@@ -151,7 +147,6 @@ const ViewAllAchievements = ({ navigation }) => {
         await checkAndUnlockCaloriesIntakeAchievements(totalIntake);
       }
     }, (error) => {
-      console.error("Error listening to meals:", error);
       // If listener fails, fallback to one-time fetch
       fetchTotalCaloriesIntake(user.uid);
     });

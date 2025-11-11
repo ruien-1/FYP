@@ -14,7 +14,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { TimerContext } from "./TimerContext";
 import API from "../../api/backend";
 import { getAuth } from "firebase/auth";
-import DateTimePickerModal from "react-native-modal-datetime-picker"; // 👈 new import
+import DateTimePickerModal from "react-native-modal-datetime-picker"; 
 
 export default function IFTimer() {
   const {
@@ -30,10 +30,9 @@ export default function IFTimer() {
   const [newStart, setNewStart] = useState(new Date());
   const [newHours, setNewHours] = useState(16);
 
-  const [isTimePickerVisible, setTimePickerVisible] = useState(false); // 👈 modal time picker
-  const [forceUpdate, setForceUpdate] = useState(0); // Force re-render when activePlan changes
+  const [isTimePickerVisible, setTimePickerVisible] = useState(false); 
+  const [forceUpdate, setForceUpdate] = useState(0); 
 
-  // 🔄 Load custom plans from Firestore on mount
   useEffect(() => {
     const fetchPlans = async () => {
       try {
@@ -42,7 +41,6 @@ export default function IFTimer() {
 
         const res = await API.get(`/CustomIFPlan/${uid}/customPlans`);
 
-        // ✅ normalize start & end into Date objects
         const normalized = (res.data || []).map((p) => ({
           ...p,
           start: p.start ? new Date(p.start) : null,
@@ -51,20 +49,16 @@ export default function IFTimer() {
 
         setCustomPlans(normalized);
       } catch (err) {
-        console.error("❌ Failed to fetch custom plans:", err);
       }
     };
     fetchPlans();
   }, []);
 
-  // Force re-render when activePlan changes to ensure toggle updates
   useEffect(() => {
     setForceUpdate(prev => prev + 1);
   }, [activePlan]);
 
   const handleToggle = (plan) => {
-    // Check if this plan is currently active
-    // For custom plans, check by id. For fixed plans, check by fasting hours and isCustom flag
     const isSamePlan = activePlan && (
       plan.isCustom 
         ? (activePlan.isCustom && activePlan.id === plan.id)
@@ -72,15 +66,11 @@ export default function IFTimer() {
     );
 
     if (isSamePlan) {
-      // Timer is active for this plan, so stop it
       stopFasting();
     } else {
       if (!plan.isCustom) {
-        // Fixed plan - start immediately
-        // Pass the plan data so activePlan can be properly set with all properties
         scheduleFasting(new Date(), plan.fasting, false, { ...plan, isCustom: false });
       } else {
-        // Custom plan - check if start time has passed
         const now = new Date();
         if (now >= plan.start) {
           Alert.alert(
@@ -93,15 +83,12 @@ export default function IFTimer() {
               {
                 text: "From Planned Time",
                 onPress: () => {
-                  // Schedule with planned time and pass plan data to preserve id
                   scheduleFasting(plan.start, plan.fasting, true, { ...plan, isCustom: true });
                 },
               },
               {
                 text: "From Now",
                 onPress: () => {
-                  // Schedule with current time but keep plan id and other properties
-                  // Important: preserve the plan.id so toggle can recognize it
                   scheduleFasting(now, plan.fasting, true, { ...plan, start: now, isCustom: true });
                 },
               },
@@ -109,7 +96,6 @@ export default function IFTimer() {
             ]
           );
         } else {
-          // Start time hasn't arrived yet, use planned time
           scheduleFasting(plan.start, plan.fasting, true, { ...plan, isCustom: true });
         }
       }
@@ -139,7 +125,6 @@ export default function IFTimer() {
       }
       setModalVisible(false);
     } catch (err) {
-      console.error("❌ Failed to save custom plan:", err);
     }
   };
 
@@ -151,7 +136,6 @@ export default function IFTimer() {
       await API.delete(`/CustomIFPlan/${uid}/customPlans/${planId}`);
       setCustomPlans(customPlans.filter((p) => p.id !== planId));
     } catch (err) {
-      console.error("❌ Failed to delete plan:", err);
     }
   };
 
@@ -161,7 +145,6 @@ export default function IFTimer() {
     { fasting: 18, eating: 6 },
   ];
 
-  // Time picker handlers
   const showTimePicker = () => setTimePickerVisible(true);
   const hideTimePicker = () => setTimePickerVisible(false);
   const handleConfirm = (date) => {

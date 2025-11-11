@@ -52,7 +52,6 @@ export const checkEmailVerified = async (email, password) => {
     
     return userCredential.user.emailVerified;
   } catch (error) {
-    console.error("Error checking email verification:", error);
     return false;
   }
 };

@@ -107,13 +107,11 @@ export const checkAndUnlockAchievements = async (currentStreak) => {
       await updateDoc(userRef, {
         unlockedAchievements: arrayUnion(...newlyUnlocked),
       });
-      console.log("✅ New achievements unlocked:", newlyUnlocked.map((a) => a.name));
       return newlyUnlocked;
     }
 
     return [];
   } catch (error) {
-    console.error("Error checking achievements:", error);
     return [];
   }
 };
@@ -157,13 +155,11 @@ export const checkAndUnlockCaloriesAchievements = async (totalCaloriesBurned) =>
       await updateDoc(userRef, {
         unlockedAchievements: arrayUnion(...newlyUnlocked),
       });
-      console.log("✅ New calories achievements unlocked:", newlyUnlocked.map((a) => a.name));
       return newlyUnlocked;
     }
 
     return [];
   } catch (error) {
-    console.error("Error checking calories achievements:", error);
     return [];
   }
 };
@@ -207,13 +203,11 @@ export const checkAndUnlockCaloriesIntakeAchievements = async (totalCaloriesInta
       await updateDoc(userRef, {
         unlockedAchievements: arrayUnion(...newlyUnlocked),
       });
-      console.log("✅ New calories intake achievements unlocked:", newlyUnlocked.map((a) => a.name));
       return newlyUnlocked;
     }
 
     return [];
   } catch (error) {
-    console.error("Error checking calories intake achievements:", error);
     return [];
   }
 };

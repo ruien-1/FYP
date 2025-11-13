@@ -64,138 +64,72 @@ const QRScanner = () => {
     );
   }
 
-  const checkProductInDatabase = async (barcodeData) => {
-    try {
-      const response = await API.get(`/QRFood/barcode/${barcodeData}`, {
-        validateStatus: (status) => status === 200 || status === 404,
-      });
-
-      if (response.status === 200 && response.data) {
-        const product = response.data;
-
-        if (product.status === "approved") {
-          return {
-            found: true,
-            data: {
-              name: product.productName,
-              brand: product.brand || "",
-              image: product.imageUrl || null,
-              nutriments: {
-                calories: String(product.calories || 0),
-                proteins_100g: String(product.protein || 0),
-                fat_100g: String(product.fat || 0),
-                carbohydrates_100g: String(product.carbs || 0),
-              },
-            },
-          };
-        }
-
-        if (
-          product.status === "pending" ||
-          product.status === "pending_verification"
-        ) {
-          return { found: true, pending: true, productName: product.productName };
-        }
-      }
-
-      if (response.status === 404) {
-        return { found: false };
-      }
-
-      return { found: false };
-    } catch (error) {
-      return { found: false, error: error.message };
-    }
-  };
-
   const handleScan = async ({ data }) => {
-    if (scanned || data === lastScannedBarcode) {
-      return;
-    }
+  if (scanned || data === lastScannedBarcode) {
+    return;
+  }
 
-    setScanned(true);
-    setLastScannedBarcode(data);
-    setBarcode(data);
-    setLoading(true);
+  setScanned(true);
+  setLastScannedBarcode(data);
+  setBarcode(data);
+  setLoading(true);
 
-    try {
-      const dbCheck = await checkProductInDatabase(data);
+  try {
+    const response = await fetch(
+      `https://world.openfoodfacts.org/api/v0/product/${data}.json`
+    );
+    const result = await response.json();
 
-      if (dbCheck.found && dbCheck.pending) {
-        setShowPendingModal(true);
-        setLoading(false);
-        return;
-      }
+    if (result.status === 1) {
+      const product = result.product;
+      const nutriments = product.nutriments || {};
 
-      if (dbCheck.found && dbCheck.data) {
-        setProductInfo(dbCheck.data);
-        setShowConfirmModal(true);
-        setLoading(false);
-        return;
-      }
+      const calories =
+        nutriments.energy_kcal_100g ??
+        (nutriments.energy_100g
+          ? Math.round(nutriments.energy_100g / 4.184)
+          : "N/A");
 
-      const response = await fetch(
-        `https://world.openfoodfacts.org/api/v0/product/${data}.json`
-      );
-      const result = await response.json();
+      const formatNumber = (value) => {
+        if (value === undefined || value === null || isNaN(value)) return "N/A";
+        return parseFloat(value).toFixed(2);
+      };
 
-      if (result.status === 1) {
-        const product = result.product;
-        const nutriments = product.nutriments || {};
+      const productData = {
+        name: product.product_name || "Unknown",
+        brand: product.brands || "",
+        image: product.image_front_small_url || null,
+        nutriments: {
+          calories: formatNumber(calories),
+          proteins_100g: formatNumber(nutriments.proteins_100g),
+          fat_100g: formatNumber(nutriments.fat_100g),
+          carbohydrates_100g: formatNumber(nutriments.carbohydrates_100g),
+        },
+      };
 
-        const calories =
-          nutriments.energy_kcal_100g ??
-          (nutriments.energy_100g
-            ? Math.round(nutriments.energy_100g / 4.184)
-            : "N/A");
+      const isIncomplete =
+        productData.nutriments.calories === "N/A" ||
+        productData.nutriments.proteins_100g === "N/A" ||
+        productData.nutriments.fat_100g === "N/A" ||
+        productData.nutriments.carbohydrates_100g === "N/A";
 
-        const formatNumber = (value) => {
-          if (value === undefined || value === null || isNaN(value)) return "N/A";
-          return parseFloat(value).toFixed(2);
-        };
+      setProductInfo(productData);
 
-        const productData = {
-          name: product.product_name || "Unknown",
-          brand: product.brands || "",
-          image: product.image_front_small_url || null,
-          nutriments: {
-            calories: formatNumber(calories),
-            proteins_100g: formatNumber(nutriments.proteins_100g),
-            fat_100g: formatNumber(nutriments.fat_100g),
-            carbohydrates_100g: formatNumber(nutriments.carbohydrates_100g),
-          },
-        };
-
-        const isIncomplete =
-          productData.nutriments.calories === "N/A" ||
-          productData.nutriments.proteins_100g === "N/A" ||
-          productData.nutriments.fat_100g === "N/A" ||
-          productData.nutriments.carbohydrates_100g === "N/A";
-
-        setProductInfo(productData);
-
-        if (isIncomplete) {
-          setShowIncompleteModal(true);
-        } else {
-          setShowConfirmModal(true);
-        }
+      if (isIncomplete) {
+        setShowIncompleteModal(true);
       } else {
-        setShowManualAddModal(true);
+        setShowConfirmModal(true);
       }
-    } catch (error) {
-      setScanned(false);
-      setLastScannedBarcode(null);
-    } finally {
-      setLoading(false);
+    } else {
+      setShowManualAddModal(true);
     }
-  };
-
-  const resetScanner = () => {
+  } catch (error) {
     setScanned(false);
     setLastScannedBarcode(null);
-    setProductInfo(null);
-    setBarcode(null);
-  };
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <View style={styles.container}>

@@ -95,6 +95,10 @@ export default function DiaryTab({ navigation }) {
       meals.forEach((m) => {
         if (m.date === formatDate(selectedDate)) {
           let mealType = (m.mealType || "").toLowerCase();
+          // Handle plural "snacks" -> "snack"
+          if (mealType === "snacks") {
+            mealType = "snack";
+          }
           if (mealsGrouped[mealType]) mealsGrouped[mealType].push(m);
           totalCalories += m.calories || 0;
         }
@@ -192,7 +196,7 @@ export default function DiaryTab({ navigation }) {
       const uid = auth.currentUser?.uid;
       if (!uid) return;
       if (!userInfo) await fetchUserInfo(uid);
-      if (isFocused && userInfo) {
+      if (isFocused) {
         await fetchMeals();
         await fetchWater();
         await fetchActivity();

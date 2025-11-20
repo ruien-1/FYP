@@ -4,7 +4,7 @@ import { CameraView, useCameraPermissions } from "expo-camera";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 
-const DEV_API_URL = "http://192.168.68.107:5000"; 
+const DEV_API_URL = "http://192.168.68.108:5000"; 
 const PROD_API_URL = "https://fyp-0rqn.onrender.com";
 const API_URL = __DEV__ ? DEV_API_URL : PROD_API_URL;
 

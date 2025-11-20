@@ -9,6 +9,7 @@ import {
   Platform,
   ScrollView,
   KeyboardAvoidingView,
+  Modal,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -40,7 +41,7 @@ export default function EditMeal() {
   const [carbs, setCarbs] = useState(baseCarbs);
   const [calories, setCalories] = useState(baseCalories);
 
-  const mealOptions = ["Breakfast", "Lunch", "Dinner", "Snacks"];
+  const mealOptions = ["Breakfast", "Lunch", "Dinner", "Snack"];
 
   useEffect(() => {
     const servings = parseFloat(numServings) || 1;
@@ -84,12 +85,15 @@ export default function EditMeal() {
 
       if (res.data.success) {
         setMessage({ text: `${foodName} logged successfully`, type: "success" });
+        // Navigate back after successful log
         setTimeout(() => {
+          navigation.goBack();
         }, 1500);
       } else {
         setMessage({ text: "Could not log meal. Please try again.", type: "error" });
       }
     } catch (err) {
+      console.error("Error logging meal:", err);
       setMessage({ text: "Could not log meal. Please try again.", type: "error" });
     }
   };
@@ -134,6 +138,12 @@ export default function EditMeal() {
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
+          onScrollBeginDrag={() => {
+            if (showDropdown) {
+              setShowDropdown(false);
+            }
+          }}
+          scrollEventThrottle={16}
         >
           {/* Number of Servings */}
           <View style={styles.servingsCard}>
@@ -200,40 +210,59 @@ export default function EditMeal() {
           </View>
 
           {/* Meal Dropdown */}
-          <View style={styles.mealCard}>
+          <View style={[styles.mealCard, showDropdown && styles.mealCardDropdownOpen]}>
             <View style={styles.mealHeader}>
               <Ionicons name="time" size={18} color="#4A90E2" />
               <Text style={styles.mealLabel}>Meal Time</Text>
             </View>
 
-            <TouchableOpacity
-              style={styles.mealSelector}
-              onPress={() => setShowDropdown(!showDropdown)}
-            >
-              <Text style={styles.mealText}>{meal}</Text>
-              <Ionicons
-                name={showDropdown ? "chevron-up" : "chevron-down"}
-                size={18}
-                color="#666"
-              />
-            </TouchableOpacity>
+            <View style={styles.mealSelectorContainer}>
+              <TouchableOpacity
+                style={[
+                  styles.mealSelector,
+                  showDropdown && styles.mealSelectorActive
+                ]}
+                onPress={() => setShowDropdown(!showDropdown)}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.mealText}>{meal}</Text>
+                <Ionicons
+                  name={showDropdown ? "chevron-up" : "chevron-down"}
+                  size={18}
+                  color="#666"
+                />
+              </TouchableOpacity>
 
-            {showDropdown && (
-              <View style={styles.dropdownOverlay}>
-                {mealOptions.map((m) => (
-                  <TouchableOpacity
-                    key={m}
-                    style={styles.dropdownItem}
-                    onPress={() => {
-                      setMeal(m);
-                      setShowDropdown(false);
-                    }}
-                  >
-                    <Text style={styles.dropdownItemText}>{m}</Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            )}
+              {showDropdown && (
+                <View style={styles.dropdownOverlay}>
+                  {mealOptions.map((m, index) => (
+                    <TouchableOpacity
+                      key={m}
+                      style={[
+                        styles.dropdownItem,
+                        index === mealOptions.length - 1 && styles.dropdownItemLast,
+                        meal === m && styles.dropdownItemActive,
+                      ]}
+                      onPress={() => {
+                        setMeal(m);
+                        setShowDropdown(false);
+                      }}
+                      activeOpacity={0.7}
+                    >
+                      <Text style={[
+                        styles.dropdownItemText,
+                        meal === m && styles.dropdownItemTextActive,
+                      ]}>
+                        {m}
+                      </Text>
+                      {meal === m && (
+                        <Ionicons name="checkmark" size={18} color="#4A90E2" />
+                      )}
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              )}
+            </View>
           </View>
 
           {/* Nutritional Facts - Read Only */}
@@ -456,6 +485,7 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     padding: 16,
     marginBottom: 12,
+    zIndex: 10,
     ...Platform.select({
       android: {
         elevation: 2,
@@ -465,6 +495,20 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 1 },
         shadowOpacity: 0.1,
         shadowRadius: 3,
+      },
+    }),
+  },
+  mealCardDropdownOpen: {
+    zIndex: 1000,
+    ...Platform.select({
+      android: {
+        elevation: 10,
+      },
+      ios: {
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.2,
+        shadowRadius: 8,
       },
     }),
   },
@@ -479,6 +523,10 @@ const styles = StyleSheet.create({
     marginLeft: 8,
     color: "#333",
   },
+  mealSelectorContainer: {
+    position: "relative",
+    zIndex: 1001,
+  },
   mealSelector: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -489,6 +537,10 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     padding: 14,
   },
+  mealSelectorActive: {
+    borderColor: "#4A90E2",
+    borderWidth: 2,
+  },
   mealText: {
     fontSize: 15,
     fontWeight: "500",
@@ -496,35 +548,52 @@ const styles = StyleSheet.create({
   },
   dropdownOverlay: {
     position: "absolute",
-    top: 78,
-    left: 16,
-    right: 16,
+    top: "100%",
+    left: 0,
+    right: 0,
+    marginTop: 8,
     backgroundColor: "#fff",
     borderRadius: 12,
     borderWidth: 1,
     borderColor: "#E0E0E0",
-    zIndex: 1000,
+    zIndex: 1002,
+    overflow: "hidden",
     ...Platform.select({
       android: {
-        elevation: 8,
+        elevation: 12,
       },
       ios: {
         shadowColor: "#000",
         shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.15,
+        shadowOpacity: 0.2,
         shadowRadius: 8,
       },
     }),
   },
   dropdownItem: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingVertical: 14,
     paddingHorizontal: 16,
     borderBottomWidth: 1,
     borderBottomColor: "#F0F0F0",
+    backgroundColor: "#fff",
+  },
+  dropdownItemLast: {
+    borderBottomWidth: 0,
+  },
+  dropdownItemActive: {
+    backgroundColor: "#F0F7FF",
   },
   dropdownItemText: {
     fontSize: 15,
     color: "#333",
+    fontWeight: "500",
+  },
+  dropdownItemTextActive: {
+    color: "#4A90E2",
+    fontWeight: "600",
   },
 
   nutritionCard: {
@@ -532,6 +601,7 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     padding: 16,
     marginBottom: 12,
+    zIndex: 1,
     ...Platform.select({
       android: {
         elevation: 2,

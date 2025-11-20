@@ -1,5 +1,5 @@
-const APP_ID = "9a66f45d"; 
-const API_KEY = "aabcb0ac06101c8232fb5f1ff06361ce"; 
+const APP_ID = "df686bed"; 
+const API_KEY = "0ca3cab2495795d5ccdc4ac9d079e450"; 
 const BASE_URL = "https://trackapi.nutritionix.com/v2";
 
 export async function searchFoods(query) {

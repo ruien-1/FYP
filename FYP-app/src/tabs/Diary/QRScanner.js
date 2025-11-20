@@ -28,6 +28,14 @@ const QRScanner = () => {
   const [lastScannedBarcode, setLastScannedBarcode] = useState(null);
   const navigation = useNavigation();
 
+  const resetScanner = () => {
+    setScanned(false);
+    setLastScannedBarcode(null);
+    setBarcode(null);
+    setProductInfo(null);
+    setLoading(false);
+  };
+
   useFocusEffect(
     useCallback(() => {
       setScanned(false);
